@@ -17,7 +17,7 @@ public partial class MainPage : ContentPage
     private void DataGrid_CellTapped(object sender, Syncfusion.Maui.DataGrid.DataGridCellTappedEventArgs e)
     {
 
-        if (e.RowData is SurveyList selected)
+        if (e.RowData is SurveyModel selected)
         {
             _viewModel.SelectedSurvey = selected;
           
