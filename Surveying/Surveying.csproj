@@ -67,16 +67,16 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <MauiXaml Update="Cleaning.xaml">
+	  <MauiXaml Update="Views\Cleaning.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Periodic.xaml">
+	  <MauiXaml Update="Views\Periodic.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Repair.xaml">
+	  <MauiXaml Update="Views\Repair.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Survey.xaml">
+	  <MauiXaml Update="Views\Survey.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>

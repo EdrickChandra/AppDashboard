@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using Surveying.Models;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 
-namespace Surveying
+namespace Surveying.ViewModels
 {
     public class SurveyListViewModel : INotifyPropertyChanged
     {

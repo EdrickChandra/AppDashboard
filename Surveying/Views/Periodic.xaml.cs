@@ -1,4 +1,4 @@
-namespace Surveying;
+namespace Surveying.Views;
 
 public partial class Periodic : ContentPage
 {

@@ -1,6 +1,8 @@
 ﻿using Syncfusion.Maui.DataGrid;
+using Surveying.ViewModels;
+using Surveying.Models;
 
-namespace Surveying;
+namespace Surveying.Views;
 public partial class MainPage : ContentPage
 {
     private SurveyListViewModel _viewModel;
@@ -9,7 +11,7 @@ public partial class MainPage : ContentPage
     {
         InitializeComponent();
         _viewModel = new SurveyListViewModel();
-        BindingContext = _viewModel;
+        BindingContext = _viewModel;    
     }
 
     private void DataGrid_CellTapped(object sender, Syncfusion.Maui.DataGrid.DataGridCellTappedEventArgs e)

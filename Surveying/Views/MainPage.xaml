@@ -4,8 +4,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:syncfusion="clr-namespace:Syncfusion.Maui.DataGrid;assembly=Syncfusion.Maui.DataGrid"
     xmlns:buttons="clr-namespace:Syncfusion.Maui.Buttons;assembly=Syncfusion.Maui.Buttons"
-    xmlns:local="clr-namespace:Surveying"
-    x:Class="Surveying.MainPage"
+    xmlns:local="clr-namespace:Surveying.Views"
+    x:Class="Surveying.Views.MainPage"
     Title="Survey List">
 
 
@@ -49,7 +49,7 @@
                 <Label Text="Tank No:"
                    FontAttributes="Bold" />
                 <Label Text="{Binding SelectedSurvey.TankNo}" />
-                <buttons:SfButton Text="Detail" HorizontalOptions="End" CornerRadius="0" Clicked="SfButton_Clicked" ClipToBounds="False"/>
+                <buttons:SfButton Text="TestCleaning" HorizontalOptions="End" CornerRadius="0" Clicked="SfButton_Clicked" ClipToBounds="False"/>
             </HorizontalStackLayout>
 
 
@@ -57,14 +57,14 @@
             <Label Text="Condition:"
                    FontAttributes="Bold" />
             <Label Text="{Binding SelectedSurvey.Condition}" />
-                <buttons:SfButton Text="Detail" HorizontalOptions="End" CornerRadius="0" Clicked="SfButton_Clicked_1"/>
+                <buttons:SfButton Text="TestRepair" HorizontalOptions="End" CornerRadius="0" Clicked="SfButton_Clicked_1"/>
             </HorizontalStackLayout>
 
             <HorizontalStackLayout>
                 <Label Text="Surveyor:"
                    FontAttributes="Bold" />
             <Label Text="{Binding SelectedSurvey.Surveyor}" />
-                <buttons:SfButton Text="Detail" HorizontalOptions="End" CornerRadius="0" Clicked="SfButton_Clicked_2"/>
+                <buttons:SfButton Text="TestPeriodic" HorizontalOptions="End" CornerRadius="0" Clicked="SfButton_Clicked_2"/>
             </HorizontalStackLayout>
 
             <HorizontalStackLayout>
