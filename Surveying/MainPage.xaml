@@ -1,0 +1,81 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentPage 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:syncfusion="clr-namespace:Syncfusion.Maui.DataGrid;assembly=Syncfusion.Maui.DataGrid"
+    xmlns:buttons="clr-namespace:Syncfusion.Maui.Buttons;assembly=Syncfusion.Maui.Buttons"
+    xmlns:local="clr-namespace:Surveying"
+    x:Class="Surveying.MainPage"
+    Title="Survey List">
+
+
+
+
+
+    <Grid>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+        
+            <ColumnDefinition Width="*" />
+    
+        </Grid.ColumnDefinitions>
+
+        <syncfusion:SfDataGrid x:Name="dataGrid"
+                               Grid.Column="0"
+                               ItemsSource="{Binding SurveyListCollection}"
+                               SelectionMode="Single"
+                               CellTapped="DataGrid_CellTapped"
+                               ColumnWidthMode="Fill"
+                               RowHeight="50"
+                              >
+            <syncfusion:SfDataGrid.Columns>
+                <syncfusion:DataGridTextColumn HeaderText="Order No." MappingName="OrderNumber" />
+                <syncfusion:DataGridTextColumn HeaderText="Principal" MappingName="Principal" />
+                <syncfusion:DataGridTextColumn HeaderText="Surveyor" MappingName="Surveyor" />
+                <syncfusion:DataGridTextColumn HeaderText="Tank No." MappingName="TankNo" />
+                <syncfusion:DataGridTextColumn HeaderText="Condition" MappingName="Condition" />
+            </syncfusion:SfDataGrid.Columns>
+        </syncfusion:SfDataGrid>
+
+        <VerticalStackLayout Grid.Column="1"
+                             Padding="20"
+                             Spacing="10">
+            <Label Text="Details"
+                   FontAttributes="Bold"
+                   FontSize="20" />
+
+            <HorizontalStackLayout>
+                <Label Text="Tank No:"
+                   FontAttributes="Bold" />
+                <Label Text="{Binding SelectedSurvey.TankNo}" />
+                <buttons:SfButton Text="Detail" HorizontalOptions="End" CornerRadius="0" Clicked="SfButton_Clicked" ClipToBounds="False"/>
+            </HorizontalStackLayout>
+
+
+            <HorizontalStackLayout>
+            <Label Text="Condition:"
+                   FontAttributes="Bold" />
+            <Label Text="{Binding SelectedSurvey.Condition}" />
+                <buttons:SfButton Text="Detail" HorizontalOptions="End" CornerRadius="0" Clicked="SfButton_Clicked_1"/>
+            </HorizontalStackLayout>
+
+            <HorizontalStackLayout>
+                <Label Text="Surveyor:"
+                   FontAttributes="Bold" />
+            <Label Text="{Binding SelectedSurvey.Surveyor}" />
+                <buttons:SfButton Text="Detail" HorizontalOptions="End" CornerRadius="0" Clicked="SfButton_Clicked_2"/>
+            </HorizontalStackLayout>
+
+            <HorizontalStackLayout>
+                <Label Text="OrderDate:"
+       FontAttributes="Bold" />
+                <Label Text="{Binding SelectedSurvey.OrderDate} " />
+                <buttons:SfButton Text="Detail" HorizontalOptions="End" CornerRadius="0" Clicked="SfButton_Clicked_2"/>
+            </HorizontalStackLayout>
+
+
+
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>
