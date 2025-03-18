@@ -9,7 +9,32 @@
             VerticalOptions="Center" 
             HorizontalOptions="Center" />
 
+        <HorizontalStackLayout>
+            <Label Text ="Tanggal Cuci :"/>
+            <DatePicker x:Name="CleanStartDate"/>
+        </HorizontalStackLayout>
+        
+        <HorizontalStackLayout>
+            <Label Text ="Tanggal Selesai :"/>
+            <DatePicker x:Name="CleanEndDate"/>
+        </HorizontalStackLayout>
 
+        <Button Text="Upload Photo" Clicked="OnUploadPhotoClicked" />
+
+        <CollectionView x:Name="PhotosCollectionView" ItemsSource="{Binding Photos}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    
+                    <StackLayout Spacing="5" Padding="5">
+    
+                        <Image Source="{Binding ImageSource}" HeightRequest="100" Aspect="AspectFill" />
+                     
+                        <Button Text="Delete" Clicked="OnDeleteClicked" />
+                        
+                    </StackLayout>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
 
     </VerticalStackLayout>
 </ContentPage>

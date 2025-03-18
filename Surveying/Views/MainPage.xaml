@@ -54,22 +54,22 @@
 
 
             <HorizontalStackLayout>
-            <Label Text="Condition:"
-                   FontAttributes="Bold" />
+                <Label Text="Condition:"
+                       FontAttributes="Bold" />
             <Label Text="{Binding SelectedSurvey.Condition}" />
                 <buttons:SfButton Text="TestRepair" HorizontalOptions="End" CornerRadius="0" Clicked="SfButton_Clicked_1"/>
             </HorizontalStackLayout>
 
             <HorizontalStackLayout>
                 <Label Text="Surveyor:"
-                   FontAttributes="Bold" />
+                       FontAttributes="Bold" />
             <Label Text="{Binding SelectedSurvey.Surveyor}" />
                 <buttons:SfButton Text="TestPeriodic" HorizontalOptions="End" CornerRadius="0" Clicked="SfButton_Clicked_2"/>
             </HorizontalStackLayout>
 
             <HorizontalStackLayout>
                 <Label Text="OrderDate:"
-       FontAttributes="Bold" />
+                       FontAttributes="Bold" />
                 <Label Text="{Binding SelectedSurvey.OrderDate} " />
                 <buttons:SfButton Text="Detail" HorizontalOptions="End" CornerRadius="0" Clicked="SfButton_Clicked_2"/>
             </HorizontalStackLayout>
