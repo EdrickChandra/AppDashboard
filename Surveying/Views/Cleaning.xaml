@@ -4,37 +4,39 @@
              x:Class="Surveying.Views.Cleaning"
              Title="Cleaning">
     <VerticalStackLayout>
-        <Label 
-            Text="Cleaning"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
+        <Label Text="Cleaning" VerticalOptions="Center" HorizontalOptions="Center" />
+
+        <Label x:Name="ContainerNumberLabel" Text="{Binding ContainerNumber}" />
 
         <HorizontalStackLayout>
-            <Label Text ="Tanggal Cuci :"/>
-            <DatePicker x:Name="CleanStartDate"/>
+            <Label Text="Tanggal Cuci :" />
+            <DatePicker x:Name="StartCleanDatePicker" Date="{Binding StartCleanDate, Mode=TwoWay}" />
         </HorizontalStackLayout>
+
+        <HorizontalStackLayout>
+            <Label Text="Tanggal Selesai :" />
+            <DatePicker x:Name="EndCleanDatePicker" Date="{Binding EndCleanDate, Mode=TwoWay}" />
+        </HorizontalStackLayout>
+
+       
         
-        <HorizontalStackLayout>
-            <Label Text ="Tanggal Selesai :"/>
-            <DatePicker x:Name="CleanEndDate"/>
-        </HorizontalStackLayout>
-
         <Button Text="Upload Photo" Clicked="OnUploadPhotoClicked" />
 
-        <CollectionView x:Name="PhotosCollectionView" ItemsSource="{Binding Photos}">
+        <CollectionView ItemsSource="{Binding Photos}">
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    
                     <StackLayout Spacing="5" Padding="5">
-    
-                        <Image Source="{Binding ImageSource}" HeightRequest="100" Aspect="AspectFill" />
-                     
-                        <Button Text="Delete" Clicked="OnDeleteClicked" />
-                        
+                        <Image Source="{Binding ImageSource}" 
+                       HeightRequest="100" Aspect="AspectFill" />
+                        <Button Text="Delete" 
+                        Clicked="OnDeleteClicked" 
+                        CommandParameter="{Binding .}" />
                     </StackLayout>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
+
+        <Button WidthRequest="200" Text="Submit"/>
 
     </VerticalStackLayout>
 </ContentPage>

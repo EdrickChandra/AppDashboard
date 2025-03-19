@@ -9,6 +9,70 @@
             HorizontalOptions="Center" 
             />
 
+        <HorizontalStackLayout>
+            <Label Text="Tank No :"/>
+            <Label Text=""/>
+
+
+        </HorizontalStackLayout>
+               
+        
+
+            <Label Text="Jenis Repair :" />
+        <HorizontalStackLayout>
+            <Label Text="- LadderBent"/>
+            <CheckBox/>
+        </HorizontalStackLayout>
+        
+        <HorizontalStackLayout>
+            <Label Text="- WalkwayBent"/>
+            <CheckBox/>
+        </HorizontalStackLayout> 
+        
+        <HorizontalStackLayout>
+            <Label Text="- MajorDamage"/>
+            <CheckBox/>
+        </HorizontalStackLayout> 
+        
+        <HorizontalStackLayout>
+            <Label Text="- ValveStuck"/>
+            <CheckBox/>
+        </HorizontalStackLayout>
+
+        <HorizontalStackLayout>
+            <Label Text="Tanggal Mulai:"/>
+            <DatePicker/>
+        </HorizontalStackLayout>
+
+        <HorizontalStackLayout>
+            <Label Text="Tanggal Selesai:"/>
+            <DatePicker/>
+        </HorizontalStackLayout>
+
+        
+
+        <Button Text="Upload Photo"  />
+
+        <CollectionView ItemsSource="{Binding Photos}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <StackLayout Spacing="5" Padding="5">
+                        <Image Source="{Binding ImageSource}" 
+               HeightRequest="100" Aspect="AspectFill" />
+                        <Button Text="Delete" 
+              
+                CommandParameter="{Binding .}" />
+                    </StackLayout>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <Button WidthRequest="200" Text="Submit"/>
+
+
+
+
+
 
 
     </VerticalStackLayout>

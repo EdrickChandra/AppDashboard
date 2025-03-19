@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Surveying.Models;
 
-public class SurveyModel : ObservableObject {
+public partial class SurveyModel : ObservableObject {
     //private static int _orderCounter = 1;
     public string OrderNumber { get; set; }
 
@@ -71,4 +71,5 @@ public class SurveyModel : ObservableObject {
             return DummyData.Containers.Where(w => w.ContNumber == ContNumber).FirstOrDefault().ContType;
         }
     }
+
 }

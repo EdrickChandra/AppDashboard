@@ -33,8 +33,9 @@ public static class DummyData {
     };
 
     public static List<SurveyModel> Surveys = new List<SurveyModel> {
-        new SurveyModel("ABC001", 1, "John Doe", 1, "C001", DateTime.Now, DateTime.Now.AddDays(2), DateTime.Now.AddDays(5), "Good"),
-        new SurveyModel("ABC002", 2, "Jane Smith", 2, "C002", DateTime.Now, DateTime.Now.AddDays(3), DateTime.Now.AddDays(6), "Needs Repair"),
-        new SurveyModel("ABC003", 3, "Mike Johnson", 3, "C003", DateTime.Now, DateTime.Now.AddDays(4), DateTime.Now.AddDays(7), "Damaged")
+        new SurveyModel("ABC001", 1, "John Doe", 1, "C001", DateTime.Now, DateTime.Now.AddDays(2), DateTime.Now.AddDays(5), "Clean"),
+        new SurveyModel("ABC002", 2, "Jane Smith", 2, "C002", DateTime.Now, DateTime.Now.AddDays(3), DateTime.Now.AddDays(6), "Empty Clean"),
+        new SurveyModel("ABC003", 3, "Mike Johnson", 3, "C003", DateTime.Now, DateTime.Now.AddDays(4), DateTime.Now.AddDays(7), "Dirty")
+        
     };
 }

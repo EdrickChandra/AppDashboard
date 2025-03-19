@@ -8,5 +8,15 @@
             Text="Periodic"
             VerticalOptions="Center" 
             HorizontalOptions="Center" />
+
+        <Label Text="Periodic Test : 2,5 year"/>
+
+        <Label Text="Surveyor"/>
+
+        <DatePicker />
+
+        <Button Text="Upload Photo"/>
+
+        <Button WidthRequest="200" Text="Submit"/>
     </VerticalStackLayout>
 </ContentPage>

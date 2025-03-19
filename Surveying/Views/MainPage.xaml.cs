@@ -26,17 +26,37 @@ public partial class MainPage : ContentPage
 
     private async void SfButton_Clicked(object sender, EventArgs e)
     {
-        await Navigation.PushAsync(new Cleaning());
-
+        if (_viewModel.SelectedSurvey != null)
+        {
+            var containernumber = _viewModel.SelectedSurvey.ContNumber;
+            await Navigation.PushAsync(new Cleaning(containernumber));
+        }
+        else
+        {
+            await DisplayAlert("No Selection", "Please select a survey first.", "OK");
+        }
     }
 
     private async void SfButton_Clicked_1(object sender, EventArgs e)
     {
-        await Navigation.PushAsync(new Repair());
+        if (_viewModel.SelectedSurvey != null)
+        {
+            var containernumber = _viewModel.SelectedSurvey.ContNumber;
+            await Navigation.PushAsync(new Repair());
+        }
+        else
+        {
+            await DisplayAlert("No Selection", "Please select a survey first.", "OK");
+        }
     }
 
     private async void SfButton_Clicked_2(object sender, EventArgs e)
     {
         await Navigation.PushAsync(new Periodic());
+    }
+
+    private async void SfButton_Clicked_3(object sender, EventArgs e)
+    {
+        await Navigation.PushAsync(new Survey());
     }
 }

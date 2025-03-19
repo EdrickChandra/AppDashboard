@@ -16,7 +16,15 @@ public partial class SurveyListViewModel : BaseViewModel {
     
     public ObservableCollection<SurveyModel> SurveyListCollection { get; set; }
 
-    public SurveyListViewModel() {
+    public SurveyListViewModel()
+    {
         SurveyListCollection = new ObservableCollection<SurveyModel>(DummyData.Surveys);
     }
+
+    public ObservableCollection<string> ConditionList { get; set; } = new ObservableCollection<string>
+        {
+            "Mty Clean", "Clean", "Dirty"
+        };
+
 }
+

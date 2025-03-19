@@ -2,11 +2,62 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Surveying.Views.Survey"
+             xmlns:inputLayout="clr-namespace:Syncfusion.Maui.Core;assembly=Syncfusion.Maui.Core"
+             xmlns:buttons="clr-namespace:Syncfusion.Maui.Buttons;assembly=Syncfusion.Maui.Buttons"
+             xmlns:local="clr-namespace:Surveying.ViewModels"
              Title="Survey">
+
+
+
+    <ContentPage.BindingContext>
+        <local:CheckboxViewModel />
+    </ContentPage.BindingContext>
+    
     <VerticalStackLayout>
         <Label 
             Text="Survey"
             VerticalOptions="Center" 
             HorizontalOptions="Center" />
+
+
+
+        <HorizontalStackLayout Padding="20" Spacing="15">
+
+            <Label Text="Cleaning"/>
+
+            <buttons:SfCheckBox IsChecked="{Binding Accept, Mode=TwoWay}"
+                       Text="Accept" />
+
+            <buttons:SfCheckBox IsChecked="{Binding Reject, Mode=TwoWay}"
+                       Text="Reject" />
+        </HorizontalStackLayout>
+
+        <HorizontalStackLayout Padding="20" Spacing="15">
+
+            <Label Text="Repair"/>
+
+            <buttons:SfCheckBox IsChecked="{Binding Accept, Mode=TwoWay}"
+               Text="Accept" />
+
+            <buttons:SfCheckBox IsChecked="{Binding Reject, Mode=TwoWay}"
+               Text="Reject" />
+        </HorizontalStackLayout>
+
+        <HorizontalStackLayout Padding="20" Spacing="15">
+
+            <Label Text="Periodic"/>
+
+            <buttons:SfCheckBox IsChecked="{Binding Accept, Mode=TwoWay}"
+               Text="Accept" />
+
+            <buttons:SfCheckBox IsChecked="{Binding Reject, Mode=TwoWay}"
+               Text="Reject" />
+        </HorizontalStackLayout>
+
+
+        <DatePicker/>
+
+        <inputLayout:SfTextInputLayout/>
+
     </VerticalStackLayout>
 </ContentPage>
