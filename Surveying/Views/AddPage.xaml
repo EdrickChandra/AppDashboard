@@ -1,0 +1,83 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:syncfusion="clr-namespace:Syncfusion.Maui.DataGrid;assembly=Syncfusion.Maui.DataGrid"
+             xmlns:inputLayout="clr-namespace:Syncfusion.Maui.Core;assembly=Syncfusion.Maui.Core"
+             xmlns:editors="clr-namespace:Syncfusion.Maui.Inputs;assembly=Syncfusion.Maui.Inputs"
+             xmlns:local="clr-namespace:Surveying.ViewModels"
+             x:Class="Surveying.Views.AddPage">
+    <ContentPage.BindingContext>
+        <local:AddPageViewModel />
+    </ContentPage.BindingContext>
+    <ScrollView>
+        <StackLayout Padding="20" Spacing="15">
+            <Label Text="Add Survey Entry" FontSize="20" HorizontalOptions="Center" />
+
+
+            <HorizontalStackLayout>
+
+                <inputLayout:SfTextInputLayout Hint="Order Number" WidthRequest="300" Margin="50,0,0,0">
+                    <Entry Text="{Binding OrderNumber}" />
+                </inputLayout:SfTextInputLayout>
+
+                <inputLayout:SfTextInputLayout Hint="Container Number" WidthRequest="300" Margin="50,0,0,0">
+                    <Entry Text="{Binding ContNumber}" />
+                </inputLayout:SfTextInputLayout>
+
+                <inputLayout:SfTextInputLayout Hint="Surveyor" WidthRequest="300" Margin="50,0,0,0">
+                    <Entry Text="{Binding Surveyor}" />
+                </inputLayout:SfTextInputLayout>
+
+            </HorizontalStackLayout>
+
+            <HorizontalStackLayout>
+            <inputLayout:SfTextInputLayout Hint="Principal ID" WidthRequest="300" Margin="50,0,0,0">
+                <Entry Text="{Binding PrincipalId}" />
+            </inputLayout:SfTextInputLayout>
+
+
+            <inputLayout:SfTextInputLayout Hint="Shipper ID" WidthRequest="300" Margin="50,0,0,0">
+                <Entry Text="{Binding ShipperId}" />
+            </inputLayout:SfTextInputLayout>
+
+            <editors:SfComboBox x:Name="comboBox"
+                  SelectedItem="{Binding Condition, Mode=TwoWay}"
+                  Placeholder="Condition"
+                  IsEditable="True"
+                  IsFilteringEnabled="True"
+                  NoResultsFoundText="Not Found"
+                  ItemsSource="{Binding ConditionList}"
+                  WidthRequest="240"
+                  Margin="50,0,0,0"/>
+                
+            </HorizontalStackLayout>
+
+            <HorizontalStackLayout>
+            <DatePicker Date="{Binding OrderDate}" />
+            <DatePicker Date="{Binding SurveyDate}" />
+            <DatePicker Date="{Binding PickupDate}" />
+            </HorizontalStackLayout>
+            <Label Text="Condition:"/>
+            
+            <Button Text="Add Entry" Command="{Binding AddSurveyEntryCommand}" />
+
+            <!-- Temporary DataGrid showing the added survey entries -->
+            <syncfusion:SfDataGrid ItemsSource="{Binding SurveyEntries}"
+                                   AutoGenerateColumnsMode="None"
+                                   HeightRequest="200">
+                <syncfusion:SfDataGrid.Columns>
+                    <syncfusion:DataGridTextColumn MappingName="OrderNumber" HeaderText="Order Number" />
+                    <syncfusion:DataGridTextColumn MappingName="PrincipalId" HeaderText="Principal ID" />
+                    <syncfusion:DataGridTextColumn MappingName="Surveyor" HeaderText="Surveyor" />
+                    <syncfusion:DataGridTextColumn MappingName="ShipperId" HeaderText="Shipper ID" />
+                    <syncfusion:DataGridTextColumn MappingName="ContNumber" HeaderText="Container Number" />
+                    <syncfusion:DataGridTextColumn MappingName="OrderDate" HeaderText="Order Date" />
+                    <syncfusion:DataGridTextColumn MappingName="SurveyDate" HeaderText="Survey Date" />
+                    <syncfusion:DataGridTextColumn MappingName="PickupDate" HeaderText="Pickup Date" />
+                    <syncfusion:DataGridTextColumn MappingName="Condition" HeaderText="Condition" />
+                </syncfusion:SfDataGrid.Columns>
+            </syncfusion:SfDataGrid>
+
+            <Button Text="Submit" Command="{Binding SubmitCommand}" />
+        </StackLayout>
+    </ScrollView>
+</ContentPage>

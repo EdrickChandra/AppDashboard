@@ -3,20 +3,38 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Surveying.Views.Periodic"
              Title="Periodic">
-    <VerticalStackLayout>
-        <Label 
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="20">
+            <Label 
             Text="Periodic"
             VerticalOptions="Center" 
             HorizontalOptions="Center" />
 
-        <Label Text="Periodic Test : 2,5 year"/>
+            <Label Text="{Binding ContainerNumber, StringFormat='Tank No: {0}'}" />
 
-        <Label Text="Surveyor"/>
+            <Label Text="Periodic Test : 2,5 year"/>
 
-        <DatePicker />
+            <DatePicker />
 
-        <Button Text="Upload Photo"/>
+            <Button Text="Upload Photo" Command="{Binding PhotoUploader.UploadPhotoAsyncCommand}" WidthRequest="300" HorizontalOptions="Start" />
 
-        <Button WidthRequest="200" Text="Submit"/>
-    </VerticalStackLayout>
+            <CollectionView ItemsSource="{Binding PhotoUploader.Photos}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <VerticalStackLayout Spacing="10">
+                            <Image Source="{Binding ImageSource}" WidthRequest="500" HorizontalOptions="Start" />
+
+                            <Button Text="Delete" WidthRequest="300" HorizontalOptions="Start"
+                      Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.PhotoUploader.DeletePhotoCommand}"
+                      CommandParameter="{Binding .}" />
+                        </VerticalStackLayout>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+
+            <Button Text="Submit" Command="{Binding SubmitPeriodicCommand}" />
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>

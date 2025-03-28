@@ -21,10 +21,7 @@ public partial class SurveyListViewModel : BaseViewModel {
         SurveyListCollection = new ObservableCollection<SurveyModel>(DummyData.Surveys);
     }
 
-    public ObservableCollection<string> ConditionList { get; set; } = new ObservableCollection<string>
-        {
-            "Mty Clean", "Clean", "Dirty"
-        };
+    public ObservableCollection<string> ConditionList => ConditionData.ConditionList;
 
 }
 

@@ -1,9 +1,14 @@
-namespace Surveying.Views;
+using Surveying.Models;
+using Surveying.ViewModels;
 
-public partial class Periodic : ContentPage
+namespace Surveying.Views
 {
-	public Periodic()
-	{
-		InitializeComponent();
-	}
+    public partial class Periodic : ContentPage
+    {
+        public Periodic(SurveyModel survey)
+        {
+            InitializeComponent();
+            BindingContext = new PeriodicViewModel(survey);
+        }
+    }
 }

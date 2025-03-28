@@ -3,20 +3,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Surveying.Views.Repair"
              Title="Repair">
-    <VerticalStackLayout>
-        <Label 
-            Text="Repair"
-            HorizontalOptions="Center" 
-            />
-
-        <HorizontalStackLayout>
-            <Label Text="Tank No :"/>
-            <Label Text=""/>
 
 
-        </HorizontalStackLayout>
-               
-        
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="20">
+
+            <Label Text="{Binding ContainerNumber, StringFormat='Tank No: {0}'}" />
+
+                   
 
             <Label Text="Jenis Repair :" />
         <HorizontalStackLayout>
@@ -49,31 +43,24 @@
             <DatePicker/>
         </HorizontalStackLayout>
 
-        
+            <Button Text="Upload Photo" Command="{Binding PhotoUploader.UploadPhotoAsyncCommand}" WidthRequest="300" HorizontalOptions="Start" />
 
-        <Button Text="Upload Photo"  />
+            <CollectionView ItemsSource="{Binding PhotoUploader.Photos}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <VerticalStackLayout Spacing="10">
+                            <Image Source="{Binding ImageSource}" WidthRequest="500" HorizontalOptions="Start" />
 
-        <CollectionView ItemsSource="{Binding Photos}">
-            <CollectionView.ItemTemplate>
-                <DataTemplate>
-                    <StackLayout Spacing="5" Padding="5">
-                        <Image Source="{Binding ImageSource}" 
-               HeightRequest="100" Aspect="AspectFill" />
-                        <Button Text="Delete" 
-              
-                CommandParameter="{Binding .}" />
-                    </StackLayout>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
+                            <Button Text="Delete" WidthRequest="300" HorizontalOptions="Start"
+                      Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.PhotoUploader.DeletePhotoCommand}"
+                      CommandParameter="{Binding .}" />
+                        </VerticalStackLayout>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
 
-        <Button WidthRequest="200" Text="Submit"/>
+            <Button Text="Submit" Command="{Binding SubmitRepairCommand}" />
 
-
-
-
-
-
-
-    </VerticalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>

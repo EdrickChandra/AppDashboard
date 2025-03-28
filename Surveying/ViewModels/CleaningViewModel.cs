@@ -1,26 +1,32 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Surveying.Models;
+using System;
 
 namespace Surveying.ViewModels
 {
-    public class CleaningViewModel : BaseViewModel
+    public partial class CleaningViewModel : BaseViewModel
     {
-        
-        public string ContainerNumber { get; set; }
+        public SurveyModel Survey { get; }
+        public string ContainerNumber => Survey.ContNumber;
         public DateTime StartCleanDate { get; set; }
         public DateTime EndCleanDate { get; set; }
 
-        public ObservableCollection<PhotoItem> Photos { get; set; }
-            = new ObservableCollection<PhotoItem>();
+        // Expose the separate PhotoUploadViewModel for photo functionality.
+        public PhotoUploadViewModel PhotoUploader { get; } = new PhotoUploadViewModel();
 
-        public CleaningViewModel(string containerNumber)
+        public CleaningViewModel(SurveyModel survey)
         {
-            ContainerNumber = containerNumber;
+            Survey = survey;
             StartCleanDate = DateTime.Today;
             EndCleanDate = DateTime.Today.AddDays(1);
         }
-    }
 
+        [RelayCommand]
+        void SubmitCleaning()
+        {
+            // For example, set the cleaning status to OnReview.
+            Survey.CleaningStatus = StatusType.OnReview;
+        }
+    }
 }

@@ -24,6 +24,10 @@
                 <ColumnDefinition Width="*" />
     
             </Grid.ColumnDefinitions>
+            <VerticalStackLayout Grid.Column="0" Padding="10" Spacing="10">
+
+                
+            <buttons:SfButton Text="Add Survey" Clicked="OnAddSurveyClicked" HorizontalOptions="Start" />
 
             <syncfusion:SfDataGrid x:Name="dataGrid"
                                    Grid.Column="0"
@@ -35,7 +39,7 @@
                                    RowHeight="40"
                                    AutoGenerateColumnsMode="None"
                                    AllowEditing="True"
-                                  >
+                                   MaximumHeightRequest="1200">
                     <syncfusion:SfDataGrid.GroupColumnDescriptions>
                         <syncfusion:GroupColumnDescription ColumnName="OrderNumber"/>
                     </syncfusion:SfDataGrid.GroupColumnDescriptions>
@@ -46,9 +50,11 @@
                     <syncfusion:DataGridTextColumn HeaderText="Surveyor" MappingName="Surveyor" />
                     <syncfusion:DataGridTextColumn HeaderText="Tank No." MappingName="ContNumber" />
                     <syncfusion:DataGridTextColumn HeaderText="Condition" MappingName="Condition" />
+                    <syncfusion:DataGridTextColumn MappingName="Status" HeaderText="C|R|P|S" />
                 </syncfusion:SfDataGrid.Columns>
             </syncfusion:SfDataGrid>
 
+            </VerticalStackLayout>
             <VerticalStackLayout Grid.Column="1"
                                  Padding="20"
                                  Spacing="10">

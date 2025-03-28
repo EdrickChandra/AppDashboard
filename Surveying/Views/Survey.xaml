@@ -1,63 +1,67 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Surveying.Views.Survey"
-             xmlns:inputLayout="clr-namespace:Syncfusion.Maui.Core;assembly=Syncfusion.Maui.Core"
              xmlns:buttons="clr-namespace:Syncfusion.Maui.Buttons;assembly=Syncfusion.Maui.Buttons"
              xmlns:local="clr-namespace:Surveying.ViewModels"
+             x:Class="Surveying.Views.Survey"
              Title="Survey">
 
-
-
     <ContentPage.BindingContext>
-        <local:CheckboxViewModel />
+        <local:CheckboxViewModel/>
     </ContentPage.BindingContext>
-    
-    <VerticalStackLayout>
-        <Label 
-            Text="Survey"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
 
+    <VerticalStackLayout Spacing="20" Padding="20">
 
-
-        <HorizontalStackLayout Padding="20" Spacing="15">
-
-            <Label Text="Cleaning"/>
-
-            <buttons:SfCheckBox IsChecked="{Binding Accept, Mode=TwoWay}"
-                       Text="Accept" />
-
-            <buttons:SfCheckBox IsChecked="{Binding Reject, Mode=TwoWay}"
-                       Text="Reject" />
+        <HorizontalStackLayout Spacing="15">
+            
+            <Label Text="Cleaning" VerticalOptions="Center"/>
+            
+            <buttons:SfCheckBox IsChecked="{Binding CleaningAccept, Mode=TwoWay}"
+                                Text="Accept" VerticalOptions="Center"/>
+            
+            <buttons:SfCheckBox IsChecked="{Binding CleaningReject, Mode=TwoWay}"
+                                Text="Reject" VerticalOptions="Center"/>
+            
+            <Button Text="Submit" Command="{Binding SubmitCleaningCommand}"
+                    VerticalOptions="Center"/>
+            
+            <Label Text="{Binding CleaningResult}" VerticalOptions="Center"/>
+            
         </HorizontalStackLayout>
 
-        <HorizontalStackLayout Padding="20" Spacing="15">
-
-            <Label Text="Repair"/>
-
-            <buttons:SfCheckBox IsChecked="{Binding Accept, Mode=TwoWay}"
-               Text="Accept" />
-
-            <buttons:SfCheckBox IsChecked="{Binding Reject, Mode=TwoWay}"
-               Text="Reject" />
-        </HorizontalStackLayout>
-
-        <HorizontalStackLayout Padding="20" Spacing="15">
-
-            <Label Text="Periodic"/>
-
-            <buttons:SfCheckBox IsChecked="{Binding Accept, Mode=TwoWay}"
-               Text="Accept" />
-
-            <buttons:SfCheckBox IsChecked="{Binding Reject, Mode=TwoWay}"
-               Text="Reject" />
+ 
+        <HorizontalStackLayout Spacing="15">
+            
+            <Label Text="Repair" VerticalOptions="Center"/>
+            
+            <buttons:SfCheckBox IsChecked="{Binding RepairAccept, Mode=TwoWay}"
+                                Text="Accept" VerticalOptions="Center"/>
+            
+            <buttons:SfCheckBox IsChecked="{Binding RepairReject, Mode=TwoWay}"
+                                Text="Reject" VerticalOptions="Center"/>
+            
+            <Button Text="Submit" Command="{Binding SubmitRepairCommand}"
+                    VerticalOptions="Center"/>
+            
+            <Label Text="{Binding RepairResult}" VerticalOptions="Center"/>
+            
         </HorizontalStackLayout>
 
 
-        <DatePicker/>
-
-        <inputLayout:SfTextInputLayout/>
-
+        <HorizontalStackLayout Spacing="15">
+            <Label Text="Periodic" VerticalOptions="Center"/>
+            
+            <buttons:SfCheckBox IsChecked="{Binding PeriodicAccept, Mode=TwoWay}"
+                                Text="Accept" VerticalOptions="Center"/>
+            
+            <buttons:SfCheckBox IsChecked="{Binding PeriodicReject, Mode=TwoWay}"
+                                Text="Reject" VerticalOptions="Center"/>
+            
+            <Button Text="Submit" Command="{Binding SubmitPeriodicCommand}"
+                    VerticalOptions="Center"/>
+            
+            <Label Text="{Binding PeriodicResult}" VerticalOptions="Center"/>
+            
+        </HorizontalStackLayout>
     </VerticalStackLayout>
 </ContentPage>

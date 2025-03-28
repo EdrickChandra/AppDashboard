@@ -1,9 +1,14 @@
-namespace Surveying.Views;
+using Surveying.Models;
+using Surveying.ViewModels;
 
-public partial class Repair : ContentPage
+namespace Surveying.Views
 {
-	public Repair()
-	{
-		InitializeComponent();
-	}
+    public partial class Repair : ContentPage
+    {
+        public Repair(SurveyModel survey)
+        {
+            InitializeComponent();
+            BindingContext = new RepairViewModel(survey);
+        }
+    }
 }

@@ -1,42 +1,55 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+<ContentPage x:Name="PageRoot"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:buttons="clr-namespace:Syncfusion.Maui.Buttons;assembly=Syncfusion.Maui.Buttons"
+             xmlns:local="clr-namespace:Surveying.ViewModels"
              x:Class="Surveying.Views.Cleaning"
              Title="Cleaning">
-    <VerticalStackLayout>
-        <Label Text="Cleaning" VerticalOptions="Center" HorizontalOptions="Center" />
 
-        <Label x:Name="ContainerNumberLabel" Text="{Binding ContainerNumber}" />
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="20">
 
-        <HorizontalStackLayout>
-            <Label Text="Tanggal Cuci :" />
-            <DatePicker x:Name="StartCleanDatePicker" Date="{Binding StartCleanDate, Mode=TwoWay}" />
+
+
+            <Label Text="{Binding ContainerNumber, StringFormat='Tank No: {0}'}" />
+
+            <HorizontalStackLayout>
+
+            <Label Text="Start Date : "/>
+            <DatePicker Date="{Binding StartCleanDate}"/>
+
         </HorizontalStackLayout>
 
         <HorizontalStackLayout>
-            <Label Text="Tanggal Selesai :" />
-            <DatePicker x:Name="EndCleanDatePicker" Date="{Binding EndCleanDate, Mode=TwoWay}" />
+
+            <Label Text="End Date : "/>
+            <DatePicker Date="{Binding EndCleanDate}"/>
+
         </HorizontalStackLayout>
 
-       
-        
-        <Button Text="Upload Photo" Clicked="OnUploadPhotoClicked" />
 
-        <CollectionView ItemsSource="{Binding Photos}">
+
+        <Button Text="Upload Photo" Command="{Binding PhotoUploader.UploadPhotoAsyncCommand}" WidthRequest="300" HorizontalOptions="Start" />
+
+        <CollectionView ItemsSource="{Binding PhotoUploader.Photos}">
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <StackLayout Spacing="5" Padding="5">
-                        <Image Source="{Binding ImageSource}" 
-                       HeightRequest="100" Aspect="AspectFill" />
-                        <Button Text="Delete" 
-                        Clicked="OnDeleteClicked" 
-                        CommandParameter="{Binding .}" />
-                    </StackLayout>
+                    <VerticalStackLayout Spacing="10">
+                        <Image Source="{Binding ImageSource}" WidthRequest="500" HorizontalOptions="Start" />
+                       
+                        <Button Text="Delete" WidthRequest="300" HorizontalOptions="Start"
+                              Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.PhotoUploader.DeletePhotoCommand}"
+                              CommandParameter="{Binding .}" />
+                        </VerticalStackLayout>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <Button WidthRequest="200" Text="Submit"/>
+    
+        <Button Text="Submit Cleaning" Command="{Binding SubmitCleaningCommand}" WidthRequest="300" HorizontalOptions="Start"/>
 
-    </VerticalStackLayout>
+        
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>

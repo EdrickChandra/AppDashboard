@@ -1,9 +1,16 @@
-namespace Surveying.Views;
+using Surveying.Models;
+using Surveying.ViewModels;
 
-public partial class Survey : ContentPage
+namespace Surveying.Views
 {
-	public Survey()
-	{
-		InitializeComponent();
-	}
+    public partial class Survey : ContentPage
+    {
+        // Create a constructor that accepts the SurveyModel
+        public Survey(SurveyModel survey)
+        {
+            InitializeComponent();
+            // Pass the SurveyModel into the view model
+            BindingContext = new CheckboxViewModel(survey);
+        }
+    }
 }
