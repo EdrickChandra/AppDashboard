@@ -10,46 +10,55 @@
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="20">
 
+            <Frame Padding="15" Margin="0,0,0,10" BorderColor="LightGray" CornerRadius="8">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="{Binding ContainerNumber, StringFormat='Tank No: {0}'}"
+                           FontAttributes="Bold"
+                           FontSize="18" />
 
+                    <HorizontalStackLayout Spacing="10">
+                        <Label Text="Start Date:" VerticalOptions="Center" />
+                        <DatePicker Date="{Binding StartCleanDate}" />
+                    </HorizontalStackLayout>
 
-            <Label Text="{Binding ContainerNumber, StringFormat='Tank No: {0}'}" />
+                    <HorizontalStackLayout Spacing="10">
+                        <Label Text="End Date:" VerticalOptions="Center" />
+                        <DatePicker Date="{Binding EndCleanDate}" />
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Frame>
 
-            <HorizontalStackLayout>
+            <Button Text="Upload Photo"
+                    Command="{Binding PhotoUploader.UploadPhotoAsyncCommand}"
+                    WidthRequest="300"
+                    HorizontalOptions="Center" />
 
-            <Label Text="Start Date : "/>
-            <DatePicker Date="{Binding StartCleanDate}"/>
+            <CollectionView ItemsSource="{Binding PhotoUploader.Photos}">
+                <CollectionView.ItemsLayout>
+                    <GridItemsLayout Orientation="Vertical" Span="3" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <VerticalStackLayout Spacing="10"   >
+                            <Image Source="{Binding ImageSource}"
+                                   WidthRequest="300"
+                                   Aspect="AspectFill"
+                                   HorizontalOptions="Center" />
 
-        </HorizontalStackLayout>
-
-        <HorizontalStackLayout>
-
-            <Label Text="End Date : "/>
-            <DatePicker Date="{Binding EndCleanDate}"/>
-
-        </HorizontalStackLayout>
-
-
-
-        <Button Text="Upload Photo" Command="{Binding PhotoUploader.UploadPhotoAsyncCommand}" WidthRequest="300" HorizontalOptions="Start" />
-
-        <CollectionView ItemsSource="{Binding PhotoUploader.Photos}">
-            <CollectionView.ItemTemplate>
-                <DataTemplate>
-                    <VerticalStackLayout Spacing="10">
-                        <Image Source="{Binding ImageSource}" WidthRequest="500" HorizontalOptions="Start" />
-                       
-                        <Button Text="Delete" WidthRequest="300" HorizontalOptions="Start"
-                              Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.PhotoUploader.DeletePhotoCommand}"
-                              CommandParameter="{Binding .}" />
+                            <Button Text="Delete"
+                                    WidthRequest="300"
+                                    HorizontalOptions="Center"
+                                    Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.PhotoUploader.DeletePhotoCommand}"
+                                    CommandParameter="{Binding .}" />
                         </VerticalStackLayout>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
 
-    
-        <Button Text="Submit Cleaning" Command="{Binding SubmitCleaningCommand}" WidthRequest="300" HorizontalOptions="Start"/>
-
-        
+            <Button Text="Submit Cleaning"
+                    Command="{Binding SubmitCleaningCommand}"
+                    WidthRequest="300"
+                    HorizontalOptions="Center" />
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

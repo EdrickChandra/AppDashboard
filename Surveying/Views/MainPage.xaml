@@ -26,12 +26,18 @@
             </Grid.ColumnDefinitions>
             <VerticalStackLayout Grid.Column="0" Padding="10" Spacing="10">
 
-                
-            <buttons:SfButton Text="Add Survey" Clicked="OnAddSurveyClicked" HorizontalOptions="Start" />
 
-            <syncfusion:SfDataGrid x:Name="dataGrid"
+                <HorizontalStackLayout Padding="10" Spacing="10" VerticalOptions="Center">
+                    <Button x:Name="addSurveyButton" Text="Add Survey" Clicked="OnAddSurveyClicked"/>
+                    <SearchBar x:Name="searchBar"
+                     Placeholder="Search..."
+                     Text="{Binding SearchText, Mode=TwoWay}"
+                     HorizontalOptions="EndAndExpand" />
+                </HorizontalStackLayout>
+
+                <syncfusion:SfDataGrid x:Name="dataGrid"
                                    Grid.Column="0"
-                                   ItemsSource="{Binding SurveyListCollection}"
+                                   ItemsSource="{Binding FilteredSurveyList}"
                                    AllowGroupExpandCollapse="True"
                                    SelectionMode="Single"
                                    CellTapped="DataGrid_CellTapped"
@@ -40,6 +46,7 @@
                                    AutoGenerateColumnsMode="None"
                                    AllowEditing="True"
                                    MaximumHeightRequest="1200">
+                    
                     <syncfusion:SfDataGrid.GroupColumnDescriptions>
                         <syncfusion:GroupColumnDescription ColumnName="OrderNumber"/>
                     </syncfusion:SfDataGrid.GroupColumnDescriptions>
@@ -55,68 +62,57 @@
             </syncfusion:SfDataGrid>
 
             </VerticalStackLayout>
-            <VerticalStackLayout Grid.Column="1"
-                                 Padding="20"
-                                 Spacing="10">
-                <Label Text="Details"
-                       FontAttributes="Bold"
-                       FontSize="20" />
+                
+            <VerticalStackLayout Grid.Column="1" Padding="20" Spacing="15">
+                <Label Text="Details" FontAttributes="Bold" FontSize="24" HorizontalOptions="Center" />
 
-                <HorizontalStackLayout>
-                    <Label Text="Tank No:"
-                       FontAttributes="Bold" />
-                    <Label Text="{Binding SelectedSurvey.ContNumber}" />
-                    <buttons:SfButton Text="TestCleaning" HorizontalOptions="End" CornerRadius="0" Clicked="SfButton_Clicked" ClipToBounds="False"/>
+                <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+                    <Label Text="Tank No:" FontAttributes="Bold" WidthRequest="100" VerticalOptions="Center" />
+                    <Label Text="{Binding SelectedSurvey.ContNumber}" VerticalOptions="Center" />
+                    <Button Text="TestCleaning" Clicked="SfButton_Clicked" VerticalOptions="Center" />
                 </HorizontalStackLayout>
 
+                <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+                    
+                    <Label Text="Condition:" FontAttributes="Bold" WidthRequest="100" VerticalOptions="Center" />
 
-                <HorizontalStackLayout>
-                        <Label Text="Condition:"/>
-                        <editors:SfComboBox x:Name="comboBox"
-                                            SelectedItem="{Binding SelectedSurvey.Condition, Mode=TwoWay}"
-                                            Placeholder="-"
-                                            IsEditable="True"
-                                            IsFilteringEnabled="True"
-                                            NoResultsFoundText="Not Found"
-                                            ItemsSource="{Binding ConditionList}"
-                                            WidthRequest="240" />
+                    <Label Text="{Binding SelectedSurvey.Condition}" VerticalOptions="Center" />
 
-
-                        <buttons:SfButton Text="TestRepair" HorizontalOptions="End" CornerRadius="0" Clicked="SfButton_Clicked_1"/>
+                    <Button Text="TestRepair" Clicked="SfButton_Clicked_1" VerticalOptions="Center" />
+                    
                 </HorizontalStackLayout>
 
-                <HorizontalStackLayout>
-                    <Label Text="Surveyor:"
-                           FontAttributes="Bold" />
-                <Label Text="{Binding SelectedSurvey.Surveyor}" />
-                    <buttons:SfButton Text="TestPeriodic" HorizontalOptions="End" CornerRadius="0" Clicked="SfButton_Clicked_2"/>
+                <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+                    <Label Text="Surveyor:" FontAttributes="Bold" WidthRequest="100" VerticalOptions="Center" />
+                    <Label Text="{Binding SelectedSurvey.Surveyor}" VerticalOptions="Center" />
+                    <Button Text="TestPeriodic" Clicked="SfButton_Clicked_2" VerticalOptions="Center" />
                 </HorizontalStackLayout>
 
-                <HorizontalStackLayout>
-                    <Label Text="OrderDate: "
-                           FontAttributes="Bold" />
-                        <Label Text="{Binding SelectedSurvey.OrderDate, StringFormat='{}{0:dd/MM/yyyy}'}" />
-                    <buttons:SfButton Text="TestSurvey" HorizontalOptions="End" CornerRadius="0" Clicked="SfButton_Clicked_3"/>
-           
+                <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+                    <Label Text="OrderDate:" FontAttributes="Bold" WidthRequest="100" VerticalOptions="Center" />
+                    <Label Text="{Binding SelectedSurvey.OrderDate, StringFormat='{}{0:dd/MM/yyyy}'}" VerticalOptions="Center" />
+                    <Button Text="TestSurvey" Clicked="SfButton_Clicked_3" VerticalOptions="Center" />
                 </HorizontalStackLayout>
 
-                    <HorizontalStackLayout>
-                        <Label Text="SurveyDate: "
-               FontAttributes="Bold" />
-                        <Label Text="{Binding SelectedSurvey.SurveyDate, StringFormat='{}{0:dd/MM/yyyy}'}" />
-            
-                    </HorizontalStackLayout>
+                <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+                    <Label Text="SurveyDate:" FontAttributes="Bold" WidthRequest="100" VerticalOptions="Center" />
+                    <Label Text="{Binding SelectedSurvey.SurveyDate, StringFormat='{}{0:dd/MM/yyyy}'}" VerticalOptions="Center" />
+                </HorizontalStackLayout>
 
-                    <HorizontalStackLayout>
-                        <Label Text="PickupDate: "
-               FontAttributes="Bold" />
-                        <Label Text="{Binding SelectedSurvey.PickupDate, StringFormat='{}{0:dd/MM/yyyy}'}" />
+                <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+                    <Label Text="PickupDate:" FontAttributes="Bold" WidthRequest="100" VerticalOptions="Center" />
+                    <Label Text="{Binding SelectedSurvey.PickupDate, StringFormat='{}{0:dd/MM/yyyy}'}" VerticalOptions="Center" />
+                </HorizontalStackLayout>
 
-                    </HorizontalStackLayout>
+                <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+                    <Label Text="Shipper:" FontAttributes="Bold" WidthRequest="100" VerticalOptions="Center" />
+                    <Label Text="{Binding SelectedSurvey.ShipperName, StringFormat='{}{0:dd/MM/yyyy}'}" VerticalOptions="Center" />
+                </HorizontalStackLayout>
+            </VerticalStackLayout>
 
 
 
-                </VerticalStackLayout>
+
             </Grid>
         </ContentPage.Content>
     </ContentPage>

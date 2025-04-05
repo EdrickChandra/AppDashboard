@@ -19,9 +19,12 @@
                     <Entry Text="{Binding OrderNumber}" />
                 </inputLayout:SfTextInputLayout>
 
-                <inputLayout:SfTextInputLayout Hint="Container Number" WidthRequest="300" Margin="50,0,0,0">
-                    <Entry Text="{Binding ContNumber}" />
+                <inputLayout:SfTextInputLayout ErrorText="{Binding ContNumberError}" Hint="Container Number" WidthRequest="300" Margin="50,0,0,0">
+                    <Entry Text="{Binding ContNumber, Mode=TwoWay}"/>
                 </inputLayout:SfTextInputLayout>
+
+
+
 
                 <inputLayout:SfTextInputLayout Hint="Surveyor" WidthRequest="300" Margin="50,0,0,0">
                     <Entry Text="{Binding Surveyor}" />
@@ -46,33 +49,45 @@
                   IsFilteringEnabled="True"
                   NoResultsFoundText="Not Found"
                   ItemsSource="{Binding ConditionList}"
-                  WidthRequest="240"
+                  WidthRequest="300"
+                  HeightRequest="50"
                   Margin="50,0,0,0"/>
-                
+                    
             </HorizontalStackLayout>
 
-            <HorizontalStackLayout>
-            <DatePicker Date="{Binding OrderDate}" />
-            <DatePicker Date="{Binding SurveyDate}" />
-            <DatePicker Date="{Binding PickupDate}" />
-            </HorizontalStackLayout>
-            <Label Text="Condition:"/>
+           
+                <HorizontalStackLayout Margin="50,0,0,0" Spacing="10" VerticalOptions="Center">
+                    <Label Text="Order Date:" VerticalOptions="Center"  />
+                    <DatePicker Date="{Binding OrderDate}" />
+            
+                    <Label Text="Survey Date:" VerticalOptions="Center" Margin="20,0,0,0"/>
+                    <DatePicker Date="{Binding SurveyDate}" />
+
+                    <Label Text="Pickup Date:" VerticalOptions="Center" Margin="20,0,0,0"/>
+                    <DatePicker Date="{Binding PickupDate}" />
+                </HorizontalStackLayout>
+       
+
+  
             
             <Button Text="Add Entry" Command="{Binding AddSurveyEntryCommand}" />
 
-            <!-- Temporary DataGrid showing the added survey entries -->
+        
             <syncfusion:SfDataGrid ItemsSource="{Binding SurveyEntries}"
                                    AutoGenerateColumnsMode="None"
-                                   HeightRequest="200">
+                                   HeightRequest="200"
+                                   AllowDeleting="True"
+                                   SelectionMode="Single"
+                                   ColumnWidthMode="Auto">
                 <syncfusion:SfDataGrid.Columns>
                     <syncfusion:DataGridTextColumn MappingName="OrderNumber" HeaderText="Order Number" />
                     <syncfusion:DataGridTextColumn MappingName="PrincipalId" HeaderText="Principal ID" />
                     <syncfusion:DataGridTextColumn MappingName="Surveyor" HeaderText="Surveyor" />
                     <syncfusion:DataGridTextColumn MappingName="ShipperId" HeaderText="Shipper ID" />
                     <syncfusion:DataGridTextColumn MappingName="ContNumber" HeaderText="Container Number" />
-                    <syncfusion:DataGridTextColumn MappingName="OrderDate" HeaderText="Order Date" />
-                    <syncfusion:DataGridTextColumn MappingName="SurveyDate" HeaderText="Survey Date" />
-                    <syncfusion:DataGridTextColumn MappingName="PickupDate" HeaderText="Pickup Date" />
+                    <syncfusion:DataGridTextColumn MappingName="OrderDate" HeaderText="Order Date" Format="dd/MM/yyyy"/>
+                    <syncfusion:DataGridTextColumn MappingName="SurveyDate" HeaderText="Survey Date" Format="dd/MM/yyyy"/>
+                    <syncfusion:DataGridTextColumn MappingName="PickupDate" HeaderText="Pickup Date" Format="dd/MM/yyyy"/>
                     <syncfusion:DataGridTextColumn MappingName="Condition" HeaderText="Condition" />
                 </syncfusion:SfDataGrid.Columns>
             </syncfusion:SfDataGrid>

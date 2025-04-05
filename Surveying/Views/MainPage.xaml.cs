@@ -12,7 +12,7 @@ public partial class MainPage : ContentPage
         InitializeComponent();
         _viewModel = new SurveyListViewModel();
         BindingContext = _viewModel;
-        comboBox.ItemsSource = ConditionData.ConditionList;
+  
     }
 
     private async void OnAddSurveyClicked(object sender, EventArgs e)
@@ -23,9 +23,11 @@ public partial class MainPage : ContentPage
             {
                 _viewModel.SurveyListCollection.Add(survey);
             }
+       
+            _viewModel.SearchText = string.Empty;
         }));
     }
-     
+
     private void DataGrid_CellTapped(object sender, Syncfusion.Maui.DataGrid.DataGridCellTappedEventArgs e)
     {
 

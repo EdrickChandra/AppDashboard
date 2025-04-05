@@ -1,40 +1,65 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+<ContentPage x:Name="PageRoot"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Surveying.Views.Periodic"
-             Title="Periodic">
-
+             Title="Periodic Maintenance">
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="20">
-            <Label 
-            Text="Periodic"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
+            <Label Text="Periodic Maintenance" 
+             FontSize="24" 
+             FontAttributes="Bold"
+             HorizontalOptions="Center" />
 
-            <Label Text="{Binding ContainerNumber, StringFormat='Tank No: {0}'}" />
+            <Frame Padding="15" 
+             BorderColor="LightGray" 
+             CornerRadius="8"
+             BackgroundColor="White">
+                <VerticalStackLayout Spacing="15">
+                    <Label Text="{Binding ContainerNumber, StringFormat='Tank No: {0}'}" FontAttributes="Bold" FontSize="18"/>
+                    <Label Text="Periodic Test : 2,5 Year"/>
+                    <Label Text="Inspection Date:" FontAttributes="Bold" />
+                    <DatePicker Date="{Binding InspectionDate}" />
+                    <Label Text="Next Due:" FontAttributes="Bold" />
+                    <DatePicker Date="{Binding NextDueDate}" />
+                </VerticalStackLayout>
+            </Frame>
 
-            <Label Text="Periodic Test : 2,5 year"/>
 
-            <DatePicker />
-
-            <Button Text="Upload Photo" Command="{Binding PhotoUploader.UploadPhotoAsyncCommand}" WidthRequest="300" HorizontalOptions="Start" />
+            <Button Text="Upload Photo"
+                    Command="{Binding PhotoUploader.UploadPhotoAsyncCommand}"
+                    WidthRequest="300"
+                    HorizontalOptions="Center" />
 
             <CollectionView ItemsSource="{Binding PhotoUploader.Photos}">
+                <CollectionView.ItemsLayout>
+                    <GridItemsLayout Orientation="Vertical" Span="3" />
+                </CollectionView.ItemsLayout>
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
-                        <VerticalStackLayout Spacing="10">
-                            <Image Source="{Binding ImageSource}" WidthRequest="500" HorizontalOptions="Start" />
+                        <VerticalStackLayout Spacing="10"   >
+                            <Image Source="{Binding ImageSource}"
+                                   WidthRequest="300"
+                                   Aspect="AspectFill"
+                                   HorizontalOptions="Center" />
 
-                            <Button Text="Delete" WidthRequest="300" HorizontalOptions="Start"
-                      Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.PhotoUploader.DeletePhotoCommand}"
-                      CommandParameter="{Binding .}" />
+                            <Button Text="Delete"
+                                    WidthRequest="300"
+                                    HorizontalOptions="Center"
+                                    Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.PhotoUploader.DeletePhotoCommand}"
+                                    CommandParameter="{Binding .}" />
                         </VerticalStackLayout>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
-
-
-            <Button Text="Submit" Command="{Binding SubmitPeriodicCommand}" />
+            
+            <Button Text="Submit Periodic" 
+              Command="{Binding SubmitPeriodicCommand}" 
+              WidthRequest="300"
+              HorizontalOptions="Center"
+              BackgroundColor="#6200EE"
+              TextColor="White"
+              CornerRadius="8" />
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

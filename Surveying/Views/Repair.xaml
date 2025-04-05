@@ -1,66 +1,69 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+<ContentPage x:Name="PageRoot"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:buttons="clr-namespace:Syncfusion.Maui.Buttons;assembly=Syncfusion.Maui.Buttons"
+             xmlns:local="clr-namespace:Surveying.ViewModels"
              x:Class="Surveying.Views.Repair"
-             Title="Repair">
-
-
+             Title="Repair Details">
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="20">
 
-            <Label Text="{Binding ContainerNumber, StringFormat='Tank No: {0}'}" />
+            <Frame Padding="15" 
+             Margin="0,0,0,10" 
+             BorderColor="LightGray" 
+             CornerRadius="8">
+                <VerticalStackLayout Spacing="15">
+                    <Label Text="{Binding ContainerNumber, StringFormat='Tank No: {0}'}" FontSize="18" FontAttributes="Bold"/>
+                    <Label Text= "Repair needed :"/>
+                    <Label Text= "- Bent Ladder"/>
+                    <Label Text= "- Valve damaged"/>
+                    <Label Text= "- Walkway missing"/>
 
-                   
+                    <Label Text="Complete Date:" FontAttributes="Bold" />
+                    <DatePicker Date="{Binding RepairDate}" />
+                    <Label Text="Description:" FontAttributes="Bold" />
+                    <Editor Text="{Binding RepairDescription}" 
+                  AutoSize="TextChanges" 
+                  HeightRequest="100" />
+                </VerticalStackLayout>
+            </Frame>
 
-            <Label Text="Jenis Repair :" />
-        <HorizontalStackLayout>
-            <Label Text="- LadderBent"/>
-            <CheckBox/>
-        </HorizontalStackLayout>
-        
-        <HorizontalStackLayout>
-            <Label Text="- WalkwayBent"/>
-            <CheckBox/>
-        </HorizontalStackLayout> 
-        
-        <HorizontalStackLayout>
-            <Label Text="- MajorDamage"/>
-            <CheckBox/>
-        </HorizontalStackLayout> 
-        
-        <HorizontalStackLayout>
-            <Label Text="- ValveStuck"/>
-            <CheckBox/>
-        </HorizontalStackLayout>
-
-        <HorizontalStackLayout>
-            <Label Text="Tanggal Mulai:"/>
-            <DatePicker/>
-        </HorizontalStackLayout>
-
-        <HorizontalStackLayout>
-            <Label Text="Tanggal Selesai:"/>
-            <DatePicker/>
-        </HorizontalStackLayout>
-
-            <Button Text="Upload Photo" Command="{Binding PhotoUploader.UploadPhotoAsyncCommand}" WidthRequest="300" HorizontalOptions="Start" />
+            <!-- Upload Photo Section -->
+            <Button Text="Upload Photo" 
+              Command="{Binding PhotoUploader.UploadPhotoAsyncCommand}"
+              WidthRequest="300"
+              HorizontalOptions="Center" />
 
             <CollectionView ItemsSource="{Binding PhotoUploader.Photos}">
+                <CollectionView.ItemsLayout>
+                    <GridItemsLayout Orientation="Vertical" Span="3" />
+                </CollectionView.ItemsLayout>
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
                         <VerticalStackLayout Spacing="10">
-                            <Image Source="{Binding ImageSource}" WidthRequest="500" HorizontalOptions="Start" />
-
-                            <Button Text="Delete" WidthRequest="300" HorizontalOptions="Start"
-                      Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.PhotoUploader.DeletePhotoCommand}"
-                      CommandParameter="{Binding .}" />
+                            <Image Source="{Binding ImageSource}" 
+                             WidthRequest="100" 
+                             HeightRequest="100" 
+                             Aspect="AspectFill" 
+                             HorizontalOptions="Center"/>
+                            <Button Text="Delete"
+                              WidthRequest="100"
+                              HorizontalOptions="Center"
+                              Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.PhotoUploader.DeletePhotoCommand}"
+                              CommandParameter="{Binding .}" />
                         </VerticalStackLayout>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
 
-            <Button Text="Submit" Command="{Binding SubmitRepairCommand}" />
-
+            <Button Text="Submit Repair" 
+              Command="{Binding SubmitRepairCommand}"
+              WidthRequest="300"
+              HorizontalOptions="Center"
+              BackgroundColor="#6200EE"
+              TextColor="White"
+              CornerRadius="8" />
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

@@ -3,12 +3,12 @@ using CommunityToolkit.Mvvm.Input;
 using Surveying.Models;
 using System;
 using System.Collections.ObjectModel;
+using System.Text.RegularExpressions;
 
 namespace Surveying.ViewModels
 {
     public partial class AddPageViewModel : ObservableObject
     {
-        // Input properties for the SurveyModel fields
         [ObservableProperty]
         private string orderNumber;
 
@@ -25,6 +25,9 @@ namespace Surveying.ViewModels
         private string contNumber;
 
         [ObservableProperty]
+        private string contNumberError; // Error message for validation
+
+        [ObservableProperty]
         private DateTime orderDate = DateTime.Today;
 
         [ObservableProperty]
@@ -36,21 +39,34 @@ namespace Surveying.ViewModels
         [ObservableProperty]
         private string condition;
 
-        // Temporary collection to hold survey entries
         public ObservableCollection<SurveyModel> SurveyEntries { get; } = new ObservableCollection<SurveyModel>();
 
-        // Callback action that will be set by the AddPage and invoked on submit.
         public Action<ObservableCollection<SurveyModel>> OnSubmitCompleted { get; set; }
 
         public ObservableCollection<string> ConditionList => ConditionData.ConditionList;
 
+        partial void OnContNumberChanged(string value)
+        {
+            // Example: 4 letters + 7 digits
+            var regex = new Regex(@"^[A-Za-z]{4}[0-9]{7}$");
+            if (!string.IsNullOrWhiteSpace(value) && !regex.IsMatch(value))
+            {
+                ContNumberError = "Container number must be AAAANNNNNNN (4 letters, 7 digits).";
+            }
+            else
+            {
+                ContNumberError = "";
+            }
+        }
+
         [RelayCommand]
         void AddSurveyEntry()
         {
-            // Ensure that required fields are provided.
+            // Ensure required fields are provided and no validation error exists.
             if (!string.IsNullOrWhiteSpace(OrderNumber) &&
                 !string.IsNullOrWhiteSpace(Surveyor) &&
                 !string.IsNullOrWhiteSpace(ContNumber) &&
+                string.IsNullOrWhiteSpace(ContNumberError) &&
                 !string.IsNullOrWhiteSpace(Condition))
             {
                 var survey = new SurveyModel
@@ -67,8 +83,6 @@ namespace Surveying.ViewModels
                 };
 
                 SurveyEntries.Add(survey);
-
-                // Optionally clear some fields for the next entry
                 ContNumber = string.Empty;
                 Condition = string.Empty;
                 OnPropertyChanged(nameof(ContNumber));
@@ -79,7 +93,6 @@ namespace Surveying.ViewModels
         [RelayCommand]
         void Submit()
         {
-            // Invoke the callback to pass the survey entries to MainPage.
             OnSubmitCompleted?.Invoke(SurveyEntries);
         }
     }
