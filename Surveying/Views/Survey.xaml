@@ -29,7 +29,12 @@
             
         </HorizontalStackLayout>
 
- 
+        <StackLayout IsVisible="{Binding CleaningReject}" Padding="10,5,0,0">
+            <Label Text="Enter Cleaning Rejection Remark:" />
+            <Entry Text="{Binding CleaningRejectionRemark}" Placeholder="Type your remark here..." />
+        </StackLayout>
+
+
         <HorizontalStackLayout Spacing="15">
             
             <Label Text="Repair" VerticalOptions="Center"/>
@@ -47,6 +52,11 @@
             
         </HorizontalStackLayout>
 
+        <StackLayout IsVisible="{Binding RepairReject}" Padding="10,5,0,0">
+            <Label Text="Enter Repair Rejection Remark:" />
+            <Entry Text="{Binding RepairRejectionRemark}" Placeholder="Type your remark here..." />
+        </StackLayout>
+
 
         <HorizontalStackLayout Spacing="15">
             <Label Text="Periodic" VerticalOptions="Center"/>
@@ -63,5 +73,11 @@
             <Label Text="{Binding PeriodicResult}" VerticalOptions="Center"/>
             
         </HorizontalStackLayout>
+
+        <StackLayout IsVisible="{Binding PeriodicReject}" Padding="10,5,0,0">
+            <Label Text="Enter Periodic Rejection Remark:" />
+            <Entry Text="{Binding PeriodicRejectionRemark}" Placeholder="Type your remark here..." />
+        </StackLayout>
+        
     </VerticalStackLayout>
 </ContentPage>

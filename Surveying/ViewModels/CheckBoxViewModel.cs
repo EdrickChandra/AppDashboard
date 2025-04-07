@@ -40,39 +40,65 @@ namespace Surveying.ViewModels
         [ObservableProperty]
         private bool periodicReject;
 
+        [ObservableProperty]
+        private string cleaningRejectionRemark;
+        [ObservableProperty]
+        private string repairRejectionRemark;
+        [ObservableProperty]
+        private string periodicRejectionRemark;
+
         partial void OnCleaningAcceptChanged(bool value)
         {
             if (value)
                 CleaningReject = false;
         }
-        partial void OnCleaningRejectChanged(bool value)
-        {
-            if (value)
-                CleaningAccept = false;
-        }
-
 
         partial void OnRepairAcceptChanged(bool value)
         {
             if (value)
                 RepairReject = false;
         }
-        partial void OnRepairRejectChanged(bool value)
-        {
-            if (value)
-                RepairAccept = false;
-        }
-
 
         partial void OnPeriodicAcceptChanged(bool value)
         {
             if (value)
                 PeriodicReject = false;
         }
+
+        partial void OnCleaningRejectChanged(bool value)
+        {
+            if (value)
+            {
+                CleaningAccept = false;
+            }
+            else
+            {
+                CleaningRejectionRemark = string.Empty;
+            }
+        }
+
+        partial void OnRepairRejectChanged(bool value)
+        {
+            if (value)
+            {
+                RepairAccept = false;
+            }
+            else
+            {
+                RepairRejectionRemark = string.Empty;
+            }
+        }
+
         partial void OnPeriodicRejectChanged(bool value)
         {
             if (value)
+            {
                 PeriodicAccept = false;
+            }
+            else
+            {
+                PeriodicRejectionRemark = string.Empty;
+            }
         }
 
 
