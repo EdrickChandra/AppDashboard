@@ -35,11 +35,11 @@
 
             <CollectionView ItemsSource="{Binding PhotoUploader.Photos}">
                 <CollectionView.ItemsLayout>
-                    <GridItemsLayout Orientation="Vertical" Span="3" />
+                    <GridItemsLayout Orientation="Vertical" Span="{Binding PhotoUploader.PhotoColumnCount}" />
                 </CollectionView.ItemsLayout>
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
-                        <VerticalStackLayout Spacing="10"   >
+                        <VerticalStackLayout Spacing="10" Padding="5">
                             <Image Source="{Binding ImageSource}"
                                    WidthRequest="300"
                                    Aspect="AspectFill"

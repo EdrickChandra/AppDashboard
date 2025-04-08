@@ -16,19 +16,23 @@
 
     <ContentPage.Resources>
         <ResourceDictionary>
+            
             <Style x:Key="DetailLabelStyle" TargetType="Label">
                 <Setter Property="FontAttributes" Value="Bold" />
                 <Setter Property="VerticalOptions" Value="Center" />
                 <Setter Property="MinimumWidthRequest" Value="100" />
             </Style>
+            
             <Style x:Key="DetailValueStyle" TargetType="Label">
                 <Setter Property="VerticalOptions" Value="Center" />
                 <Setter Property="LineBreakMode" Value="TailTruncation" />
             </Style>
+            
         </ResourceDictionary>
     </ContentPage.Resources>
 
     <Grid x:Name="mainLayout">
+        
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -47,7 +51,6 @@
             <syncfusion:SfDataGrid x:Name="dataGrid"
                ItemsSource="{Binding FilteredSurveyList}"
                AllowGroupExpandCollapse="True"
-
                SelectionMode="Single"
                CellTapped="DataGrid_CellTapped"
                RowHeight="62"
@@ -73,28 +76,43 @@
                     <VerticalStackLayout Spacing="15" Padding="10">
                         <Label Text="Details" FontAttributes="Bold" FontSize="24" HorizontalOptions="Center" />
 
+                        <HorizontalStackLayout>
+                            <Button Text="TestCleaning" Clicked="NavigateToPage" CommandParameter="Cleaning" 
+                            Grid.Row="0" Grid.Column="0" Margin="10" />
+
+                            <Button Text="TestRepair" Clicked="NavigateToPage" CommandParameter="Repair" 
+                            Grid.Row="0" Grid.Column="1" Margin="10" />
+
+                            <Button Text="TestPeriodic" Clicked="NavigateToPage" CommandParameter="Periodic" 
+                            Grid.Row="1" Grid.Column="0" Margin="10" />
+
+                            <Button Text="TestSurvey" Clicked="NavigateToPage" CommandParameter="Survey" 
+                            Grid.Row="1" Grid.Column="1" Margin="10" />
+
+                        </HorizontalStackLayout>
+
                         <FlexLayout Direction="Row" Wrap="Wrap" JustifyContent="Start" AlignItems="Center">
                             <Label Text="Tank No:" Style="{StaticResource DetailLabelStyle}" />
                             <Label Text="{Binding SelectedSurvey.ContNumber}" Style="{StaticResource DetailValueStyle}" />
-                            <Button Text="TestCleaning" Clicked="NavigateToPage" CommandParameter="Cleaning" Margin="5" />
+                        
                         </FlexLayout>
 
                         <FlexLayout Direction="Row" Wrap="Wrap" JustifyContent="Start" AlignItems="Center">
                             <Label Text="Condition:" Style="{StaticResource DetailLabelStyle}" />
                             <Label Text="{Binding SelectedSurvey.Condition}" Style="{StaticResource DetailValueStyle}" />
-                            <Button Text="TestRepair" Clicked="NavigateToPage" CommandParameter="Repair" Margin="5" />
+                            
                         </FlexLayout>
 
                         <FlexLayout Direction="Row" Wrap="Wrap" JustifyContent="Start" AlignItems="Center">
                             <Label Text="Surveyor:" Style="{StaticResource DetailLabelStyle}" />
                             <Label Text="{Binding SelectedSurvey.Surveyor}" Style="{StaticResource DetailValueStyle}" />
-                            <Button Text="TestPeriodic" Clicked="NavigateToPage" CommandParameter="Periodic" Margin="5" />
+                            
                         </FlexLayout>
 
                         <FlexLayout Direction="Row" Wrap="Wrap" JustifyContent="Start" AlignItems="Center">
                             <Label Text="OrderDate:" Style="{StaticResource DetailLabelStyle}" />
                             <Label Text="{Binding SelectedSurvey.OrderDate, StringFormat='{}{0:dd/MM/yyyy}'}" Style="{StaticResource DetailValueStyle}" />
-                            <Button Text="TestSurvey" Clicked="NavigateToPage" CommandParameter="Survey" Margin="5" />
+                            
                         </FlexLayout>
 
                         <FlexLayout Direction="Row" Wrap="Wrap" JustifyContent="Start" AlignItems="Center">
