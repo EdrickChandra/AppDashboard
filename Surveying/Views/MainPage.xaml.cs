@@ -2,6 +2,7 @@
 using Surveying.ViewModels;
 using Surveying.Models;
 using System;
+using Syncfusion.Maui.Data;
 
 namespace Surveying.Views
 {
@@ -9,14 +10,14 @@ namespace Surveying.Views
     {
         private SurveyListViewModel _viewModel;
         private bool isInitialized = false;
+        private bool isMobileView = false;
+        private double panelHeight = 0;
 
         public MainPage()
         {
             InitializeComponent();
             _viewModel = new SurveyListViewModel();
             BindingContext = _viewModel;
-
-            dataGrid.ColumnWidthMode = ColumnWidthMode.Fill;
 
             SizeChanged += OnSizeChanged;
         }
@@ -42,71 +43,72 @@ namespace Surveying.Views
             bool isLandscape = Width > Height;
             double screenWidth = Width;
 
+            mainLayout.Margin = new Thickness(0);
+            mainLayout.Padding = new Thickness(0);
+            contentLayout.Margin = new Thickness(0);
+            contentLayout.Padding = new Thickness(0);
+            dataGrid.Margin = new Thickness(0);
 
             contentLayout.RowDefinitions.Clear();
             contentLayout.ColumnDefinitions.Clear();
 
-            Grid.SetRow(dataGrid, 0);
-            Grid.SetColumn(dataGrid, 0);
-            Grid.SetRow(detailsScrollView, 0);
-            Grid.SetColumn(detailsScrollView, 0);
+           
+            panelHeight = Height * 0.7; 
 
-            if (isLandscape || screenWidth > 768)
+            isMobileView = screenWidth <= 768 && !isLandscape;
+
+            if (isMobileView)
             {
-                // Set horizontal layout (side by side)
+                // Mobile view - full screen datagrid with sliding details panel
+                contentLayout.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+                contentLayout.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+                Grid.SetRow(dataGrid, 0);
+                Grid.SetColumn(dataGrid, 0);
+                Grid.SetRowSpan(dataGrid, 1);
+                Grid.SetColumnSpan(dataGrid, 1);
+
+                Grid.SetRow(mobileDetailsPanel, 0);
+                Grid.SetColumn(mobileDetailsPanel, 0);
+
+                detailsScrollView.IsVisible = false;
+                mobileDetailsPanel.IsVisible = true;
+                mobileDetailsPanel.TranslationY = panelHeight;
+
+               
+                if (dataGrid.Columns.Count >= 4)
+                {
+                    dataGrid.Columns[3].Visible = false;
+                }
+            }
+            else
+            {
+                // Desktop/landscape view - side by side layout
                 contentLayout.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
                 contentLayout.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
                 contentLayout.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
                 Grid.SetRow(dataGrid, 0);
                 Grid.SetColumn(dataGrid, 0);
-                Grid.SetRowSpan(dataGrid, 1);
-                Grid.SetColumnSpan(dataGrid, 1);
-
                 Grid.SetRow(detailsScrollView, 0);
                 Grid.SetColumn(detailsScrollView, 1);
-                Grid.SetRowSpan(detailsScrollView, 1);
-                Grid.SetColumnSpan(detailsScrollView, 1);
-            }
-      
-            else
-            {
-                // Set vertical layout (stacked)
-                contentLayout.RowDefinitions.Add(new RowDefinition { Height = new GridLength(2, GridUnitType.Star) });
-                contentLayout.RowDefinitions.Add(new RowDefinition { Height = new GridLength(3, GridUnitType.Star) });
-                contentLayout.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
-                Grid.SetRow(dataGrid, 0);
-                Grid.SetColumn(dataGrid, 0);
-                Grid.SetRowSpan(dataGrid, 1);
-                Grid.SetColumnSpan(dataGrid, 1);
+                
+                detailsScrollView.IsVisible = true;
+                mobileDetailsPanel.IsVisible = false;
 
-                Grid.SetRow(detailsScrollView, 1);
-                Grid.SetColumn(detailsScrollView, 0);
-                Grid.SetRowSpan(detailsScrollView, 1);
-                Grid.SetColumnSpan(detailsScrollView, 1);
+                if (dataGrid.Columns.Count >= 4)
+                {
+                    dataGrid.Columns[3].Visible = true;
+                }
             }
 
-       
             AdjustDataGridForScreenSize(screenWidth);
         }
 
         private void AdjustDataGridForScreenSize(double screenWidth)
         {
-            dataGrid.ColumnWidthMode = ColumnWidthMode.Fill;
-
             if (screenWidth < 400)
-            {
-              
-                foreach (var column in dataGrid.Columns)
-                {
-                    if (column is DataGridColumn dgColumn)
-                    {
-                        dgColumn.MinimumWidth = 80;
-                    }
-                }
-            }
-            else
             {
                 foreach (var column in dataGrid.Columns)
                 {
@@ -120,7 +122,6 @@ namespace Surveying.Views
             dataGrid.InvalidateMeasure();
         }
 
-     
         private async void OnAddSurveyClicked(object sender, EventArgs e)
         {
             await Navigation.PushAsync(new AddPage((surveyEntries) =>
@@ -139,56 +140,83 @@ namespace Surveying.Views
             if (e.RowData is SurveyModel selected)
             {
                 _viewModel.SelectedSurvey = selected;
+
+           
+                if (isMobileView)
+                {
+                    ShowMobileDetailPanel();
+                }
             }
         }
 
-        private async void SfButton_Clicked(object sender, EventArgs e)
+        private async void ShowMobileDetailPanel()
         {
-            if (_viewModel.SelectedSurvey != null)
-            {
-              
-                await Navigation.PushAsync(new Cleaning(_viewModel.SelectedSurvey));
-            }
-            else
-            {
-                await DisplayAlert("No Selection", "Please select a survey first.", "OK");
-            }
-        }
-
-        private async void SfButton_Clicked_1(object sender, EventArgs e)
-        {
-            if (_viewModel.SelectedSurvey != null)
-            {
-                await Navigation.PushAsync(new Repair(_viewModel.SelectedSurvey));
-            }
-            else
-            {
-                await DisplayAlert("No Selection", "Please select a survey first.", "OK");
-            }
-        }
-
-        private async void SfButton_Clicked_2(object sender, EventArgs e)
-        {
-            if (_viewModel.SelectedSurvey != null)
-            {
-                await Navigation.PushAsync(new Periodic(_viewModel.SelectedSurvey));
-            }
-            else
-            {
-                await DisplayAlert("No Selection", "Please select a survey first.", "OK");
-            }
-        }
-
-        private async void SfButton_Clicked_3(object sender, EventArgs e)
-        {
-            if (_viewModel.SelectedSurvey != null)
-            {
     
-                await Navigation.PushAsync(new Survey(_viewModel.SelectedSurvey));
-            }
-            else
+            mobileDetailsPanel.IsVisible = true;
+            mobileDetailsPanel.HeightRequest = panelHeight;
+
+            mobileDetailsPanel.TranslationY = panelHeight;
+
+            await mobileDetailsPanel.TranslateTo(0, 0, 250, Easing.Linear);
+        }
+
+        private async void HideMobileDetailPanel()
+        {
+          
+            await mobileDetailsPanel.TranslateTo(0, panelHeight, 200, Easing.Linear);
+            mobileDetailsPanel.IsVisible = false;
+        }
+
+        private void OnCloseDetailPanel(object sender, EventArgs e)
+        {
+            HideMobileDetailPanel();
+        }
+
+
+
+        private async void NavigateToPage(object sender, EventArgs e)
+        {
+            if (_viewModel.SelectedSurvey == null)
             {
                 await DisplayAlert("No Selection", "Please select a survey first.", "OK");
+                return;
+            }
+
+            Button button = sender as Button;
+            string pageType = button?.CommandParameter?.ToString();
+
+            if (string.IsNullOrEmpty(pageType))
+            {
+                return;
+            }
+
+            Page destinationPage = null;
+
+            switch (pageType)
+            {
+                case "Cleaning":
+                    destinationPage = new Cleaning(_viewModel.SelectedSurvey);
+                    break;
+                case "Repair":
+                    destinationPage = new Repair(_viewModel.SelectedSurvey);
+                    break;
+                case "Periodic":
+                    destinationPage = new Periodic(_viewModel.SelectedSurvey);
+                    break;
+                case "Survey":
+                    destinationPage = new Survey(_viewModel.SelectedSurvey);
+                    break;
+            }
+
+            if (destinationPage != null)
+            {
+                // If in mobile view, hide the panel before navigating
+                if (isMobileView)
+                {
+                    await mobileDetailsPanel.TranslateTo(0, panelHeight, 200, Easing.Linear);
+                }
+
+                await Navigation.PushAsync(destinationPage);
             }
         }
     }
