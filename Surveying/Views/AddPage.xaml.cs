@@ -10,7 +10,7 @@ namespace Surveying.Views
         {
             InitializeComponent();
             var viewModel = new AddPageViewModel();
-            // Set the callback so that when Submit is invoked, the data is passed back.
+       
             viewModel.OnSubmitCompleted = (surveyEntries) =>
             {
                 onSubmitCallback?.Invoke(surveyEntries);

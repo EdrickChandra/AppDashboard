@@ -19,7 +19,7 @@ namespace Surveying.Models
 
     public partial class SurveyModel : ObservableObject
     {
-        // Existing properties
+    
         public string OrderNumber { get; set; }
         public long PrincipalId { get; set; }
         public string Surveyor { get; set; }
@@ -46,7 +46,7 @@ namespace Surveying.Models
             Condition = condition;
         }
 
-        // Existing computed properties for principal/shipper details
+     
         public string PrincipalCode
         {
             get { return DummyData.Principals.Where(w => w.Id == PrincipalId).FirstOrDefault()?.Code ?? ""; }

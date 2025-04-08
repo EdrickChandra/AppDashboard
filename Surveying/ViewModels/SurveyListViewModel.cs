@@ -13,10 +13,9 @@ public partial class SurveyListViewModel : BaseViewModel
 
     public ObservableCollection<SurveyModel> SurveyListCollection { get; set; }
 
-    // A filtered collection that the DataGrid will bind to.
     public ObservableCollection<SurveyModel> FilteredSurveyList { get; set; }
 
-    // The search text that the SearchBar binds to.
+
     [ObservableProperty]
     private string searchText;
 
@@ -26,12 +25,11 @@ public partial class SurveyListViewModel : BaseViewModel
         FilteredSurveyList = new ObservableCollection<SurveyModel>(SurveyListCollection);
     }
 
-    // Called automatically whenever SearchText changes.
     partial void OnSearchTextChanged(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
         {
-            // Show all if search text is empty.
+         
             FilteredSurveyList.Clear();
             foreach (var item in SurveyListCollection)
                 FilteredSurveyList.Add(item);

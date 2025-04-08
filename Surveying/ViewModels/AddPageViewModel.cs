@@ -25,8 +25,7 @@ namespace Surveying.ViewModels
         private string contNumber;
 
         [ObservableProperty]
-        private string contNumberError; // Error message for validation
-
+        private string contNumberError; 
         [ObservableProperty]
         private DateTime orderDate = DateTime.Today;
 
@@ -62,7 +61,7 @@ namespace Surveying.ViewModels
         [RelayCommand]
         void AddSurveyEntry()
         {
-            // Ensure required fields are provided and no validation error exists.
+          
             if (!string.IsNullOrWhiteSpace(OrderNumber) &&
                 !string.IsNullOrWhiteSpace(Surveyor) &&
                 !string.IsNullOrWhiteSpace(ContNumber) &&

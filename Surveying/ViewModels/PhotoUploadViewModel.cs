@@ -12,7 +12,7 @@ namespace Surveying.ViewModels
     {
         public ObservableCollection<PhotoItem> Photos { get; set; } = new ObservableCollection<PhotoItem>();
 
-        // Remove [RelayCommand] attributes and manually expose the command properties.
+       
         public IAsyncRelayCommand UploadPhotoAsyncCommand => new AsyncRelayCommand(UploadPhotoAsync);
         public IRelayCommand DeletePhotoCommand => new RelayCommand<PhotoItem>(DeletePhoto);
 
@@ -20,7 +20,7 @@ namespace Surveying.ViewModels
         {
             try
             {
-                // Force execution on the UI thread (optional)
+         
                 await Microsoft.Maui.ApplicationModel.MainThread.InvokeOnMainThreadAsync(async () =>
                 {
                     System.Diagnostics.Debug.WriteLine("Calling MediaPicker.PickPhotoAsync...");

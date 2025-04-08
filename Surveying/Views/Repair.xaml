@@ -29,7 +29,7 @@
                 </VerticalStackLayout>
             </Frame>
 
-            <!-- Upload Photo Section -->
+       
             <Button Text="Upload Photo" 
               Command="{Binding PhotoUploader.UploadPhotoAsyncCommand}"
               WidthRequest="300"

@@ -12,7 +12,6 @@ namespace Surveying.ViewModels
         public DateTime StartCleanDate { get; set; }
         public DateTime EndCleanDate { get; set; }
 
-        // Expose the separate PhotoUploadViewModel for photo functionality.
         public PhotoUploadViewModel PhotoUploader { get; } = new PhotoUploadViewModel();
 
         public CleaningViewModel(SurveyModel survey)

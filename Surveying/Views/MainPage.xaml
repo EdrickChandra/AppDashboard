@@ -10,109 +10,114 @@
         x:Class="Surveying.Views.MainPage"
         Title="Survey List">
 
+    <ContentPage.BindingContext>
+        <local:SurveyListViewModel/>
+    </ContentPage.BindingContext>
 
-        <ContentPage.BindingContext>
-            <local:SurveyListViewModel/>
-        </ContentPage.BindingContext>
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <Style x:Key="DetailLabelStyle" TargetType="Label">
+                <Setter Property="FontAttributes" Value="Bold" />
+                <Setter Property="VerticalOptions" Value="Center" />
+                <Setter Property="MinimumWidthRequest" Value="100" />
+            </Style>
+            <Style x:Key="DetailValueStyle" TargetType="Label">
+                <Setter Property="VerticalOptions" Value="Center" />
+                <Setter Property="LineBreakMode" Value="TailTruncation" />
+            </Style>
+        </ResourceDictionary>
+    </ContentPage.Resources>
 
-        <ContentPage.Content>
-            <Grid>
+    <Grid x:Name="mainLayout" BackgroundColor="Transparent">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
 
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-        
-                <ColumnDefinition Width="*" />
-    
-            </Grid.ColumnDefinitions>
-            <VerticalStackLayout Grid.Column="0" Padding="10" Spacing="10">
+        <HorizontalStackLayout Grid.Row="0" Padding="10" Spacing="10" HorizontalOptions="Fill">
+            <Button x:Name="addSurveyButton" Text="Add Survey" Clicked="OnAddSurveyClicked"/>
+            <SearchBar x:Name="searchBar"
+                Placeholder="Search..."
+                Text="{Binding SearchText, Mode=TwoWay}"
+                HorizontalOptions="FillAndExpand" />
+        </HorizontalStackLayout>
 
+        <Grid Grid.Row="1" x:Name="contentLayout" BackgroundColor="Transparent">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
 
-                <HorizontalStackLayout Padding="10" Spacing="10" VerticalOptions="Center">
-                    <Button x:Name="addSurveyButton" Text="Add Survey" Clicked="OnAddSurveyClicked"/>
-                    <SearchBar x:Name="searchBar"
-                     Placeholder="Search..."
-                     Text="{Binding SearchText, Mode=TwoWay}"
-                     HorizontalOptions="EndAndExpand" />
-                </HorizontalStackLayout>
-
-                <syncfusion:SfDataGrid x:Name="dataGrid"
-                                   Grid.Column="0"
-                                   ItemsSource="{Binding FilteredSurveyList}"
-                                   AllowGroupExpandCollapse="True"
-                                   SelectionMode="Single"
-                                   CellTapped="DataGrid_CellTapped"
-                                   ColumnWidthMode="Fill"
-                                   RowHeight="40"
-                                   AutoGenerateColumnsMode="None"
-                                   AllowEditing="True"
-                                   MaximumHeightRequest="1200">
-                    
-                    <syncfusion:SfDataGrid.GroupColumnDescriptions>
-                        <syncfusion:GroupColumnDescription ColumnName="OrderNumber"/>
-                    </syncfusion:SfDataGrid.GroupColumnDescriptions>
-
-                    <syncfusion:SfDataGrid.Columns>
-                
-                    <syncfusion:DataGridTextColumn HeaderText="Principal" MappingName="PrincipalName" />
-                    <syncfusion:DataGridTextColumn HeaderText="Surveyor" MappingName="Surveyor" />
-                    <syncfusion:DataGridTextColumn HeaderText="Tank No." MappingName="ContNumber" />
-                    <syncfusion:DataGridTextColumn HeaderText="Condition" MappingName="Condition" />
-                    <syncfusion:DataGridTextColumn MappingName="Status" HeaderText="C|R|P|S" />
+            <syncfusion:SfDataGrid x:Name="dataGrid"
+               ItemsSource="{Binding FilteredSurveyList}"
+               AllowGroupExpandCollapse="True"
+               SelectionMode="Single"
+               CellTapped="DataGrid_CellTapped"
+               RowHeight="40"
+               AutoGenerateColumnsMode="None"
+               AllowEditing="True"
+               AllowResizingColumns="True"
+               HorizontalOptions="FillAndExpand"
+               VerticalOptions="FillAndExpand"
+               ColumnWidthMode="Fill">
+                <syncfusion:SfDataGrid.GroupColumnDescriptions>
+                    <syncfusion:GroupColumnDescription ColumnName="OrderNumber"/>
+                </syncfusion:SfDataGrid.GroupColumnDescriptions>
+                <syncfusion:SfDataGrid.Columns>
+                    <syncfusion:DataGridTextColumn HeaderText="Principal" MappingName="PrincipalName" MinimumWidth="120" />
+                    <syncfusion:DataGridTextColumn HeaderText="Surveyor" MappingName="Surveyor" MinimumWidth="100" />
+                    <syncfusion:DataGridTextColumn HeaderText="Tank" MappingName="ContNumber" MinimumWidth="80" />
+                    <syncfusion:DataGridTextColumn HeaderText="Condition" MappingName="Condition" MinimumWidth="100" />
+                    <syncfusion:DataGridTextColumn MappingName="Status" HeaderText="C|R|P|S" MinimumWidth="80" />
                 </syncfusion:SfDataGrid.Columns>
             </syncfusion:SfDataGrid>
 
-            </VerticalStackLayout>
-                
-            <VerticalStackLayout Grid.Column="1" Padding="20" Spacing="15">
-                <Label Text="Details" FontAttributes="Bold" FontSize="24" HorizontalOptions="Center" />
+            <ScrollView Grid.Row="1" x:Name="detailsScrollView">
+                <Border Stroke="LightGray" Margin="5" Padding="10">
+                    <VerticalStackLayout Spacing="15" Padding="10">
+                        <Label Text="Details" FontAttributes="Bold" FontSize="24" HorizontalOptions="Center" />
 
-                <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
-                    <Label Text="Tank No:" FontAttributes="Bold" WidthRequest="100" VerticalOptions="Center" />
-                    <Label Text="{Binding SelectedSurvey.ContNumber}" VerticalOptions="Center" />
-                    <Button Text="TestCleaning" Clicked="SfButton_Clicked" VerticalOptions="Center" />
-                </HorizontalStackLayout>
+                        <FlexLayout Direction="Row" Wrap="Wrap" JustifyContent="Start" AlignItems="Center">
+                            <Label Text="Tank No:" Style="{StaticResource DetailLabelStyle}" />
+                            <Label Text="{Binding SelectedSurvey.ContNumber}" Style="{StaticResource DetailValueStyle}" />
+                            <Button Text="TestCleaning" Clicked="SfButton_Clicked" Margin="5" />
+                        </FlexLayout>
 
-                <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
-                    
-                    <Label Text="Condition:" FontAttributes="Bold" WidthRequest="100" VerticalOptions="Center" />
+                        <FlexLayout Direction="Row" Wrap="Wrap" JustifyContent="Start" AlignItems="Center">
+                            <Label Text="Condition:" Style="{StaticResource DetailLabelStyle}" />
+                            <Label Text="{Binding SelectedSurvey.Condition}" Style="{StaticResource DetailValueStyle}" />
+                            <Button Text="TestRepair" Clicked="SfButton_Clicked_1" Margin="5" />
+                        </FlexLayout>
 
-                    <Label Text="{Binding SelectedSurvey.Condition}" VerticalOptions="Center" />
+                        <FlexLayout Direction="Row" Wrap="Wrap" JustifyContent="Start" AlignItems="Center">
+                            <Label Text="Surveyor:" Style="{StaticResource DetailLabelStyle}" />
+                            <Label Text="{Binding SelectedSurvey.Surveyor}" Style="{StaticResource DetailValueStyle}" />
+                            <Button Text="TestPeriodic" Clicked="SfButton_Clicked_2" Margin="5" />
+                        </FlexLayout>
 
-                    <Button Text="TestRepair" Clicked="SfButton_Clicked_1" VerticalOptions="Center" />
-                    
-                </HorizontalStackLayout>
+                        <FlexLayout Direction="Row" Wrap="Wrap" JustifyContent="Start" AlignItems="Center">
+                            <Label Text="OrderDate:" Style="{StaticResource DetailLabelStyle}" />
+                            <Label Text="{Binding SelectedSurvey.OrderDate, StringFormat='{}{0:dd/MM/yyyy}'}" Style="{StaticResource DetailValueStyle}" />
+                            <Button Text="TestSurvey" Clicked="SfButton_Clicked_3" Margin="5" />
+                        </FlexLayout>
 
-                <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
-                    <Label Text="Surveyor:" FontAttributes="Bold" WidthRequest="100" VerticalOptions="Center" />
-                    <Label Text="{Binding SelectedSurvey.Surveyor}" VerticalOptions="Center" />
-                    <Button Text="TestPeriodic" Clicked="SfButton_Clicked_2" VerticalOptions="Center" />
-                </HorizontalStackLayout>
+                        <FlexLayout Direction="Row" Wrap="Wrap" JustifyContent="Start" AlignItems="Center">
+                            <Label Text="SurveyDate:" Style="{StaticResource DetailLabelStyle}" />
+                            <Label Text="{Binding SelectedSurvey.SurveyDate, StringFormat='{}{0:dd/MM/yyyy}'}" Style="{StaticResource DetailValueStyle}" />
+                        </FlexLayout>
 
-                <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
-                    <Label Text="OrderDate:" FontAttributes="Bold" WidthRequest="100" VerticalOptions="Center" />
-                    <Label Text="{Binding SelectedSurvey.OrderDate, StringFormat='{}{0:dd/MM/yyyy}'}" VerticalOptions="Center" />
-                    <Button Text="TestSurvey" Clicked="SfButton_Clicked_3" VerticalOptions="Center" />
-                </HorizontalStackLayout>
+                        <FlexLayout Direction="Row" Wrap="Wrap" JustifyContent="Start" AlignItems="Center">
+                            <Label Text="PickupDate:" Style="{StaticResource DetailLabelStyle}" />
+                            <Label Text="{Binding SelectedSurvey.PickupDate, StringFormat='{}{0:dd/MM/yyyy}'}" Style="{StaticResource DetailValueStyle}" />
+                        </FlexLayout>
 
-                <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
-                    <Label Text="SurveyDate:" FontAttributes="Bold" WidthRequest="100" VerticalOptions="Center" />
-                    <Label Text="{Binding SelectedSurvey.SurveyDate, StringFormat='{}{0:dd/MM/yyyy}'}" VerticalOptions="Center" />
-                </HorizontalStackLayout>
-
-                <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
-                    <Label Text="PickupDate:" FontAttributes="Bold" WidthRequest="100" VerticalOptions="Center" />
-                    <Label Text="{Binding SelectedSurvey.PickupDate, StringFormat='{}{0:dd/MM/yyyy}'}" VerticalOptions="Center" />
-                </HorizontalStackLayout>
-
-                <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
-                    <Label Text="Shipper:" FontAttributes="Bold" WidthRequest="100" VerticalOptions="Center" />
-                    <Label Text="{Binding SelectedSurvey.ShipperName, StringFormat='{}{0:dd/MM/yyyy}'}" VerticalOptions="Center" />
-                </HorizontalStackLayout>
-            </VerticalStackLayout>
-
-
-
-
-            </Grid>
-        </ContentPage.Content>
-    </ContentPage>
+                        <FlexLayout Direction="Row" Wrap="Wrap" JustifyContent="Start" AlignItems="Center">
+                            <Label Text="Shipper:" Style="{StaticResource DetailLabelStyle}" />
+                            <Label Text="{Binding SelectedSurvey.ShipperName}" Style="{StaticResource DetailValueStyle}" />
+                        </FlexLayout>
+                    </VerticalStackLayout>
+                </Border>
+            </ScrollView>
+        </Grid>
+    </Grid>
+</ContentPage>
