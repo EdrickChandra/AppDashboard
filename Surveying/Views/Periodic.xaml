@@ -26,7 +26,7 @@
             </Frame>
 
 
-            <Button Text="Upload Photo"
+            <Button Text="{Binding PhotoUploader.Photos.Count, StringFormat='Upload Photo, Max 4 ({0}/4)'}"
                     Command="{Binding PhotoUploader.UploadPhotoAsyncCommand}"
                     WidthRequest="300"
                     HorizontalOptions="Center" />
@@ -40,8 +40,14 @@
                         <VerticalStackLayout Spacing="10" Padding="5">
                             <Image Source="{Binding ImageSource}"
                                    WidthRequest="300"
+                                   HeightRequest="300"
                                    Aspect="AspectFill"
-                                   HorizontalOptions="Center" />
+                                   HorizontalOptions="Center">
+                                <Image.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.ViewFullImageCommand}"
+                                  CommandParameter="{Binding .}" />
+                                </Image.GestureRecognizers>
+                            </Image>
 
                             <Button Text="Delete"
                                     WidthRequest="300"

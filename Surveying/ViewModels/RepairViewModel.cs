@@ -19,9 +19,26 @@ namespace Surveying.ViewModels
         }
 
         [RelayCommand]
-        void SubmitRepair()
+        async void SubmitRepair()
         {
-            Survey.RepairStatus = StatusType.OnReview;
+            bool isValid = true;
+            string errorMessage = "";
+
+            if (PhotoUploader.Photos == null || PhotoUploader.Photos.Count == 0)
+            {
+                isValid = false;
+                errorMessage += "Please upload at least one photo.\n";
+            }
+
+            if (!isValid)
+            {
+                await Application.Current.MainPage.DisplayAlert("Validation Error", errorMessage, "OK");
+                return;
+            }
+
+            Survey.CleaningStatus = StatusType.OnReview;
+
+            await Application.Current.MainPage.Navigation.PopToRootAsync();
         }
     }
 }

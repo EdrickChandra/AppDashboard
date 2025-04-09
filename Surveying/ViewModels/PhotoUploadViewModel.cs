@@ -11,24 +11,26 @@ namespace Surveying.ViewModels
 {
     public partial class PhotoUploadViewModel : ObservableObject
     {
+
+        private int MaxPhotoCount = 4;
+
         public ObservableCollection<PhotoItem> Photos { get; set; } = new ObservableCollection<PhotoItem>();
 
-        // Property for column count that will be used in XAML
+
         [ObservableProperty]
         private int _photoColumnCount;
 
-        // The threshold width in device-independent pixels
-        private const double MobileWidthThreshold = 768;
+
+        private double MobileWidthThreshold = 768;
 
         public IAsyncRelayCommand UploadPhotoAsyncCommand => new AsyncRelayCommand(UploadPhotoAsync);
         public IRelayCommand DeletePhotoCommand => new RelayCommand<PhotoItem>(DeletePhoto);
 
         public PhotoUploadViewModel()
         {
-            // Set initial column count based on current screen size
+
             UpdateColumnCount();
 
-            // Listen for orientation or size changes
             DeviceDisplay.MainDisplayInfoChanged += OnDisplayInfoChanged;
         }
 
@@ -39,11 +41,11 @@ namespace Surveying.ViewModels
 
         private void UpdateColumnCount()
         {
-           
+
             double screenWidth = DeviceDisplay.MainDisplayInfo.Width / DeviceDisplay.MainDisplayInfo.Density;
 
-        
-            PhotoColumnCount = screenWidth <= MobileWidthThreshold ? 1 : 3;
+
+            PhotoColumnCount = screenWidth <= MobileWidthThreshold ? 1 : 4;
 
             System.Diagnostics.Debug.WriteLine($"Screen width: {screenWidth}, Column count: {PhotoColumnCount}");
         }
@@ -52,9 +54,17 @@ namespace Surveying.ViewModels
         {
             try
             {
+                // Check if maximum photo count has been reached
+                if (Photos.Count >= MaxPhotoCount)
+                {
+                    await Application.Current.MainPage.DisplayAlert("Limit Reached",
+                        $"Maximum of {MaxPhotoCount} photos allowed.", "OK");
+                    return;
+                }
+
                 await Microsoft.Maui.ApplicationModel.MainThread.InvokeOnMainThreadAsync(async () =>
                 {
-                    
+
                     double screenWidth = DeviceDisplay.MainDisplayInfo.Width / DeviceDisplay.MainDisplayInfo.Density;
 
                     FileResult photoResult;
@@ -100,11 +110,21 @@ namespace Surveying.ViewModels
             }
         }
 
-        public void DeletePhoto(PhotoItem photo)
+        public async void DeletePhoto(PhotoItem photo)
         {
             if (Photos.Contains(photo))
             {
-                Photos.Remove(photo);
+
+                bool confirmed = await Application.Current.MainPage.DisplayAlert(
+                    "Confirm Delete",
+                    "Are you sure you want to delete this photo?",
+                    "Yes", "No");
+
+
+                if (confirmed)
+                {
+                    Photos.Remove(photo);
+                }
             }
         }
     }

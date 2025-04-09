@@ -76,6 +76,9 @@
 	  <MauiXaml Update="Views\Cleaning.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="Views\ImageViewerPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Views\Periodic.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
