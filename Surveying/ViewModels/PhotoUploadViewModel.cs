@@ -11,26 +11,40 @@ namespace Surveying.ViewModels
 {
     public partial class PhotoUploadViewModel : ObservableObject
     {
+        // Default max photos if not specified
+        private int _maxPhotoCount = 4;
 
-        private int MaxPhotoCount = 4;
+        // Property for maximum photo count with notification
+        [ObservableProperty]
+        private int maxAllowedPhotos;
 
         public ObservableCollection<PhotoItem> Photos { get; set; } = new ObservableCollection<PhotoItem>();
 
-
+        // Property for column count that will be used in XAML
         [ObservableProperty]
         private int _photoColumnCount;
 
-
-        private double MobileWidthThreshold = 768;
+        // The threshold width in device-independent pixels
+        private const double MobileWidthThreshold = 768;
 
         public IAsyncRelayCommand UploadPhotoAsyncCommand => new AsyncRelayCommand(UploadPhotoAsync);
-        public IRelayCommand DeletePhotoCommand => new RelayCommand<PhotoItem>(DeletePhoto);
+        public IAsyncRelayCommand<PhotoItem> DeletePhotoCommand => new AsyncRelayCommand<PhotoItem>(DeletePhoto);
 
-        public PhotoUploadViewModel()
+        // Constructor with default max photo count (4)
+        public PhotoUploadViewModel() : this(4)
         {
+        }
 
+        // Constructor with custom max photo count
+        public PhotoUploadViewModel(int maxPhotoCount)
+        {
+            _maxPhotoCount = maxPhotoCount;
+            MaxAllowedPhotos = maxPhotoCount;
+
+            // Set initial column count based on current screen size
             UpdateColumnCount();
 
+            // Listen for orientation or size changes
             DeviceDisplay.MainDisplayInfoChanged += OnDisplayInfoChanged;
         }
 
@@ -55,10 +69,10 @@ namespace Surveying.ViewModels
             try
             {
                 // Check if maximum photo count has been reached
-                if (Photos.Count >= MaxPhotoCount)
+                if (Photos.Count >= MaxAllowedPhotos)
                 {
                     await Application.Current.MainPage.DisplayAlert("Limit Reached",
-                        $"Maximum of {MaxPhotoCount} photos allowed.", "OK");
+                        $"Maximum of {MaxAllowedPhotos} photos allowed.", "OK");
                     return;
                 }
 
@@ -110,17 +124,17 @@ namespace Surveying.ViewModels
             }
         }
 
-        public async void DeletePhoto(PhotoItem photo)
+        public async Task DeletePhoto(PhotoItem photo)
         {
             if (Photos.Contains(photo))
             {
-
+                // Show confirmation dialog
                 bool confirmed = await Application.Current.MainPage.DisplayAlert(
                     "Confirm Delete",
                     "Are you sure you want to delete this photo?",
                     "Yes", "No");
 
-
+                // Only remove the photo if user confirmed
                 if (confirmed)
                 {
                     Photos.Remove(photo);

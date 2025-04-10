@@ -10,7 +10,7 @@ namespace Surveying.ViewModels
         public SurveyModel Survey { get; }
 
         public string ContainerNumber => Survey.ContNumber;
-        public PhotoUploadViewModel PhotoUploader { get; } = new PhotoUploadViewModel();
+        public PhotoUploadViewModel PhotoUploader { get; } = new PhotoUploadViewModel(1);
         public PeriodicViewModel(SurveyModel survey)
         {
             Survey = survey;

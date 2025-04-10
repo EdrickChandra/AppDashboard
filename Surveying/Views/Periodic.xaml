@@ -14,7 +14,7 @@
             <Frame Padding="15" 
              BorderColor="LightGray" 
              CornerRadius="8"
-             BackgroundColor="White">
+             BackgroundColor="Transparent">
                 <VerticalStackLayout Spacing="15">
                     <Label Text="{Binding ContainerNumber, StringFormat='Tank No: {0}'}" FontAttributes="Bold" FontSize="18"/>
                     <Label Text="Periodic Test : 2,5 Year"/>
@@ -26,7 +26,7 @@
             </Frame>
 
 
-            <Button Text="{Binding PhotoUploader.Photos.Count, StringFormat='Upload Photo, Max 4 ({0}/4)'}"
+            <Button Text="{Binding PhotoUploader.Photos.Count, StringFormat='Upload Photo, Max 1 ({0}/1)'}"
                     Command="{Binding PhotoUploader.UploadPhotoAsyncCommand}"
                     WidthRequest="300"
                     HorizontalOptions="Center" />

@@ -13,7 +13,7 @@ namespace Surveying.ViewModels
         public DateTime StartCleanDate { get; set; }
         public DateTime EndCleanDate { get; set; }
 
-        public PhotoUploadViewModel PhotoUploader { get; } = new PhotoUploadViewModel();
+        public PhotoUploadViewModel PhotoUploader { get; } = new PhotoUploadViewModel(4);
 
         public CleaningViewModel(SurveyModel survey)
         {
