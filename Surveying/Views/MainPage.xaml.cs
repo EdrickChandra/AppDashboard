@@ -2,7 +2,7 @@
 using Surveying.ViewModels;
 using Surveying.Models;
 using System;
-using Syncfusion.Maui.Data;
+using System.Collections.ObjectModel;
 
 namespace Surveying.Views
 {
@@ -10,8 +10,6 @@ namespace Surveying.Views
     {
         private SurveyListViewModel _viewModel;
         private bool isInitialized = false;
-        private bool isMobileView = false;
-        private double panelHeight = 0;
 
         public MainPage()
         {
@@ -43,180 +41,187 @@ namespace Surveying.Views
             bool isLandscape = Width > Height;
             double screenWidth = Width;
 
-            mainLayout.Margin = new Thickness(0);
-            mainLayout.Padding = new Thickness(0);
-            contentLayout.Margin = new Thickness(0);
-            contentLayout.Padding = new Thickness(0);
-            dataGrid.Margin = new Thickness(0);
+            // Update ViewModel display mode
+            _viewModel.UpdateDisplayMode(screenWidth, isLandscape);
 
-            contentLayout.RowDefinitions.Clear();
-            contentLayout.ColumnDefinitions.Clear();
-
-           
-            panelHeight = Height * 0.7; 
-
-            isMobileView = screenWidth <= 768 && !isLandscape;
-
-            if (isMobileView)
+            // Modify DataGrid columns and layout based on screen size
+            if (screenWidth <= 768 && !isLandscape)
             {
-                // Mobile view - full screen datagrid with sliding details panel
-                contentLayout.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-                contentLayout.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-
-                Grid.SetRow(dataGrid, 0);
-                Grid.SetColumn(dataGrid, 0);
-                Grid.SetRowSpan(dataGrid, 1);
-                Grid.SetColumnSpan(dataGrid, 1);
-
-                Grid.SetRow(mobileDetailsPanel, 0);
-                Grid.SetColumn(mobileDetailsPanel, 0);
-
-                detailsScrollView.IsVisible = false;
-                mobileDetailsPanel.IsVisible = true;
-                mobileDetailsPanel.TranslationY = panelHeight;
-
-               
-                if (dataGrid.Columns.Count >= 4)
-                {
-                    dataGrid.Columns[3].Visible = false;
-                }
+                // We're in mobile mode - handled by the ViewModel IsMobileMode property
+                // This ensures the appropriate view is visible
             }
             else
             {
-                // Desktop/landscape view - side by side layout
-                contentLayout.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-                contentLayout.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-                contentLayout.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-
-                Grid.SetRow(dataGrid, 0);
-                Grid.SetColumn(dataGrid, 0);
-                Grid.SetRow(detailsScrollView, 0);
-                Grid.SetColumn(detailsScrollView, 1);
-
-                
-                detailsScrollView.IsVisible = true;
-                mobileDetailsPanel.IsVisible = false;
-
-                if (dataGrid.Columns.Count >= 4)
+                // Desktop/Tablet view
+                if (dataGrid.Columns.Count >= 5)
                 {
-                    dataGrid.Columns[3].Visible = true;
+                    // Only hide date columns in landscape tablet view if needed
+                    bool isTablet = screenWidth < 1024;
+
+                    dataGrid.Columns[4].Visible = !isTablet; // Order Date
+                    dataGrid.Columns[5].Visible = !isTablet; // Survey Date
+                    dataGrid.Columns[6].Visible = !isTablet; // Pickup Date
                 }
             }
-
-            AdjustDataGridForScreenSize(screenWidth);
-        }
-
-        private void AdjustDataGridForScreenSize(double screenWidth)
-        {
-            if (screenWidth < 400)
-            {
-                foreach (var column in dataGrid.Columns)
-                {
-                    if (column is DataGridColumn dgColumn)
-                    {
-                        dgColumn.MinimumWidth = 80;
-                    }
-                }
-            }
-
-            dataGrid.InvalidateMeasure();
         }
 
         private async void OnAddSurveyClicked(object sender, EventArgs e)
         {
             await Navigation.PushAsync(new AddPage((surveyEntries) =>
             {
-                foreach (var survey in surveyEntries)
+                // We need to handle adding new surveys differently now
+                // Group them by order number and add to OrderGroups
+                var newOrderNumbers = surveyEntries.Select(s => s.OrderNumber).Distinct();
+
+                foreach (var orderNumber in newOrderNumbers)
                 {
-                    _viewModel.SurveyListCollection.Add(survey);
+                    var surveysForOrder = surveyEntries.Where(s => s.OrderNumber == orderNumber);
+                    if (surveysForOrder.Any())
+                    {
+                        var firstSurvey = surveysForOrder.First();
+                        var orderGroup = new SurveyModel
+                        {
+                            OrderNumber = orderNumber,
+                            PrincipalId = firstSurvey.PrincipalId,
+                            Surveyor = firstSurvey.Surveyor,
+                            ShipperId = firstSurvey.ShipperId,
+                            OrderDate = firstSurvey.OrderDate,
+                            SurveyDate = firstSurvey.SurveyDate,
+                            PickupDate = firstSurvey.PickupDate,
+                            Containers = new ObservableCollection<ContainerDetailModel>()
+                        };
+
+                        foreach (var survey in surveysForOrder)
+                        {
+                            var containerInfo = DummyData.Containers.FirstOrDefault(c => c.ContNumber == survey.ContNumber);
+                            if (containerInfo != null)
+                            {
+                                var containerDetail = new ContainerDetailModel
+                                {
+                                    ContNumber = survey.ContNumber,
+                                    ContSize = containerInfo.ContSize,
+                                    ContType = containerInfo.ContType,
+                                    Condition = survey.Condition,
+                                    CleaningStatus = survey.CleaningStatus,
+                                    RepairStatus = survey.RepairStatus,
+                                    PeriodicStatus = survey.PeriodicStatus,
+                                    SurveyStatus = survey.SurveyStatus
+                                };
+
+                                containerDetail.Activities = new ObservableCollection<ActivityModel>
+                                {
+                                    new ActivityModel("Cleaning", "Cleaning", survey.CleaningStatus),
+                                    new ActivityModel("Repair", "Repair", survey.RepairStatus),
+                                    new ActivityModel("Periodic", "Periodic", survey.PeriodicStatus),
+                                    new ActivityModel("Survey", "Survey", survey.SurveyStatus)
+                                };
+
+                                orderGroup.Containers.Add(containerDetail);
+                            }
+                        }
+
+                        _viewModel.OrderGroups.Add(orderGroup);
+                    }
                 }
 
                 _viewModel.SearchText = string.Empty;
             }));
         }
 
-        private void DataGrid_CellTapped(object sender, Syncfusion.Maui.DataGrid.DataGridCellTappedEventArgs e)
+        private void DataGrid_CellTapped(object sender, DataGridCellTappedEventArgs e)
         {
             if (e.RowData is SurveyModel selected)
             {
                 _viewModel.SelectedSurvey = selected;
-
-           
-                if (isMobileView)
-                {
-                    ShowMobileDetailPanel();
-                }
             }
         }
 
-        private async void ShowMobileDetailPanel()
+        private void MobileView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-    
-            mobileDetailsPanel.IsVisible = true;
-            mobileDetailsPanel.HeightRequest = panelHeight;
-
-            mobileDetailsPanel.TranslationY = panelHeight;
-
-            await mobileDetailsPanel.TranslateTo(0, 0, 250, Easing.Linear);
+            if (e.CurrentSelection.Count > 0 && e.CurrentSelection[0] is SurveyModel selected)
+            {
+                _viewModel.SelectedSurvey = selected;
+            }
         }
-
-        private async void HideMobileDetailPanel()
-        {
-          
-            await mobileDetailsPanel.TranslateTo(0, panelHeight, 200, Easing.Linear);
-            mobileDetailsPanel.IsVisible = false;
-        }
-
-        private void OnCloseDetailPanel(object sender, EventArgs e)
-        {
-            HideMobileDetailPanel();
-        }
-
-
 
         private async void NavigateToPage(object sender, EventArgs e)
         {
-            if (_viewModel.SelectedSurvey == null)
+            if (sender is Button button)
             {
-                await DisplayAlert("No Selection", "Please select a survey first.", "OK");
-                return;
-            }
+                string pageType = button.CommandParameter?.ToString();
 
-            Button button = sender as Button;
-            string pageType = button?.CommandParameter?.ToString();
-
-            if (string.IsNullOrEmpty(pageType))
-            {
-                return;
-            }
-
-            Page destinationPage = null;
-
-            switch (pageType)
-            {
-                case "Cleaning":
-                    destinationPage = new Cleaning(_viewModel.SelectedSurvey);
-                    break;
-                case "Repair":
-                    destinationPage = new Repair(_viewModel.SelectedSurvey);
-                    break;
-                case "Periodic":
-                    destinationPage = new Periodic(_viewModel.SelectedSurvey);
-                    break;
-                case "Survey":
-                    destinationPage = new Survey(_viewModel.SelectedSurvey);
-                    break;
-            }
-
-            if (destinationPage != null)
-            {
-                // If in mobile view, hide the panel before navigating
-                if (isMobileView)
+                if (string.IsNullOrEmpty(pageType))
                 {
-                    await mobileDetailsPanel.TranslateTo(0, panelHeight, 200, Easing.Linear);
+                    return;
                 }
 
-                await Navigation.PushAsync(destinationPage);
+                // Find the container from the button context
+                ContainerDetailModel container = null;
+
+                if (button.BindingContext is ActivityModel activity)
+                {
+                    // Find the container that contains this activity
+                    foreach (var surveyItem in _viewModel.OrderGroups)
+                    {
+                        foreach (var cont in surveyItem.Containers)
+                        {
+                            if (cont.Activities.Contains(activity))
+                            {
+                                container = cont;
+                                break;
+                            }
+                        }
+
+                        if (container != null)
+                            break;
+                    }
+                }
+                else if (button.BindingContext is ContainerDetailModel directContainer)
+                {
+                    container = directContainer;
+                }
+
+                if (container == null)
+                {
+                    await DisplayAlert("Error", "Cannot find the container for this action.", "OK");
+                    return;
+                }
+
+                // Find the survey that contains this container
+                var survey = _viewModel.OrderGroups.FirstOrDefault(s =>
+                    s.Containers.Contains(container));
+
+                if (survey == null)
+                {
+                    await DisplayAlert("Error", "Cannot find the survey for this container.", "OK");
+                    return;
+                }
+
+                _viewModel.SelectedSurvey = survey;
+
+                // Navigate to the appropriate page
+                Page destinationPage = null;
+
+                switch (pageType)
+                {
+                    case "Cleaning":
+                        destinationPage = new Cleaning(survey);
+                        break;
+                    case "Repair":
+                        destinationPage = new Repair(survey);
+                        break;
+                    case "Periodic":
+                        destinationPage = new Periodic(survey);
+                        break;
+                    case "Survey":
+                        destinationPage = new Survey(survey);
+                        break;
+                }
+
+                if (destinationPage != null)
+                {
+                    await Navigation.PushAsync(destinationPage);
+                }
             }
         }
     }

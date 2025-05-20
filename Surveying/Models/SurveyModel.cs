@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
@@ -19,7 +20,6 @@ namespace Surveying.Models
 
     public partial class SurveyModel : ObservableObject
     {
-    
         public string OrderNumber { get; set; }
         public long PrincipalId { get; set; }
         public string Surveyor { get; set; }
@@ -30,7 +30,14 @@ namespace Surveying.Models
         public DateTime PickupDate { get; set; }
         public string Condition { get; set; }
 
-        public SurveyModel() { }
+        // New property to support containers for the master-detail view
+        [ObservableProperty]
+        private ObservableCollection<ContainerDetailModel> containers;
+
+        public SurveyModel()
+        {
+            Containers = new ObservableCollection<ContainerDetailModel>();
+        }
 
         public SurveyModel(string orderNumber, long principalId, string surveyor, long shipperId, string contNumber,
                            DateTime orderDate, DateTime surveyDate, DateTime pickupDate, string condition)
@@ -44,9 +51,83 @@ namespace Surveying.Models
             SurveyDate = surveyDate;
             PickupDate = pickupDate;
             Condition = condition;
+
+            // Initialize Containers collection
+            Containers = new ObservableCollection<ContainerDetailModel>();
+
+            // Find the container in DummyData and add it to the Containers collection
+            var containerInfo = DummyData.Containers.FirstOrDefault(c => c.ContNumber == contNumber);
+            if (containerInfo != null)
+            {
+                // Create a new ContainerDetailModel with enhanced properties for the detail view
+                var container = new ContainerDetailModel
+                {
+                    ContNumber = contNumber,
+                    ContSize = containerInfo.ContSize,
+                    ContType = containerInfo.ContType,
+                    Condition = condition,
+                    CleaningStatus = CleaningStatus,
+                    RepairStatus = RepairStatus,
+                    PeriodicStatus = PeriodicStatus,
+                    SurveyStatus = SurveyStatus
+                };
+
+                // Set up property change notifications
+                PropertyChanged += (s, e) => {
+                    if (e.PropertyName == nameof(CleaningStatus))
+                    {
+                        container.CleaningStatus = CleaningStatus;
+                        container.UpdateActivities();
+                    }
+                    else if (e.PropertyName == nameof(RepairStatus))
+                    {
+                        container.RepairStatus = RepairStatus;
+                        container.UpdateActivities();
+                    }
+                    else if (e.PropertyName == nameof(PeriodicStatus))
+                    {
+                        container.PeriodicStatus = PeriodicStatus;
+                        container.UpdateActivities();
+                    }
+                    else if (e.PropertyName == nameof(SurveyStatus))
+                    {
+                        container.SurveyStatus = SurveyStatus;
+                        container.UpdateActivities();
+                    }
+                };
+
+                // Initialize activities
+                container.UpdateActivities();
+
+                Containers.Add(container);
+            }
         }
 
-     
+        // Helper method to add a container to this survey
+        public void AddContainer(string contNumber, string condition)
+        {
+            var containerInfo = DummyData.Containers.FirstOrDefault(c => c.ContNumber == contNumber);
+            if (containerInfo != null)
+            {
+                var container = new ContainerDetailModel
+                {
+                    ContNumber = contNumber,
+                    ContSize = containerInfo.ContSize,
+                    ContType = containerInfo.ContType,
+                    Condition = condition,
+                    CleaningStatus = StatusType.NotFilled,
+                    RepairStatus = StatusType.NotFilled,
+                    PeriodicStatus = StatusType.NotFilled,
+                    SurveyStatus = StatusType.NotFilled
+                };
+
+                // Initialize activities
+                container.UpdateActivities();
+
+                Containers.Add(container);
+            }
+        }
+
         public string PrincipalCode
         {
             get { return DummyData.Principals.Where(w => w.Id == PrincipalId).FirstOrDefault()?.Code ?? ""; }
@@ -108,7 +189,6 @@ namespace Surveying.Models
             OnPropertyChanged(nameof(Status));
         }
 
-
         public string Status => $"{GetSymbol(CleaningStatus)}|{GetSymbol(RepairStatus)}|{GetSymbol(PeriodicStatus)}|{GetSymbol(SurveyStatus)}";
 
         private string GetSymbol(StatusType status)
@@ -127,6 +207,7 @@ namespace Surveying.Models
                     return "";
             }
         }
+
         private void UpdateOverallStatus()
         {
             if (CleaningStatus != StatusType.NotFilled &&

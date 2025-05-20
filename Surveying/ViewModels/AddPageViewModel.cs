@@ -44,19 +44,6 @@ namespace Surveying.ViewModels
 
         public ObservableCollection<string> ConditionList => ConditionData.ConditionList;
 
-        partial void OnContNumberChanged(string value)
-        {
-            // Example: 4 letters + 7 digits
-            var regex = new Regex(@"^[A-Za-z]{4}[0-9]{7}$");
-            if (!string.IsNullOrWhiteSpace(value) && !regex.IsMatch(value))
-            {
-                ContNumberError = "Container number must be AAAANNNNNNN (4 letters, 7 digits).";
-            }
-            else
-            {
-                ContNumberError = "";
-            }
-        }
 
         [RelayCommand]
         void AddSurveyEntry()

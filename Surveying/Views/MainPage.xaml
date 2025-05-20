@@ -6,7 +6,10 @@
         xmlns:buttons="clr-namespace:Syncfusion.Maui.Buttons;assembly=Syncfusion.Maui.Buttons"
         xmlns:editors="clr-namespace:Syncfusion.Maui.Inputs;assembly=Syncfusion.Maui.Inputs"
         xmlns:inputLayout="clr-namespace:Syncfusion.Maui.Core;assembly=Syncfusion.Maui.Core"
+        xmlns:expander="clr-namespace:Syncfusion.Maui.Expander;assembly=Syncfusion.Maui.Expander"
         xmlns:local="clr-namespace:Surveying.ViewModels"
+        xmlns:helpers="clr-namespace:Surveying.Helpers"
+        xmlns:model="clr-namespace:Surveying.Models"
         x:Class="Surveying.Views.MainPage"
         Title="Survey List">
 
@@ -16,23 +19,86 @@
 
     <ContentPage.Resources>
         <ResourceDictionary>
-            
-            <Style x:Key="DetailLabelStyle" TargetType="Label">
+            <!-- Styles for different screen sizes -->
+            <Style x:Key="MobileHeaderStyle" TargetType="Label">
+                <Setter Property="FontSize" Value="14" />
                 <Setter Property="FontAttributes" Value="Bold" />
+                <Setter Property="Margin" Value="2" />
                 <Setter Property="VerticalOptions" Value="Center" />
-                <Setter Property="MinimumWidthRequest" Value="100" />
             </Style>
-            
-            <Style x:Key="DetailValueStyle" TargetType="Label">
-                <Setter Property="VerticalOptions" Value="Center" />
+
+            <Style x:Key="MobileCellStyle" TargetType="Label">
+                <Setter Property="FontSize" Value="14" />
                 <Setter Property="LineBreakMode" Value="TailTruncation" />
+                <Setter Property="Margin" Value="2" />
             </Style>
-            
+
+            <Style x:Key="StatusLabelStyle" TargetType="Label">
+                <Setter Property="HorizontalOptions" Value="Center" />
+                <Setter Property="VerticalOptions" Value="Center" />
+                <Setter Property="FontSize" Value="14" />
+                <Setter Property="Padding" Value="5" />
+
+            </Style>
+
+            <Style x:Key="MobileButtonStyle" TargetType="Button">
+                <Setter Property="FontSize" Value="12" />
+                <Setter Property="Margin" Value="2" />
+                <Setter Property="Padding" Value="5" />
+                <Setter Property="CornerRadius" Value="5" />
+            </Style>
+
+            <!-- SfExpander style for order headers -->
+            <Style x:Key="OrderExpanderStyle" TargetType="expander:SfExpander">
+                <Setter Property="IsExpanded" Value="False" />
+                <Setter Property="HeaderIconPosition" Value="End" />
+                <Setter Property="VisualStateManager.VisualStateGroups">
+                    <VisualStateGroupList>
+                        <VisualStateGroup>
+                            <VisualState Name="Expanded">
+                                <VisualState.Setters>
+                                    <Setter Property="HeaderBackground" Value="#E0E0E0"/>
+                                </VisualState.Setters>
+                            </VisualState>
+                            <VisualState Name="Collapsed">
+                                <VisualState.Setters>
+                                    <Setter Property="HeaderBackground" Value="#F0F0F0"/>
+                                </VisualState.Setters>
+                            </VisualState>
+                        </VisualStateGroup>
+                    </VisualStateGroupList>
+                </Setter>
+            </Style>
+
+            <!-- SfExpander style for container headers -->
+            <Style x:Key="ContainerExpanderStyle" TargetType="expander:SfExpander">
+                <Setter Property="IsExpanded" Value="False" />
+                <Setter Property="HeaderIconPosition" Value="End" />
+                <Setter Property="VisualStateManager.VisualStateGroups">
+                    <VisualStateGroupList>
+                        <VisualStateGroup>
+                            <VisualState Name="Expanded">
+                                <VisualState.Setters>
+                                    <Setter Property="HeaderBackground" Value="#EEEEEE"/>
+                                </VisualState.Setters>
+                            </VisualState>
+                            <VisualState Name="Collapsed">
+                                <VisualState.Setters>
+                                    <Setter Property="HeaderBackground" Value="#F8F8F8"/>
+                                </VisualState.Setters>
+                            </VisualState>
+                        </VisualStateGroup>
+                    </VisualStateGroupList>
+                </Setter>
+            </Style>
+
+            <!-- Converters for status display -->
+            <helpers:StatusTypeToStringConverter x:Key="StatusConverter" />
+            <helpers:StatusTypeToColorConverter x:Key="StatusColorConverter" />
         </ResourceDictionary>
     </ContentPage.Resources>
 
     <Grid x:Name="mainLayout">
-        
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -46,196 +112,235 @@
                 HorizontalOptions="FillAndExpand" />
         </HorizontalStackLayout>
 
-        <Grid Grid.Row="1" x:Name="contentLayout">
+        <!-- Standard View (Desktop/Tablet) -->
+        <syncfusion:SfDataGrid Grid.Row="1"
+                               x:Name="dataGrid"
+                               ItemsSource="{Binding OrderGroups}"
+                               AutoGenerateColumnsMode="None"
+                               ColumnWidthMode="Auto"
+                               SelectionMode="Single"
+                               NavigationMode="Cell"
+                               RowHeight="60"
+                               HeaderRowHeight="40"
+                               GridLinesVisibility="Both"
+                               IsVisible="{Binding IsDesktopMode}"
+                               CellTapped="DataGrid_CellTapped">
+            <syncfusion:SfDataGrid.Columns>
+                <syncfusion:DataGridTextColumn HeaderText="Order Number" MappingName="OrderNumber" />
+                <syncfusion:DataGridTextColumn HeaderText="Principal" MappingName="PrincipalName" />
+                <syncfusion:DataGridTextColumn HeaderText="Surveyor" MappingName="Surveyor" />
+                <syncfusion:DataGridTextColumn HeaderText="Shipper" MappingName="ShipperName" />
+                <syncfusion:DataGridTextColumn HeaderText="Order Date" MappingName="OrderDate" Format="dd/MM/yyyy" />
+                <syncfusion:DataGridTextColumn HeaderText="Survey Date" MappingName="SurveyDate" Format="dd/MM/yyyy" />
+                <syncfusion:DataGridTextColumn HeaderText="Pickup Date" MappingName="PickupDate" Format="dd/MM/yyyy" />
+            </syncfusion:SfDataGrid.Columns>
 
-            <syncfusion:SfDataGrid x:Name="dataGrid"
-               ItemsSource="{Binding FilteredSurveyList}"
-               AllowGroupExpandCollapse="True"
-               SelectionMode="Single"
-               CellTapped="DataGrid_CellTapped"
-               RowHeight="62"
-               AutoGenerateColumnsMode="None"
-               HorizontalOptions="FillAndExpand"
-               VerticalOptions="FillAndExpand"
-               ColumnWidthMode="Fill">
-                <syncfusion:SfDataGrid.GroupColumnDescriptions>
-                    <syncfusion:GroupColumnDescription ColumnName="OrderNumber"/>
-                </syncfusion:SfDataGrid.GroupColumnDescriptions>
-                <syncfusion:SfDataGrid.Columns>
-                    <syncfusion:DataGridTextColumn HeaderText="Principal" MappingName="PrincipalName" MinimumWidth="120" />
-                    <syncfusion:DataGridTextColumn HeaderText="Surveyor" MappingName="Surveyor" MinimumWidth="100" />
-                    <syncfusion:DataGridTextColumn HeaderText="Tank" MappingName="ContNumber" MinimumWidth="100" />
-                    <syncfusion:DataGridTextColumn HeaderText="Condition" MappingName="Condition" MinimumWidth="100" />
-                    <syncfusion:DataGridTextColumn MappingName="Status" HeaderText="C|R|P|S" MinimumWidth="60" />
-                </syncfusion:SfDataGrid.Columns>
-            </syncfusion:SfDataGrid>
+            <!-- Master-Details View for Desktop/Tablet -->
+            <syncfusion:SfDataGrid.DetailsViewDefinition>
+                <syncfusion:DataGridViewDefinition RelationalColumn="Containers">
+                    <syncfusion:DataGridViewDefinition.DataGrid>
+                        <syncfusion:SfDataGrid x:Name="ContainersGrid"
+                                              AutoGenerateColumnsMode="None"
+                                              NavigationMode="Cell"
+                                              ColumnWidthMode="Auto"
+                                              GridLinesVisibility="Both"
+                                              AutoGenerateRelations="False">
+                            <syncfusion:SfDataGrid.Columns>
+                                <syncfusion:DataGridTextColumn HeaderText="Container Number" MappingName="ContNumber" />
+                                <syncfusion:DataGridTextColumn HeaderText="Size" MappingName="ContSize" />
+                                <syncfusion:DataGridTextColumn HeaderText="Type" MappingName="ContType" />
+                                <syncfusion:DataGridTextColumn HeaderText="Condition" MappingName="Condition" />
+                            </syncfusion:SfDataGrid.Columns>
 
-            <!-- Normal details view for desktop/landscape mode -->
-            <ScrollView Grid.Row="1" x:Name="detailsScrollView" IsVisible="true">
-                <Border Stroke="LightGray" Margin="5" Padding="10">
-                    <VerticalStackLayout Spacing="15" Padding="10">
-                        <Label Text="Details" FontAttributes="Bold" FontSize="24" HorizontalOptions="Center" />
+                            <syncfusion:SfDataGrid.DetailsViewDefinition>
+                                <syncfusion:DataGridViewDefinition RelationalColumn="Activities">
+                                    <syncfusion:DataGridViewDefinition.DataGrid>
+                                        <syncfusion:SfDataGrid x:Name="ActivitiesGrid"
+                                                              AutoGenerateColumnsMode="None"
+                                                              NavigationMode="Cell"
+                                                              ColumnWidthMode="Auto"
+                                                              GridLinesVisibility="Both">
+                                            <syncfusion:SfDataGrid.Columns>
+                                                <syncfusion:DataGridTextColumn HeaderText="Activity" MappingName="ActivityName" />
+                                                <syncfusion:DataGridTemplateColumn HeaderText="Status" MappingName="Status">
+                                                    <syncfusion:DataGridTemplateColumn.CellTemplate>
+                                                        <DataTemplate>
+                                                            <Label Text="{Binding Status, Converter={StaticResource StatusConverter}}" 
+                                                                   Style="{StaticResource StatusLabelStyle}"
+                                                                   BackgroundColor="{Binding Status, Converter={StaticResource StatusColorConverter}}"
+                                                                   TextColor="White" />
+                                                        </DataTemplate>
+                                                    </syncfusion:DataGridTemplateColumn.CellTemplate>
+                                                </syncfusion:DataGridTemplateColumn>
+                                                <syncfusion:DataGridTemplateColumn HeaderText="Action" MappingName="ActivityType">
+                                                    <syncfusion:DataGridTemplateColumn.CellTemplate>
+                                                        <DataTemplate>
+                                                            <Button Text="{Binding ActivityType, StringFormat='Go to {0}'}" 
+                                                                    CommandParameter="{Binding ActivityType}"
+                                                                    Clicked="NavigateToPage" />
+                                                        </DataTemplate>
+                                                    </syncfusion:DataGridTemplateColumn.CellTemplate>
+                                                </syncfusion:DataGridTemplateColumn>
+                                            </syncfusion:SfDataGrid.Columns>
+                                        </syncfusion:SfDataGrid>
+                                    </syncfusion:DataGridViewDefinition.DataGrid>
+                                </syncfusion:DataGridViewDefinition>
+                            </syncfusion:SfDataGrid.DetailsViewDefinition>
+                        </syncfusion:SfDataGrid>
+                    </syncfusion:DataGridViewDefinition.DataGrid>
+                </syncfusion:DataGridViewDefinition>
+            </syncfusion:SfDataGrid.DetailsViewDefinition>
+        </syncfusion:SfDataGrid>
 
-                        <HorizontalStackLayout>
-                            <Button Text="TestCleaning" Clicked="NavigateToPage" CommandParameter="Cleaning" 
-                            Grid.Row="0" Grid.Column="0" Margin="10" />
+        <!-- Mobile View with Expanders for Collapsible Sections -->
+        <ScrollView Grid.Row="1"
+                   x:Name="mobileScrollView"
+                   IsVisible="{Binding IsMobileMode}">
+            <StackLayout Padding="5" Spacing="5">
+                <!-- Order Expander items - generated from OrderGroups -->
+                <StackLayout BindableLayout.ItemsSource="{Binding OrderGroups}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate>
+                            <!-- Each order is in a border with rounded corners -->
+                            <Border Stroke="#CCCCCC" StrokeThickness="1" StrokeShape="RoundRectangle 8,8,8,8" 
+                                   Margin="0,0,0,8">
+                                <expander:SfExpander Style="{StaticResource OrderExpanderStyle}">
+                                    <expander:SfExpander.Header>
+                                        <Grid Padding="10,5">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
 
-                            <Button Text="TestRepair" Clicked="NavigateToPage" CommandParameter="Repair" 
-                            Grid.Row="0" Grid.Column="1" Margin="10" />
+                                            <StackLayout Grid.Column="0" Orientation="Horizontal" Spacing="10">
+                                                <Label Text="{Binding OrderNumber}" 
+                                                       Style="{StaticResource MobileHeaderStyle}"
+                                                       FontSize="16" />
+                                                <Label Text="{Binding PrincipalName}" 
+                                                       Style="{StaticResource MobileCellStyle}" />
+                                            </StackLayout>
 
-                            <Button Text="TestPeriodic" Clicked="NavigateToPage" CommandParameter="Periodic" 
-                            Grid.Row="1" Grid.Column="0" Margin="10" />
+                                            <Label Grid.Column="1" 
+                                                   Text="{Binding Containers.Count, StringFormat='{0} containers'}" 
+                                                   Style="{StaticResource MobileCellStyle}"
+                                                   HorizontalOptions="End" />
+                                        </Grid>
+                                    </expander:SfExpander.Header>
+                                    <expander:SfExpander.Content>
+                                        <!-- Order Details and Containers -->
+                                        <StackLayout Padding="10,5" Spacing="10">
+                                            <!-- Order Details -->
+                                            <Grid Margin="0,0,0,10">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                </Grid.RowDefinitions>
 
-                            <Button Text="TestSurvey" Clicked="NavigateToPage" CommandParameter="Survey" 
-                            Grid.Row="1" Grid.Column="1" Margin="10" />
+                                                <Label Text="Principal:" Grid.Row="0" Grid.Column="0" Style="{StaticResource MobileHeaderStyle}" />
+                                                <Label Text="{Binding PrincipalName}" Grid.Row="0" Grid.Column="1" Style="{StaticResource MobileCellStyle}" />
 
-                        </HorizontalStackLayout>
+                                                <Label Text="Surveyor:" Grid.Row="0" Grid.Column="2" Style="{StaticResource MobileHeaderStyle}" />
+                                                <Label Text="{Binding Surveyor}" Grid.Row="0" Grid.Column="3" Style="{StaticResource MobileCellStyle}" />
 
-                        <FlexLayout Direction="Row" Wrap="Wrap" JustifyContent="Start" AlignItems="Center">
-                            <Label Text="Tank No:" Style="{StaticResource DetailLabelStyle}" />
-                            <Label Text="{Binding SelectedSurvey.ContNumber}" Style="{StaticResource DetailValueStyle}" />
-                        
-                        </FlexLayout>
+                                                <Label Text="Shipper:" Grid.Row="1" Grid.Column="0" Style="{StaticResource MobileHeaderStyle}" />
+                                                <Label Text="{Binding ShipperName}" Grid.Row="1" Grid.Column="1" Style="{StaticResource MobileCellStyle}" />
 
-                        <FlexLayout Direction="Row" Wrap="Wrap" JustifyContent="Start" AlignItems="Center">
-                            <Label Text="Condition:" Style="{StaticResource DetailLabelStyle}" />
-                            <Label Text="{Binding SelectedSurvey.Condition}" Style="{StaticResource DetailValueStyle}" />
-                            
-                        </FlexLayout>
+                                                <Label Text="Order Date:" Grid.Row="1" Grid.Column="2" Style="{StaticResource MobileHeaderStyle}" />
+                                                <Label Text="{Binding OrderDate, StringFormat='{0:dd/MM/yyyy}'}" Grid.Row="1" Grid.Column="3" Style="{StaticResource MobileCellStyle}" />
 
-                        <FlexLayout Direction="Row" Wrap="Wrap" JustifyContent="Start" AlignItems="Center">
-                            <Label Text="Surveyor:" Style="{StaticResource DetailLabelStyle}" />
-                            <Label Text="{Binding SelectedSurvey.Surveyor}" Style="{StaticResource DetailValueStyle}" />
-                            
-                        </FlexLayout>
+                                                <Label Text="Survey Date:" Grid.Row="2" Grid.Column="0" Style="{StaticResource MobileHeaderStyle}" />
+                                                <Label Text="{Binding SurveyDate, StringFormat='{0:dd/MM/yyyy}'}" Grid.Row="2" Grid.Column="1" Style="{StaticResource MobileCellStyle}" />
 
-                        <FlexLayout Direction="Row" Wrap="Wrap" JustifyContent="Start" AlignItems="Center">
-                            <Label Text="OrderDate:" Style="{StaticResource DetailLabelStyle}" />
-                            <Label Text="{Binding SelectedSurvey.OrderDate, StringFormat='{}{0:dd/MM/yyyy}'}" Style="{StaticResource DetailValueStyle}" />
-                            
-                        </FlexLayout>
+                                                <Label Text="Pickup Date:" Grid.Row="2" Grid.Column="2" Style="{StaticResource MobileHeaderStyle}" />
+                                                <Label Text="{Binding PickupDate, StringFormat='{0:dd/MM/yyyy}'}" Grid.Row="2" Grid.Column="3" Style="{StaticResource MobileCellStyle}" />
+                                            </Grid>
 
-                        <FlexLayout Direction="Row" Wrap="Wrap" JustifyContent="Start" AlignItems="Center">
-                            <Label Text="SurveyDate:" Style="{StaticResource DetailLabelStyle}" />
-                            <Label Text="{Binding SelectedSurvey.SurveyDate, StringFormat='{}{0:dd/MM/yyyy}'}" Style="{StaticResource DetailValueStyle}" />
-                        </FlexLayout>
+                                            <!-- Container List with Expanders -->
+                                            <StackLayout BindableLayout.ItemsSource="{Binding Containers}">
+                                                <BindableLayout.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Stroke="#DDDDDD" StrokeThickness="1" StrokeShape="RoundRectangle 4,4,4,4" 
+                                                               Margin="5,3">
+                                                            <expander:SfExpander Style="{StaticResource ContainerExpanderStyle}">
+                                                                <expander:SfExpander.Header>
+                                                                    <Grid Padding="10,5">
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="*" />
+                                                                            <ColumnDefinition Width="Auto" />
+                                                                        </Grid.ColumnDefinitions>
 
-                        <FlexLayout Direction="Row" Wrap="Wrap" JustifyContent="Start" AlignItems="Center">
-                            <Label Text="PickupDate:" Style="{StaticResource DetailLabelStyle}" />
-                            <Label Text="{Binding SelectedSurvey.PickupDate, StringFormat='{}{0:dd/MM/yyyy}'}" Style="{StaticResource DetailValueStyle}" />
-                        </FlexLayout>
+                                                                        <StackLayout Grid.Column="0" Orientation="Vertical" Spacing="3">
+                                                                            <Label Text="{Binding ContNumber}" Style="{StaticResource MobileHeaderStyle}" />
+                                                                            <Label Text="{Binding Condition}" Style="{StaticResource MobileCellStyle}" />
+                                                                        </StackLayout>
 
-                        <FlexLayout Direction="Row" Wrap="Wrap" JustifyContent="Start" AlignItems="Center">
-                            <Label Text="Shipper:" Style="{StaticResource DetailLabelStyle}" />
-                            <Label Text="{Binding SelectedSurvey.ShipperName}" Style="{StaticResource DetailValueStyle}" />
-                        </FlexLayout>
-                    </VerticalStackLayout>
-                </Border>
-            </ScrollView>
+                                                                        <StackLayout Grid.Column="1" Orientation="Vertical" Spacing="3" HorizontalOptions="End">
+                                                                            <Label Text="{Binding ContSize}" Style="{StaticResource MobileCellStyle}" />
+                                                                            <Label Text="{Binding ContType}" Style="{StaticResource MobileCellStyle}" />
+                                                                        </StackLayout>
+                                                                    </Grid>
+                                                                </expander:SfExpander.Header>
+                                                                <expander:SfExpander.Content>
+                                                                    <!-- Activity List -->
+                                                                    <StackLayout Padding="10,5" Spacing="5">
+                                                                        <Label Text="Activities" FontAttributes="Bold" />
 
-  
-            <Border x:Name="mobileDetailsPanel" 
-                   Stroke="LightGray"
-                   StrokeThickness="1"
-                   BackgroundColor="White"
-                   Padding="0"
-                   Margin="0"
-                   VerticalOptions="End"
-                   IsVisible="false">
-                <Grid RowSpacing="0">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
+                                                                        <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,5">
+                                                                            <Label Text="Activity" Grid.Column="0" FontAttributes="Bold" />
+                                                                            <Label Text="Status" Grid.Column="1" FontAttributes="Bold" HorizontalOptions="Center" />
+                                                                            <Label Text="Action" Grid.Column="2" FontAttributes="Bold" HorizontalOptions="Center" />
+                                                                        </Grid>
 
-         
-                    <Grid Grid.Row="0" BackgroundColor="Grey" Padding="10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
+                                                                        <StackLayout BindableLayout.ItemsSource="{Binding Activities}">
+                                                                            <BindableLayout.ItemTemplate>
+                                                                                <DataTemplate>
+                                                                                    <Grid ColumnDefinitions="*,Auto,Auto" Padding="0,5" Margin="0,2" BackgroundColor="#FAFAFA">
+                                                                                        <Label Text="{Binding ActivityName}" 
+                                                                                               Grid.Column="0"
+                                                                                               Style="{StaticResource MobileCellStyle}"
+                                                                                               VerticalOptions="Center" />
 
-          
-                        <Label Grid.Column="0"
-                               Text="Details"
-                               TextColor="White"
-                               FontAttributes="Bold"
-                               HorizontalOptions="Center"
-                               VerticalOptions="Center" />
+                                                                                        <Label Text="{Binding Status, Converter={StaticResource StatusConverter}}" 
+                                                                                               Grid.Column="1"
+                                                                                               Style="{StaticResource StatusLabelStyle}"
+                                                                                               BackgroundColor="{Binding Status, Converter={StaticResource StatusColorConverter}}"
+                                                                                               TextColor="White"
+                                                                                               Margin="5,0"
+                                                                                               WidthRequest="80"
+                                                                                               HeightRequest="30" />
 
-     
-                        <Button Grid.Column="1" 
-                                Text="✕"
-                                FontSize="16"
-                                Padding="0"
-                                HeightRequest="30"
-                                WidthRequest="30"
-                                BackgroundColor="Transparent"
-                                Clicked="OnCloseDetailPanel" />
-                    </Grid>
-
-
-
-                    <ScrollView Grid.Row="1" Padding="15">
-                        <VerticalStackLayout Spacing="15">
-         
-                            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" 
-                                HorizontalOptions="Center" VerticalOptions="Start" Margin="0,0,0,10">
-                                
-                                <Button Text="TestCleaning" Clicked="NavigateToPage" CommandParameter="Cleaning" 
-                                Grid.Row="0" Grid.Column="0" Margin="10" />
-                                
-                                <Button Text="TestRepair" Clicked="NavigateToPage" CommandParameter="Repair" 
-                                Grid.Row="0" Grid.Column="1" Margin="10" />
-                                
-                                <Button Text="TestPeriodic" Clicked="NavigateToPage" CommandParameter="Periodic" 
-                                Grid.Row="1" Grid.Column="0" Margin="10" />
-                                
-                                <Button Text="TestSurvey" Clicked="NavigateToPage" CommandParameter="Survey" 
-                                Grid.Row="1" Grid.Column="1" Margin="10" />
-                                
-                            </Grid>
-
-                      
-                            <FlexLayout Direction="Row" Wrap="Wrap" JustifyContent="Start" AlignItems="Center">
-                                <Label Text="Tank No:" Style="{StaticResource DetailLabelStyle}" />
-                                <Label Text="{Binding SelectedSurvey.ContNumber}" Style="{StaticResource DetailValueStyle}" />
-                            </FlexLayout>
-                            
-                            <FlexLayout Direction="Row" Wrap="Wrap" JustifyContent="Start" AlignItems="Center">
-                                <Label Text="Condition:" Style="{StaticResource DetailLabelStyle}" />
-                                <Label Text="{Binding SelectedSurvey.Condition}" Style="{StaticResource DetailValueStyle}" />
-                            </FlexLayout>
-                            
-                            <FlexLayout Direction="Row" Wrap="Wrap" JustifyContent="Start" AlignItems="Center">
-                                <Label Text="Surveyor:" Style="{StaticResource DetailLabelStyle}" />
-                                <Label Text="{Binding SelectedSurvey.Surveyor}" Style="{StaticResource DetailValueStyle}" />
-                            </FlexLayout>
-                            
-                            <FlexLayout Direction="Row" Wrap="Wrap" JustifyContent="Start" AlignItems="Center">
-                                <Label Text="Shipper:" Style="{StaticResource DetailLabelStyle}" />
-                                <Label Text="{Binding SelectedSurvey.ShipperName}" Style="{StaticResource DetailValueStyle}" />
-                            </FlexLayout>
-                            
-                            <FlexLayout Direction="Row" Wrap="Wrap" JustifyContent="Start" AlignItems="Center">
-                                <Label Text="OrderDate:" Style="{StaticResource DetailLabelStyle}" />
-                                <Label Text="{Binding SelectedSurvey.OrderDate, StringFormat='{}{0:dd/MM/yyyy}'}" Style="{StaticResource DetailValueStyle}" />
-                            </FlexLayout>
-                            
-                            <FlexLayout Direction="Row" Wrap="Wrap" JustifyContent="Start" AlignItems="Center">
-                                <Label Text="SurveyDate:" Style="{StaticResource DetailLabelStyle}" />
-                                <Label Text="{Binding SelectedSurvey.SurveyDate, StringFormat='{}{0:dd/MM/yyyy}'}" Style="{StaticResource DetailValueStyle}" />
-                            </FlexLayout>
-                            
-                            <FlexLayout Direction="Row" Wrap="Wrap" JustifyContent="Start" AlignItems="Center">
-                                <Label Text="PickupDate:" Style="{StaticResource DetailLabelStyle}" />
-                                <Label Text="{Binding SelectedSurvey.PickupDate, StringFormat='{}{0:dd/MM/yyyy}'}" Style="{StaticResource DetailValueStyle}" />
-                            </FlexLayout>
-                            
-                        </VerticalStackLayout>
-                    </ScrollView>
-                </Grid>
-            </Border>
-        </Grid>
+                                                                                        <Button Text="Go" 
+                                                                                                Grid.Column="2"
+                                                                                                Style="{StaticResource MobileButtonStyle}"
+                                                                                                CommandParameter="{Binding ActivityType}"
+                                                                                                Clicked="NavigateToPage"
+                                                                                                WidthRequest="60" />
+                                                                                    </Grid>
+                                                                                </DataTemplate>
+                                                                            </BindableLayout.ItemTemplate>
+                                                                        </StackLayout>
+                                                                    </StackLayout>
+                                                                </expander:SfExpander.Content>
+                                                            </expander:SfExpander>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </BindableLayout.ItemTemplate>
+                                            </StackLayout>
+                                        </StackLayout>
+                                    </expander:SfExpander.Content>
+                                </expander:SfExpander>
+                            </Border>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </StackLayout>
+            </StackLayout>
+        </ScrollView>
     </Grid>
 </ContentPage>
