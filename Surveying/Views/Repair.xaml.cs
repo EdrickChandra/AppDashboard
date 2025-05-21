@@ -5,10 +5,10 @@ namespace Surveying.Views
 {
     public partial class Repair : ContentPage
     {
-        public Repair(SurveyModel survey)
+        public Repair(SurveyModel survey, ContainerDetailModel container)
         {
             InitializeComponent();
-            BindingContext = new RepairViewModel(survey);
+            BindingContext = new RepairViewModel(survey, container);
         }
     }
 }

@@ -5,12 +5,10 @@ namespace Surveying.Views
 {
     public partial class Survey : ContentPage
     {
- 
-        public Survey(SurveyModel survey)
+        public Survey(SurveyModel survey, ContainerDetailModel container)
         {
             InitializeComponent();
-            
-            BindingContext = new CheckboxViewModel(survey);
+            BindingContext = new SurveyorViewModel(survey, container);
         }
     }
 }

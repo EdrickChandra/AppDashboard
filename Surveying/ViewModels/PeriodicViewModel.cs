@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Surveying.Models;
+using Surveying.Views;
 using System;
 
 namespace Surveying.ViewModels
@@ -8,12 +9,31 @@ namespace Surveying.ViewModels
     public partial class PeriodicViewModel : BaseViewModel
     {
         public SurveyModel Survey { get; }
+        public ContainerDetailModel Container { get; }
 
-        public string ContainerNumber => Survey.ContNumber;
+        public string ContainerNumber => Container.ContNumber;
         public PhotoUploadViewModel PhotoUploader { get; } = new PhotoUploadViewModel(1);
-        public PeriodicViewModel(SurveyModel survey)
+
+        [ObservableProperty]
+        private DateTime inspectionDate = DateTime.Today;
+
+        [ObservableProperty]
+        private DateTime nextDueDate = DateTime.Today.AddYears(2).AddMonths(6);
+
+        public PeriodicViewModel(SurveyModel survey, ContainerDetailModel container)
         {
             Survey = survey;
+            Container = container;
+        }
+
+        [RelayCommand]
+        async void ViewFullImage(PhotoItem photo)
+        {
+            if (photo != null && photo.ImageSource != null)
+            {
+                var imageViewerPage = new ImageViewerPage(photo.ImageSource);
+                await Application.Current.MainPage.Navigation.PushAsync(imageViewerPage);
+            }
         }
 
         [RelayCommand]
@@ -34,7 +54,17 @@ namespace Surveying.ViewModels
                 return;
             }
 
-            Survey.CleaningStatus = StatusType.OnReview;
+            // Update the container if available, otherwise update the survey
+            if (Container != null)
+            {
+                Container.PeriodicStatus = StatusType.OnReview;
+            }
+
+            // Always update the survey for backward compatibility
+            Survey.PeriodicStatus = StatusType.OnReview;
+
+            await Application.Current.MainPage.DisplayAlert("Success",
+                "Periodic maintenance data has been submitted for review.", "OK");
 
             await Application.Current.MainPage.Navigation.PopToRootAsync();
         }

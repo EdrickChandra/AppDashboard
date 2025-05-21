@@ -9,17 +9,25 @@ namespace Surveying.ViewModels
     public partial class CleaningViewModel : BaseViewModel
     {
         public SurveyModel Survey { get; }
-        public string ContainerNumber => Survey.ContNumber;
+        public ContainerDetailModel Container { get; private set; }
+        public string ContainerNumber => Container?.ContNumber ?? Survey.ContNumber;
         public DateTime StartCleanDate { get; set; }
         public DateTime EndCleanDate { get; set; }
 
         public PhotoUploadViewModel PhotoUploader { get; } = new PhotoUploadViewModel(4);
 
+        // Constructor with just Survey (for backward compatibility)
         public CleaningViewModel(SurveyModel survey)
         {
             Survey = survey;
             StartCleanDate = DateTime.Today;
             EndCleanDate = DateTime.Today.AddDays(1);
+        }
+
+        // New constructor with Survey and Container
+        public CleaningViewModel(SurveyModel survey, ContainerDetailModel container) : this(survey)
+        {
+            Container = container;
         }
 
         [RelayCommand]
@@ -35,7 +43,6 @@ namespace Surveying.ViewModels
         [RelayCommand]
         async void SubmitCleaning()
         {
-
             bool isValid = true;
             string errorMessage = "";
 
@@ -57,7 +64,17 @@ namespace Surveying.ViewModels
                 return;
             }
 
+            // Update the container if available, otherwise update the survey
+            if (Container != null)
+            {
+                Container.CleaningStatus = StatusType.OnReview;
+            }
+
+            // Always update the survey for backward compatibility
             Survey.CleaningStatus = StatusType.OnReview;
+
+            await Application.Current.MainPage.DisplayAlert("Success",
+                "Cleaning data has been submitted for review.", "OK");
 
             await Application.Current.MainPage.Navigation.PopToRootAsync();
         }

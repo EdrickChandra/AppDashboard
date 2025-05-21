@@ -199,22 +199,22 @@ namespace Surveying.Views
 
                 _viewModel.SelectedSurvey = survey;
 
-                // Navigate to the appropriate page
+                // Navigate to the appropriate page - passing BOTH survey and container
                 Page destinationPage = null;
 
                 switch (pageType)
                 {
                     case "Cleaning":
-                        destinationPage = new Cleaning(survey);
+                        destinationPage = new Cleaning(survey, container);
                         break;
                     case "Repair":
-                        destinationPage = new Repair(survey);
+                        destinationPage = new Repair(survey, container);
                         break;
                     case "Periodic":
-                        destinationPage = new Periodic(survey);
+                        destinationPage = new Periodic(survey, container);
                         break;
                     case "Survey":
-                        destinationPage = new Survey(survey);
+                        destinationPage = new Survey(survey, container);
                         break;
                 }
 

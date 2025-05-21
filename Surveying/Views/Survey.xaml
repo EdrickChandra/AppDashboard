@@ -3,81 +3,208 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:buttons="clr-namespace:Syncfusion.Maui.Buttons;assembly=Syncfusion.Maui.Buttons"
              xmlns:local="clr-namespace:Surveying.ViewModels"
+             xmlns:helpers="clr-namespace:Surveying.Helpers"
              x:Class="Surveying.Views.Survey"
              Title="Survey">
 
-    <ContentPage.BindingContext>
-        <local:CheckboxViewModel/>
-    </ContentPage.BindingContext>
 
-    <VerticalStackLayout Spacing="20" Padding="20">
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <helpers:StatusTypeToStringConverter x:Key="StatusConverter" />
+            <helpers:StatusTypeToColorConverter x:Key="StatusColorConverter" />
+            <helpers:InverseBoolConverter x:Key="InverseBoolConverter" />
 
-        <HorizontalStackLayout Spacing="15">
-            
-            <Label Text="Cleaning" VerticalOptions="Center"/>
-            
-            <buttons:SfCheckBox IsChecked="{Binding CleaningAccept, Mode=TwoWay}"
-                                Text="Accept" VerticalOptions="Center"/>
-            
-            <buttons:SfCheckBox IsChecked="{Binding CleaningReject, Mode=TwoWay}"
-                                Text="Reject" VerticalOptions="Center"/>
-            
-            <Button Text="Submit" Command="{Binding SubmitCleaningCommand}"
-                    VerticalOptions="Center"/>
-            
-            <Label Text="{Binding CleaningResult}" VerticalOptions="Center"/>
-            
-        </HorizontalStackLayout>
+            <Style x:Key="SectionTitleStyle" TargetType="Label">
+                <Setter Property="FontSize" Value="16" />
+                <Setter Property="FontAttributes" Value="Bold" />
+                <Setter Property="Margin" Value="0,0,0,5" />
+            </Style>
 
-        <StackLayout IsVisible="{Binding CleaningReject}" Padding="10,5,0,0">
-            <Label Text="Enter Cleaning Rejection Remark:" />
-            <Entry Text="{Binding CleaningRejectionRemark}" Placeholder="Type your remark here..." />
-        </StackLayout>
+            <Style x:Key="StatusBadgeStyle" TargetType="Border">
+                <Setter Property="Padding" Value="8,3" />
+                <Setter Property="StrokeShape" Value="RoundRectangle 4,4,4,4" />
+                <Setter Property="StrokeThickness" Value="0" />
+                <Setter Property="HorizontalOptions" Value="Start" />
+                <Setter Property="VerticalOptions" Value="Center" />
+            </Style>
 
+            <Style x:Key="StatusTextStyle" TargetType="Label">
+                <Setter Property="TextColor" Value="White" />
+                <Setter Property="FontSize" Value="14" />
+                <Setter Property="HorizontalOptions" Value="Center" />
+                <Setter Property="VerticalOptions" Value="Center" />
+            </Style>
 
-        <HorizontalStackLayout Spacing="15">
-            
-            <Label Text="Repair" VerticalOptions="Center"/>
-            
-            <buttons:SfCheckBox IsChecked="{Binding RepairAccept, Mode=TwoWay}"
-                                Text="Accept" VerticalOptions="Center"/>
-            
-            <buttons:SfCheckBox IsChecked="{Binding RepairReject, Mode=TwoWay}"
-                                Text="Reject" VerticalOptions="Center"/>
-            
-            <Button Text="Submit" Command="{Binding SubmitRepairCommand}"
-                    VerticalOptions="Center"/>
-            
-            <Label Text="{Binding RepairResult}" VerticalOptions="Center"/>
-            
-        </HorizontalStackLayout>
+            <Style x:Key="SectionBorderStyle" TargetType="Border">
+                <Setter Property="Padding" Value="15" />
+                <Setter Property="Margin" Value="0,0,0,15" />
+                <Setter Property="Stroke" Value="#DDDDDD" />
+                <Setter Property="StrokeThickness" Value="1" />
+                <Setter Property="StrokeShape" Value="RoundRectangle 8,8,8,8" />
+                <Setter Property="Background" Value="White" />
+            </Style>
 
-        <StackLayout IsVisible="{Binding RepairReject}" Padding="10,5,0,0">
-            <Label Text="Enter Repair Rejection Remark:" />
-            <Entry Text="{Binding RepairRejectionRemark}" Placeholder="Type your remark here..." />
-        </StackLayout>
+            <Style x:Key="SubsectionStyle" TargetType="VerticalStackLayout">
+                <Setter Property="Margin" Value="0,10,0,0" />
+                <Setter Property="Spacing" Value="10" />
+            </Style>
 
+            <Style x:Key="ControlsContainerStyle" TargetType="HorizontalStackLayout">
+                <Setter Property="Spacing" Value="15" />
+                <Setter Property="Margin" Value="0,10,0,5" />
+            </Style>
 
-        <HorizontalStackLayout Spacing="15">
-            <Label Text="Periodic" VerticalOptions="Center"/>
-            
-            <buttons:SfCheckBox IsChecked="{Binding PeriodicAccept, Mode=TwoWay}"
-                                Text="Accept" VerticalOptions="Center"/>
-            
-            <buttons:SfCheckBox IsChecked="{Binding PeriodicReject, Mode=TwoWay}"
-                                Text="Reject" VerticalOptions="Center"/>
-            
-            <Button Text="Submit" Command="{Binding SubmitPeriodicCommand}"
-                    VerticalOptions="Center"/>
-            
-            <Label Text="{Binding PeriodicResult}" VerticalOptions="Center"/>
-            
-        </HorizontalStackLayout>
+            <Style x:Key="RejectionEntryStyle" TargetType="Entry">
+                <Setter Property="Margin" Value="0,5,0,0" />
+                <Setter Property="HeightRequest" Value="40" />
+            </Style>
+        </ResourceDictionary>
+    </ContentPage.Resources>
 
-        <StackLayout IsVisible="{Binding PeriodicReject}" Padding="10,5,0,0">
-            <Label Text="Enter Periodic Rejection Remark:" />
-            <Entry Text="{Binding PeriodicRejectionRemark}" Placeholder="Type your remark here..." />
-        </StackLayout>
-        
-    </VerticalStackLayout>
+    <ScrollView>
+        <VerticalStackLayout Spacing="20" Padding="20">
+            <Label Text="{Binding ContainerNumber, StringFormat='Container: {0}'}" 
+                   FontSize="18" 
+                   FontAttributes="Bold" 
+                   Margin="0,0,0,10"/>
+
+            <!-- Cleaning Section -->
+            <Border Style="{StaticResource SectionBorderStyle}">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Cleaning Review" Style="{StaticResource SectionTitleStyle}"/>
+
+                    <!-- Status indicator -->
+                    <HorizontalStackLayout Spacing="10">
+                        <Label Text="Status:" FontAttributes="Bold" VerticalOptions="Center"/>
+                        <Border Style="{StaticResource StatusBadgeStyle}"
+                                BackgroundColor="{Binding Container.CleaningStatus, Converter={StaticResource StatusColorConverter}}">
+                            <Label Text="{Binding Container.CleaningStatus, Converter={StaticResource StatusConverter}}" 
+                                   Style="{StaticResource StatusTextStyle}"/>
+                        </Border>
+                    </HorizontalStackLayout>
+
+                    <!-- Controls for reviewer -->
+                    <VerticalStackLayout Style="{StaticResource SubsectionStyle}"
+                                         IsVisible="{Binding CleaningReadyForReview}">
+                        <HorizontalStackLayout Style="{StaticResource ControlsContainerStyle}">
+                            <Label Text="Review Decision:" VerticalOptions="Center"/>
+
+                            <buttons:SfCheckBox IsChecked="{Binding CleaningAccept, Mode=TwoWay}"
+                                             Text="Accept" VerticalOptions="Center"/>
+
+                            <buttons:SfCheckBox IsChecked="{Binding CleaningReject, Mode=TwoWay}"
+                                             Text="Reject" VerticalOptions="Center"/>
+
+                            <Button Text="Submit" Command="{Binding SubmitCleaningCommand}"
+                                  VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+
+                        <VerticalStackLayout IsVisible="{Binding CleaningReject}" Padding="10,5,0,0">
+                            <Label Text="Enter Rejection Reason:" />
+                            <Entry Text="{Binding CleaningRejectionRemark}" 
+                                   Placeholder="Type your remark here..." 
+                                   Style="{StaticResource RejectionEntryStyle}"/>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+
+                    <!-- Message when not ready for review -->
+                    <Label Text="Cleaning data has not been submitted yet. No action required." 
+                           IsVisible="{Binding CleaningReadyForReview, Converter={StaticResource InverseBoolConverter}}"
+                           TextColor="Gray" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Repair Section -->
+            <Border Style="{StaticResource SectionBorderStyle}">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Repair Review" Style="{StaticResource SectionTitleStyle}"/>
+
+                    <!-- Status indicator -->
+                    <HorizontalStackLayout Spacing="10">
+                        <Label Text="Status:" FontAttributes="Bold" VerticalOptions="Center"/>
+                        <Border Style="{StaticResource StatusBadgeStyle}"
+                                BackgroundColor="{Binding Container.RepairStatus, Converter={StaticResource StatusColorConverter}}">
+                            <Label Text="{Binding Container.RepairStatus, Converter={StaticResource StatusConverter}}" 
+                                   Style="{StaticResource StatusTextStyle}"/>
+                        </Border>
+                    </HorizontalStackLayout>
+
+                    <!-- Controls for reviewer -->
+                    <VerticalStackLayout Style="{StaticResource SubsectionStyle}"
+                                        IsVisible="{Binding RepairReadyForReview}">
+                        <HorizontalStackLayout Style="{StaticResource ControlsContainerStyle}">
+                            <Label Text="Review Decision:" VerticalOptions="Center"/>
+
+                            <buttons:SfCheckBox IsChecked="{Binding RepairAccept, Mode=TwoWay}"
+                                             Text="Accept" VerticalOptions="Center"/>
+
+                            <buttons:SfCheckBox IsChecked="{Binding RepairReject, Mode=TwoWay}"
+                                             Text="Reject" VerticalOptions="Center"/>
+
+                            <Button Text="Submit" Command="{Binding SubmitRepairCommand}"
+                                  VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+
+                        <VerticalStackLayout IsVisible="{Binding RepairReject}" Padding="10,5,0,0">
+                            <Label Text="Enter Rejection Reason:" />
+                            <Entry Text="{Binding RepairRejectionRemark}" 
+                                   Placeholder="Type your remark here..." 
+                                   Style="{StaticResource RejectionEntryStyle}"/>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+
+                    <!-- Message when not ready for review -->
+                    <Label Text="Repair data has not been submitted yet. No action required." 
+                           IsVisible="{Binding RepairReadyForReview, Converter={StaticResource InverseBoolConverter}}"
+                           TextColor="Gray" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Periodic Section -->
+            <Border Style="{StaticResource SectionBorderStyle}">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Periodic Maintenance Review" Style="{StaticResource SectionTitleStyle}"/>
+
+                    <!-- Status indicator -->
+                    <HorizontalStackLayout Spacing="10">
+                        <Label Text="Status:" FontAttributes="Bold" VerticalOptions="Center"/>
+                        <Border Style="{StaticResource StatusBadgeStyle}"
+                                BackgroundColor="{Binding Container.PeriodicStatus, Converter={StaticResource StatusColorConverter}}">
+                            <Label Text="{Binding Container.PeriodicStatus, Converter={StaticResource StatusConverter}}" 
+                                   Style="{StaticResource StatusTextStyle}"/>
+                        </Border>
+                    </HorizontalStackLayout>
+
+                    <!-- Controls for reviewer -->
+                    <VerticalStackLayout Style="{StaticResource SubsectionStyle}"
+                                         IsVisible="{Binding PeriodicReadyForReview}">
+                        <HorizontalStackLayout Style="{StaticResource ControlsContainerStyle}">
+                            <Label Text="Review Decision:" VerticalOptions="Center"/>
+
+                            <buttons:SfCheckBox IsChecked="{Binding PeriodicAccept, Mode=TwoWay}"
+                                             Text="Accept" VerticalOptions="Center"/>
+
+                            <buttons:SfCheckBox IsChecked="{Binding PeriodicReject, Mode=TwoWay}"
+                                             Text="Reject" VerticalOptions="Center"/>
+
+                            <Button Text="Submit" Command="{Binding SubmitPeriodicCommand}"
+                                  VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+
+                        <VerticalStackLayout IsVisible="{Binding PeriodicReject}" Padding="10,5,0,0">
+                            <Label Text="Enter Rejection Reason:" />
+                            <Entry Text="{Binding PeriodicRejectionRemark}" 
+                                   Placeholder="Type your remark here..." 
+                                   Style="{StaticResource RejectionEntryStyle}"/>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+
+                    <!-- Message when not ready for review -->
+                    <Label Text="Periodic maintenance data has not been submitted yet. No action required." 
+                           IsVisible="{Binding PeriodicReadyForReview, Converter={StaticResource InverseBoolConverter}}"
+                           TextColor="Gray" />
+                </VerticalStackLayout>
+            </Border>
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>
