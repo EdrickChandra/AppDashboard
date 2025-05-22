@@ -106,7 +106,7 @@ namespace Surveying.ViewModels
         void SubmitCleaning()
         {
             if (CleaningAccept)
-                Survey.CleaningStatus = StatusType.Accepted;
+                Survey.CleaningStatus = StatusType.Finished;
             if (CleaningReject)
                 Survey.CleaningStatus = StatusType.Rejected;
         }
@@ -115,7 +115,7 @@ namespace Surveying.ViewModels
         void SubmitRepair()
         {
             if (RepairAccept)
-                Survey.RepairStatus = StatusType.Accepted;
+                Survey.RepairStatus = StatusType.Finished;
             if (RepairReject)
                 Survey.RepairStatus = StatusType.Rejected;
         }
@@ -124,7 +124,7 @@ namespace Surveying.ViewModels
         void SubmitPeriodic()
         {
             if (PeriodicAccept)
-                Survey.PeriodicStatus = StatusType.Accepted;
+                Survey.PeriodicStatus = StatusType.Finished;
             if (PeriodicReject)
                 Survey.PeriodicStatus = StatusType.Rejected;
         }
@@ -147,7 +147,7 @@ namespace Surveying.ViewModels
 
         private void UpdateCleaningCheckboxes()
         {
-            bool accepted = Survey.CleaningStatus == StatusType.Accepted;
+            bool accepted = Survey.CleaningStatus == StatusType.Finished;
             bool rejected = Survey.CleaningStatus == StatusType.Rejected;
             if (CleaningAccept != accepted)
                 CleaningAccept = accepted;
@@ -157,7 +157,7 @@ namespace Surveying.ViewModels
 
         private void UpdateRepairCheckboxes()
         {
-            bool accepted = Survey.RepairStatus == StatusType.Accepted;
+            bool accepted = Survey.RepairStatus == StatusType.Finished;
             bool rejected = Survey.RepairStatus == StatusType.Rejected;
             if (RepairAccept != accepted)
                 RepairAccept = accepted;
@@ -167,7 +167,7 @@ namespace Surveying.ViewModels
 
         private void UpdatePeriodicCheckboxes()
         {
-            bool accepted = Survey.PeriodicStatus == StatusType.Accepted;
+            bool accepted = Survey.PeriodicStatus == StatusType.Finished;
             bool rejected = Survey.PeriodicStatus == StatusType.Rejected;
             if (PeriodicAccept != accepted)
                 PeriodicAccept = accepted;

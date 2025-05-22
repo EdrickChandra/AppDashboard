@@ -5,6 +5,7 @@
              xmlns:inputLayout="clr-namespace:Syncfusion.Maui.Core;assembly=Syncfusion.Maui.Core"
              xmlns:editors="clr-namespace:Syncfusion.Maui.Inputs;assembly=Syncfusion.Maui.Inputs"
              xmlns:local="clr-namespace:Surveying.ViewModels"
+             xmlns:helpers="clr-namespace:Surveying.Helpers"
              x:Class="Surveying.Views.AddPage"
              BackgroundColor="{AppThemeBinding Light=#F8F9FA, Dark=#212529}">
 
@@ -14,6 +15,8 @@
 
     <ContentPage.Resources>
         <ResourceDictionary>
+            <helpers:StringToBoolConverter x:Key="StringToBoolConverter"/>
+
             <Style TargetType="inputLayout:SfTextInputLayout">
                 <Setter Property="ContainerType" Value="Outlined" />
                 <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=#FFFFFF, Dark=#343A40}" />
@@ -22,18 +25,13 @@
                         <inputLayout:LabelStyle FontSize="14" TextColor="{AppThemeBinding Light=#6C757D, Dark=#ADB5BD}" />
                     </Setter.Value>
                 </Setter>
-               
                 <Setter Property="Margin" Value="0,5,0,5" />
             </Style>
 
             <Style TargetType="Button">
                 <Setter Property="BackgroundColor" Value="#007BFF" />
-
                 <Setter Property="Padding" Value="15,10" />
                 <Setter Property="Margin" Value="0,10" />
-                
-                
-                
                 <Setter Property="FontAttributes" Value="Bold" />
             </Style>
 
@@ -44,65 +42,86 @@
             </Style>
 
             <Style TargetType="editors:SfComboBox">
-               
                 <Setter Property="TextColor" Value="{AppThemeBinding Light=#212529, Dark=#F8F9FA}" />
-             
                 <Setter Property="Margin" Value="0,5,0,5" />
             </Style>
 
             <Style TargetType="Frame">
                 <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=#FFFFFF, Dark=#343A40}" />
-             
                 <Setter Property="Padding" Value="15" />
                 <Setter Property="Margin" Value="0,0,0,15" />
                 <Setter Property="HasShadow" Value="True" />
+            </Style>
+
+            <Style x:Key="SectionHeaderStyle" TargetType="Label">
+                <Setter Property="FontSize" Value="16" />
+                <Setter Property="FontAttributes" Value="Bold" />
+                <Setter Property="TextColor" Value="{AppThemeBinding Light=#495057, Dark=#E9ECEF}" />
+                <Setter Property="Margin" Value="0,0,0,10" />
             </Style>
         </ResourceDictionary>
     </ContentPage.Resources>
 
     <ScrollView>
-        <StackLayout Padding="20" Spacing="15">
-            <Frame>
-                <StackLayout Spacing="5">
-                    <Label Text="Add Survey Entry" 
-                           FontSize="22" 
-                           FontAttributes="Bold" 
-                           HorizontalOptions="Center"
-                           TextColor="{AppThemeBinding Light=#212529, Dark=#F8F9FA}"
-                           Margin="0,0,0,15" />
+        <StackLayout Padding="20" Spacing="20">
 
-                    <!-- Responsive Grid for form inputs -->
+            <!-- Page Title -->
+            <Label Text="Add Survey Entry" 
+                   FontSize="22" 
+                   FontAttributes="Bold" 
+                   HorizontalOptions="Center"
+                   TextColor="{AppThemeBinding Light=#212529, Dark=#F8F9FA}"
+                   Margin="0,0,0,20" />
+
+            <!-- PART 1: Order Information -->
+            <Frame>
+                <StackLayout Spacing="15">
+                    <Label Text="Order Information" Style="{StaticResource SectionHeaderStyle}" />
+
                     <Grid ColumnDefinitions="*,*" 
                           ColumnSpacing="15" 
                           RowSpacing="10"
-                          RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                          RowDefinitions="Auto,Auto">
 
                         <!-- Row 1 -->
                         <inputLayout:SfTextInputLayout Grid.Row="0" Grid.Column="0" Hint="Order Number">
                             <Entry Text="{Binding OrderNumber}" />
                         </inputLayout:SfTextInputLayout>
 
-                        <inputLayout:SfTextInputLayout Grid.Row="0" Grid.Column="1" 
+                        <inputLayout:SfTextInputLayout Grid.Row="0" Grid.Column="1" Hint="Surveyor">
+                            <Entry Text="{Binding Surveyor}" />
+                        </inputLayout:SfTextInputLayout>
+
+                        <!-- Row 2 -->
+                        <inputLayout:SfTextInputLayout Grid.Row="1" Grid.Column="0" Hint="Principal ID">
+                            <Entry Text="{Binding PrincipalId}" />
+                        </inputLayout:SfTextInputLayout>
+
+                        <inputLayout:SfTextInputLayout Grid.Row="1" Grid.Column="1" Hint="Shipper ID">
+                            <Entry Text="{Binding ShipperId}" />
+                        </inputLayout:SfTextInputLayout>
+                    </Grid>
+                </StackLayout>
+            </Frame>
+
+            <!-- PART 2: Container Information -->
+            <Frame>
+                <StackLayout Spacing="15">
+                    <Label Text="Container Information" Style="{StaticResource SectionHeaderStyle}" />
+
+                    <Grid ColumnDefinitions="*,*" 
+                          ColumnSpacing="15" 
+                          RowSpacing="10"
+                          RowDefinitions="Auto">
+
+                        <inputLayout:SfTextInputLayout Grid.Row="0" Grid.Column="0" 
                                                      ErrorText="{Binding ContNumberError}" 
+                                                     HasError="{Binding ContNumberError, Converter={StaticResource StringToBoolConverter}}"
                                                      Hint="Container Number">
                             <Entry Text="{Binding ContNumber, Mode=TwoWay}" />
                         </inputLayout:SfTextInputLayout>
 
-                        <!-- Row 2 -->
-                        <inputLayout:SfTextInputLayout Grid.Row="1" Grid.Column="0" Hint="Surveyor">
-                            <Entry Text="{Binding Surveyor}" />
-                        </inputLayout:SfTextInputLayout>
-
-                        <inputLayout:SfTextInputLayout Grid.Row="1" Grid.Column="1" Hint="Principal ID">
-                            <Entry Text="{Binding PrincipalId}" />
-                        </inputLayout:SfTextInputLayout>
-
-                        <!-- Row 3 -->
-                        <inputLayout:SfTextInputLayout Grid.Row="2" Grid.Column="0" Hint="Shipper ID">
-                            <Entry Text="{Binding ShipperId}" />
-                        </inputLayout:SfTextInputLayout>
-
-                        <editors:SfComboBox Grid.Row="2" Grid.Column="1"
+                        <editors:SfComboBox Grid.Row="0" Grid.Column="1"
                                          x:Name="comboBox"
                                          SelectedItem="{Binding Condition, Mode=TwoWay}"
                                          Placeholder="Condition"
@@ -111,9 +130,22 @@
                                          NoResultsFoundText="Not Found"
                                          ItemsSource="{Binding ConditionList}"
                                          HeightRequest="50" />
+                    </Grid>
+                </StackLayout>
+            </Frame>
 
-                        <!-- Row 4: Date Fields using Frames for better visual grouping -->
-                        <Frame Grid.Row="3" Grid.Column="0" 
+            <!-- PART 3: Date Information -->
+            <Frame>
+                <StackLayout Spacing="15">
+                    <Label Text="Date Information" Style="{StaticResource SectionHeaderStyle}" />
+
+                    <Grid ColumnDefinitions="*,*" 
+                          ColumnSpacing="15" 
+                          RowSpacing="10"
+                          RowDefinitions="Auto,Auto">
+
+                        <!-- Row 1 -->
+                        <Frame Grid.Row="0" Grid.Column="0" 
                                BorderColor="{AppThemeBinding Light=#DEE2E6, Dark=#495057}"
                                BackgroundColor="{AppThemeBinding Light=#F8F9FA, Dark=#343A40}"
                                CornerRadius="5" 
@@ -130,7 +162,7 @@
                             </StackLayout>
                         </Frame>
 
-                        <Frame Grid.Row="3" Grid.Column="1" 
+                        <Frame Grid.Row="0" Grid.Column="1" 
                                BorderColor="{AppThemeBinding Light=#DEE2E6, Dark=#495057}"
                                BackgroundColor="{AppThemeBinding Light=#F8F9FA, Dark=#343A40}"
                                CornerRadius="5" 
@@ -147,8 +179,8 @@
                             </StackLayout>
                         </Frame>
 
-                        <!-- Row 5 -->
-                        <Frame Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" 
+                        <!-- Row 2 -->
+                        <Frame Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" 
                                BorderColor="{AppThemeBinding Light=#DEE2E6, Dark=#495057}"
                                BackgroundColor="{AppThemeBinding Light=#F8F9FA, Dark=#343A40}"
                                CornerRadius="5" 
@@ -165,14 +197,14 @@
                             </StackLayout>
                         </Frame>
                     </Grid>
-
-                    <Button Text="Add Entry" 
-                            Command="{Binding AddSurveyEntryCommand}"
-                            Margin="0,15,0,0" />
                 </StackLayout>
             </Frame>
 
-            <!-- Entries Section -->
+            <!-- Add Entry Button -->
+            <Button Text="Add Entry" 
+                    Command="{Binding AddSurveyEntryCommand}" />
+
+            <!-- Survey Entries Section -->
             <Frame>
                 <StackLayout>
                     <Label Text="Survey Entries" 

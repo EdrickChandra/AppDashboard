@@ -38,7 +38,6 @@
                 <Setter Property="VerticalOptions" Value="Center" />
                 <Setter Property="FontSize" Value="14" />
                 <Setter Property="Padding" Value="5" />
-
             </Style>
 
             <Style x:Key="MobileButtonStyle" TargetType="Button">
@@ -104,6 +103,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
+        <!-- Header section - keep full width -->
         <HorizontalStackLayout Grid.Row="0" Padding="10,10,10,0" Spacing="10" HorizontalOptions="Fill">
             <Button x:Name="addSurveyButton" Text="Add Survey" Clicked="OnAddSurveyClicked"/>
             <SearchBar x:Name="searchBar"
@@ -112,235 +112,247 @@
                 HorizontalOptions="FillAndExpand" />
         </HorizontalStackLayout>
 
-        <!-- Standard View (Desktop/Tablet) -->
-        <syncfusion:SfDataGrid Grid.Row="1"
-                               x:Name="dataGrid"
-                               ItemsSource="{Binding OrderGroups}"
-                               AutoGenerateColumnsMode="None"
-                               ColumnWidthMode="Auto"
-                               SelectionMode="Single"
-                               NavigationMode="Cell"
-                               RowHeight="60"
-                               HeaderRowHeight="40"
-                               GridLinesVisibility="Both"
-                               IsVisible="{Binding IsDesktopMode}"
-                               CellTapped="DataGrid_CellTapped">
-            <syncfusion:SfDataGrid.Columns>
-                <syncfusion:DataGridTextColumn HeaderText="Order Number" MappingName="OrderNumber" />
-                <syncfusion:DataGridTextColumn HeaderText="Principal" MappingName="PrincipalName" />
-                <syncfusion:DataGridTextColumn HeaderText="Surveyor" MappingName="Surveyor" />
-                <syncfusion:DataGridTextColumn HeaderText="Shipper" MappingName="ShipperName" />
-                <syncfusion:DataGridTextColumn HeaderText="Order Date" MappingName="OrderDate" Format="dd/MM/yyyy" />
-                <syncfusion:DataGridTextColumn HeaderText="Survey Date" MappingName="SurveyDate" Format="dd/MM/yyyy" />
-                <syncfusion:DataGridTextColumn HeaderText="Pickup Date" MappingName="PickupDate" Format="dd/MM/yyyy" />
-            </syncfusion:SfDataGrid.Columns>
+        <!-- Content area with responsive centering -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
 
-            <!-- Master-Details View for Desktop/Tablet -->
-            <syncfusion:SfDataGrid.DetailsViewDefinition>
-                <syncfusion:DataGridViewDefinition RelationalColumn="Containers">
-                    <syncfusion:DataGridViewDefinition.DataGrid>
-                        <syncfusion:SfDataGrid x:Name="ContainersGrid"
-                                              AutoGenerateColumnsMode="None"
-                                              NavigationMode="Cell"
-                                              ColumnWidthMode="Auto"
-                                              GridLinesVisibility="Both"
-                                              AutoGenerateRelations="False">
-                            <syncfusion:SfDataGrid.Columns>
-                                <syncfusion:DataGridTextColumn HeaderText="Container Number" MappingName="ContNumber" />
-                                <syncfusion:DataGridTextColumn HeaderText="Size" MappingName="ContSize" />
-                                <syncfusion:DataGridTextColumn HeaderText="Type" MappingName="ContType" />
-                                <syncfusion:DataGridTextColumn HeaderText="Condition" MappingName="Condition" />
-                            </syncfusion:SfDataGrid.Columns>
+            <!-- Standard View (Desktop/Tablet) - Centered -->
+            <syncfusion:SfDataGrid Grid.Column="1"
+                                   x:Name="dataGrid"
+                                   ItemsSource="{Binding OrderGroups}"
+                                   AutoGenerateColumnsMode="None"
+                                   ColumnWidthMode="Auto"
+                                   SelectionMode="Single"
+                                   NavigationMode="Cell"
+                                   RowHeight="60"
+                                   HeaderRowHeight="40"
+                                   GridLinesVisibility="Both"
+                                   IsVisible="{Binding IsDesktopMode}"
+                                   CellTapped="DataGrid_CellTapped"
+                                   MinimumWidthRequest="800"
+                                   MaximumWidthRequest="1400"
+                                   Margin="20">
+                <syncfusion:SfDataGrid.Columns>
+                    <syncfusion:DataGridTextColumn HeaderText="Order Number" MappingName="OrderNumber" />
+                    <syncfusion:DataGridTextColumn HeaderText="Principal" MappingName="PrincipalName" />
+                    <syncfusion:DataGridTextColumn HeaderText="Surveyor" MappingName="Surveyor" />
+                    <syncfusion:DataGridTextColumn HeaderText="Shipper" MappingName="ShipperName" />
+                    <syncfusion:DataGridTextColumn HeaderText="Order Date" MappingName="OrderDate" Format="dd/MM/yyyy" />
+                    <syncfusion:DataGridTextColumn HeaderText="Survey Date" MappingName="SurveyDate" Format="dd/MM/yyyy" />
+                    <syncfusion:DataGridTextColumn HeaderText="Pickup Date" MappingName="PickupDate" Format="dd/MM/yyyy" />
+                </syncfusion:SfDataGrid.Columns>
 
-                            <syncfusion:SfDataGrid.DetailsViewDefinition>
-                                <syncfusion:DataGridViewDefinition RelationalColumn="Activities">
-                                    <syncfusion:DataGridViewDefinition.DataGrid>
-                                        <syncfusion:SfDataGrid x:Name="ActivitiesGrid"
-                                                              AutoGenerateColumnsMode="None"
-                                                              NavigationMode="Cell"
-                                                              ColumnWidthMode="Auto"
-                                                              GridLinesVisibility="Both">
-                                            <syncfusion:SfDataGrid.Columns>
-                                                <syncfusion:DataGridTextColumn HeaderText="Activity" MappingName="ActivityName" />
-                                                <syncfusion:DataGridTemplateColumn HeaderText="Status" MappingName="Status">
-                                                    <syncfusion:DataGridTemplateColumn.CellTemplate>
-                                                        <DataTemplate>
-                                                            <Label Text="{Binding Status, Converter={StaticResource StatusConverter}}" 
-                                                                   Style="{StaticResource StatusLabelStyle}"
-                                                                   BackgroundColor="{Binding Status, Converter={StaticResource StatusColorConverter}}"
-                                                                   TextColor="White" />
-                                                        </DataTemplate>
-                                                    </syncfusion:DataGridTemplateColumn.CellTemplate>
-                                                </syncfusion:DataGridTemplateColumn>
-                                                <syncfusion:DataGridTemplateColumn HeaderText="Action" MappingName="ActivityType">
-                                                    <syncfusion:DataGridTemplateColumn.CellTemplate>
-                                                        <DataTemplate>
-                                                            <Button Text="{Binding ActivityType, StringFormat='Go to {0}'}" 
-                                                                    CommandParameter="{Binding ActivityType}"
-                                                                    Clicked="NavigateToPage" />
-                                                        </DataTemplate>
-                                                    </syncfusion:DataGridTemplateColumn.CellTemplate>
-                                                </syncfusion:DataGridTemplateColumn>
-                                            </syncfusion:SfDataGrid.Columns>
-                                        </syncfusion:SfDataGrid>
-                                    </syncfusion:DataGridViewDefinition.DataGrid>
-                                </syncfusion:DataGridViewDefinition>
-                            </syncfusion:SfDataGrid.DetailsViewDefinition>
-                        </syncfusion:SfDataGrid>
-                    </syncfusion:DataGridViewDefinition.DataGrid>
-                </syncfusion:DataGridViewDefinition>
-            </syncfusion:SfDataGrid.DetailsViewDefinition>
-        </syncfusion:SfDataGrid>
+                <!-- Master-Details View for Desktop/Tablet -->
+                <syncfusion:SfDataGrid.DetailsViewDefinition>
+                    <syncfusion:DataGridViewDefinition RelationalColumn="Containers">
+                        <syncfusion:DataGridViewDefinition.DataGrid>
+                            <syncfusion:SfDataGrid x:Name="ContainersGrid"
+                                                  AutoGenerateColumnsMode="None"
+                                                  NavigationMode="Cell"
+                                                  ColumnWidthMode="Auto"
+                                                  GridLinesVisibility="Both"
+                                                  AutoGenerateRelations="False">
+                                <syncfusion:SfDataGrid.Columns>
+                                    <syncfusion:DataGridTextColumn HeaderText="Container Number" MappingName="ContNumber" />
+                                    <syncfusion:DataGridTextColumn HeaderText="Size" MappingName="ContSize" />
+                                    <syncfusion:DataGridTextColumn HeaderText="Type" MappingName="ContType" />
+                                    <syncfusion:DataGridTextColumn HeaderText="Condition" MappingName="Condition" />
+                                </syncfusion:SfDataGrid.Columns>
 
-        <!-- Mobile View with Expanders for Collapsible Sections -->
-        <ScrollView Grid.Row="1"
-                   x:Name="mobileScrollView"
-                   IsVisible="{Binding IsMobileMode}">
-            <StackLayout Padding="5" Spacing="5">
-                <!-- Order Expander items - generated from OrderGroups -->
-                <StackLayout BindableLayout.ItemsSource="{Binding OrderGroups}">
-                    <BindableLayout.ItemTemplate>
-                        <DataTemplate>
-                            <!-- Each order is in a border with rounded corners -->
-                            <Border Stroke="#CCCCCC" StrokeThickness="1" StrokeShape="RoundRectangle 8,8,8,8" 
-                                   Margin="0,0,0,8">
-                                <expander:SfExpander Style="{StaticResource OrderExpanderStyle}">
-                                    <expander:SfExpander.Header>
-                                        <Grid Padding="10,5">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="Auto" />
-                                            </Grid.ColumnDefinitions>
+                                <syncfusion:SfDataGrid.DetailsViewDefinition>
+                                    <syncfusion:DataGridViewDefinition RelationalColumn="Activities">
+                                        <syncfusion:DataGridViewDefinition.DataGrid>
+                                            <syncfusion:SfDataGrid x:Name="ActivitiesGrid"
+                                                                  AutoGenerateColumnsMode="None"
+                                                                  NavigationMode="Cell"
+                                                                  ColumnWidthMode="Auto"
+                                                                  GridLinesVisibility="Both">
+                                                <syncfusion:SfDataGrid.Columns>
+                                                    <syncfusion:DataGridTextColumn HeaderText="Activity" MappingName="ActivityName" />
+                                                    <syncfusion:DataGridTemplateColumn HeaderText="Status" MappingName="Status">
+                                                        <syncfusion:DataGridTemplateColumn.CellTemplate>
+                                                            <DataTemplate>
+                                                                <Label Text="{Binding Status, Converter={StaticResource StatusConverter}}" 
+                                                                       Style="{StaticResource StatusLabelStyle}"
+                                                                       BackgroundColor="{Binding Status, Converter={StaticResource StatusColorConverter}}"
+                                                                       TextColor="White" />
+                                                            </DataTemplate>
+                                                        </syncfusion:DataGridTemplateColumn.CellTemplate>
+                                                    </syncfusion:DataGridTemplateColumn>
+                                                    <syncfusion:DataGridTemplateColumn HeaderText="Action" MappingName="ActivityType">
+                                                        <syncfusion:DataGridTemplateColumn.CellTemplate>
+                                                            <DataTemplate>
+                                                                <Button Text="{Binding ActivityType, StringFormat='Go to {0}'}" 
+                                                                        CommandParameter="{Binding ActivityType}"
+                                                                        Clicked="NavigateToPage" />
+                                                            </DataTemplate>
+                                                        </syncfusion:DataGridTemplateColumn.CellTemplate>
+                                                    </syncfusion:DataGridTemplateColumn>
+                                                </syncfusion:SfDataGrid.Columns>
+                                            </syncfusion:SfDataGrid>
+                                        </syncfusion:DataGridViewDefinition.DataGrid>
+                                    </syncfusion:DataGridViewDefinition>
+                                </syncfusion:SfDataGrid.DetailsViewDefinition>
+                            </syncfusion:SfDataGrid>
+                        </syncfusion:DataGridViewDefinition.DataGrid>
+                    </syncfusion:DataGridViewDefinition>
+                </syncfusion:SfDataGrid.DetailsViewDefinition>
+            </syncfusion:SfDataGrid>
 
-                                            <StackLayout Grid.Column="0" Orientation="Horizontal" Spacing="10">
-                                                <Label Text="{Binding OrderNumber}" 
-                                                       Style="{StaticResource MobileHeaderStyle}"
-                                                       FontSize="16" />
-                                                <Label Text="{Binding PrincipalName}" 
-                                                       Style="{StaticResource MobileCellStyle}" />
-                                            </StackLayout>
-
-                                            <Label Grid.Column="1" 
-                                                   Text="{Binding Containers.Count, StringFormat='{0} containers'}" 
-                                                   Style="{StaticResource MobileCellStyle}"
-                                                   HorizontalOptions="End" />
-                                        </Grid>
-                                    </expander:SfExpander.Header>
-                                    <expander:SfExpander.Content>
-                                        <!-- Order Details and Containers -->
-                                        <StackLayout Padding="10,5" Spacing="10">
-                                            <!-- Order Details -->
-                                            <Grid Margin="0,0,0,10">
+            <!-- Mobile View with Expanders for Collapsible Sections -->
+            <ScrollView Grid.Column="0" Grid.ColumnSpan="3"
+                       x:Name="mobileScrollView"
+                       IsVisible="{Binding IsMobileMode}">
+                <StackLayout Padding="5" Spacing="5">
+                    <!-- Order Expander items - generated from OrderGroups -->
+                    <StackLayout BindableLayout.ItemsSource="{Binding OrderGroups}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate>
+                                <!-- Each order is in a border with rounded corners -->
+                                <Border Stroke="#CCCCCC" StrokeThickness="1" StrokeShape="RoundRectangle 8,8,8,8" 
+                                       Margin="0,0,0,8">
+                                    <expander:SfExpander Style="{StaticResource OrderExpanderStyle}">
+                                        <expander:SfExpander.Header>
+                                            <Grid Padding="10,5">
                                                 <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto" />
                                                     <ColumnDefinition Width="*" />
                                                     <ColumnDefinition Width="Auto" />
-                                                    <ColumnDefinition Width="*" />
                                                 </Grid.ColumnDefinitions>
-                                                <Grid.RowDefinitions>
-                                                    <RowDefinition Height="Auto" />
-                                                    <RowDefinition Height="Auto" />
-                                                    <RowDefinition Height="Auto" />
-                                                </Grid.RowDefinitions>
 
-                                                <Label Text="Principal:" Grid.Row="0" Grid.Column="0" Style="{StaticResource MobileHeaderStyle}" />
-                                                <Label Text="{Binding PrincipalName}" Grid.Row="0" Grid.Column="1" Style="{StaticResource MobileCellStyle}" />
+                                                <StackLayout Grid.Column="0" Orientation="Horizontal" Spacing="10">
+                                                    <Label Text="{Binding OrderNumber}" 
+                                                           Style="{StaticResource MobileHeaderStyle}"
+                                                           FontSize="16" />
+                                                    <Label Text="{Binding PrincipalName}" 
+                                                           Style="{StaticResource MobileCellStyle}" />
+                                                </StackLayout>
 
-                                                <Label Text="Surveyor:" Grid.Row="0" Grid.Column="2" Style="{StaticResource MobileHeaderStyle}" />
-                                                <Label Text="{Binding Surveyor}" Grid.Row="0" Grid.Column="3" Style="{StaticResource MobileCellStyle}" />
-
-                                                <Label Text="Shipper:" Grid.Row="1" Grid.Column="0" Style="{StaticResource MobileHeaderStyle}" />
-                                                <Label Text="{Binding ShipperName}" Grid.Row="1" Grid.Column="1" Style="{StaticResource MobileCellStyle}" />
-
-                                                <Label Text="Order Date:" Grid.Row="1" Grid.Column="2" Style="{StaticResource MobileHeaderStyle}" />
-                                                <Label Text="{Binding OrderDate, StringFormat='{0:dd/MM/yyyy}'}" Grid.Row="1" Grid.Column="3" Style="{StaticResource MobileCellStyle}" />
-
-                                                <Label Text="Survey Date:" Grid.Row="2" Grid.Column="0" Style="{StaticResource MobileHeaderStyle}" />
-                                                <Label Text="{Binding SurveyDate, StringFormat='{0:dd/MM/yyyy}'}" Grid.Row="2" Grid.Column="1" Style="{StaticResource MobileCellStyle}" />
-
-                                                <Label Text="Pickup Date:" Grid.Row="2" Grid.Column="2" Style="{StaticResource MobileHeaderStyle}" />
-                                                <Label Text="{Binding PickupDate, StringFormat='{0:dd/MM/yyyy}'}" Grid.Row="2" Grid.Column="3" Style="{StaticResource MobileCellStyle}" />
+                                                <Label Grid.Column="1" 
+                                                       Text="{Binding Containers.Count, StringFormat='{0} containers'}" 
+                                                       Style="{StaticResource MobileCellStyle}"
+                                                       HorizontalOptions="End" />
                                             </Grid>
+                                        </expander:SfExpander.Header>
+                                        <expander:SfExpander.Content>
+                                            <!-- Order Details and Containers -->
+                                            <StackLayout Padding="10,5" Spacing="10">
+                                                <!-- Order Details -->
+                                                <Grid Margin="0,0,0,10">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto" />
+                                                        <RowDefinition Height="Auto" />
+                                                        <RowDefinition Height="Auto" />
+                                                    </Grid.RowDefinitions>
 
-                                            <!-- Container List with Expanders -->
-                                            <StackLayout BindableLayout.ItemsSource="{Binding Containers}">
-                                                <BindableLayout.ItemTemplate>
-                                                    <DataTemplate>
-                                                        <Border Stroke="#DDDDDD" StrokeThickness="1" StrokeShape="RoundRectangle 4,4,4,4" 
-                                                               Margin="5,3">
-                                                            <expander:SfExpander Style="{StaticResource ContainerExpanderStyle}">
-                                                                <expander:SfExpander.Header>
-                                                                    <Grid Padding="10,5">
-                                                                        <Grid.ColumnDefinitions>
-                                                                            <ColumnDefinition Width="*" />
-                                                                            <ColumnDefinition Width="Auto" />
-                                                                        </Grid.ColumnDefinitions>
+                                                    <Label Text="Principal:" Grid.Row="0" Grid.Column="0" Style="{StaticResource MobileHeaderStyle}" />
+                                                    <Label Text="{Binding PrincipalName}" Grid.Row="0" Grid.Column="1" Style="{StaticResource MobileCellStyle}" />
 
-                                                                        <StackLayout Grid.Column="0" Orientation="Vertical" Spacing="3">
-                                                                            <Label Text="{Binding ContNumber}" Style="{StaticResource MobileHeaderStyle}" />
-                                                                            <Label Text="{Binding Condition}" Style="{StaticResource MobileCellStyle}" />
-                                                                        </StackLayout>
+                                                    <Label Text="Surveyor:" Grid.Row="0" Grid.Column="2" Style="{StaticResource MobileHeaderStyle}" />
+                                                    <Label Text="{Binding Surveyor}" Grid.Row="0" Grid.Column="3" Style="{StaticResource MobileCellStyle}" />
 
-                                                                        <StackLayout Grid.Column="1" Orientation="Vertical" Spacing="3" HorizontalOptions="End">
-                                                                            <Label Text="{Binding ContSize}" Style="{StaticResource MobileCellStyle}" />
-                                                                            <Label Text="{Binding ContType}" Style="{StaticResource MobileCellStyle}" />
-                                                                        </StackLayout>
-                                                                    </Grid>
-                                                                </expander:SfExpander.Header>
-                                                                <expander:SfExpander.Content>
-                                                                    <!-- Activity List -->
-                                                                    <StackLayout Padding="10,5" Spacing="5">
-                                                                        <Label Text="Activities" FontAttributes="Bold" />
+                                                    <Label Text="Shipper:" Grid.Row="1" Grid.Column="0" Style="{StaticResource MobileHeaderStyle}" />
+                                                    <Label Text="{Binding ShipperName}" Grid.Row="1" Grid.Column="1" Style="{StaticResource MobileCellStyle}" />
 
-                                                                        <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,5">
-                                                                            <Label Text="Activity" Grid.Column="0" FontAttributes="Bold" />
-                                                                            <Label Text="Status" Grid.Column="1" FontAttributes="Bold" HorizontalOptions="Center" />
-                                                                            <Label Text="Action" Grid.Column="2" FontAttributes="Bold" HorizontalOptions="Center" />
+                                                    <Label Text="Order Date:" Grid.Row="1" Grid.Column="2" Style="{StaticResource MobileHeaderStyle}" />
+                                                    <Label Text="{Binding OrderDate, StringFormat='{0:dd/MM/yyyy}'}" Grid.Row="1" Grid.Column="3" Style="{StaticResource MobileCellStyle}" />
+
+                                                    <Label Text="Survey Date:" Grid.Row="2" Grid.Column="0" Style="{StaticResource MobileHeaderStyle}" />
+                                                    <Label Text="{Binding SurveyDate, StringFormat='{0:dd/MM/yyyy}'}" Grid.Row="2" Grid.Column="1" Style="{StaticResource MobileCellStyle}" />
+
+                                                    <Label Text="Pickup Date:" Grid.Row="2" Grid.Column="2" Style="{StaticResource MobileHeaderStyle}" />
+                                                    <Label Text="{Binding PickupDate, StringFormat='{0:dd/MM/yyyy}'}" Grid.Row="2" Grid.Column="3" Style="{StaticResource MobileCellStyle}" />
+                                                </Grid>
+
+                                                <!-- Container List with Expanders -->
+                                                <StackLayout BindableLayout.ItemsSource="{Binding Containers}">
+                                                    <BindableLayout.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Border Stroke="#DDDDDD" StrokeThickness="1" StrokeShape="RoundRectangle 4,4,4,4" 
+                                                                   Margin="5,3">
+                                                                <expander:SfExpander Style="{StaticResource ContainerExpanderStyle}">
+                                                                    <expander:SfExpander.Header>
+                                                                        <Grid Padding="10,5">
+                                                                            <Grid.ColumnDefinitions>
+                                                                                <ColumnDefinition Width="*" />
+                                                                                <ColumnDefinition Width="Auto" />
+                                                                            </Grid.ColumnDefinitions>
+
+                                                                            <StackLayout Grid.Column="0" Orientation="Vertical" Spacing="3">
+                                                                                <Label Text="{Binding ContNumber}" Style="{StaticResource MobileHeaderStyle}" />
+                                                                                <Label Text="{Binding Condition}" Style="{StaticResource MobileCellStyle}" />
+                                                                            </StackLayout>
+
+                                                                            <StackLayout Grid.Column="1" Orientation="Vertical" Spacing="3" HorizontalOptions="End">
+                                                                                <Label Text="{Binding ContSize}" Style="{StaticResource MobileCellStyle}" />
+                                                                                <Label Text="{Binding ContType}" Style="{StaticResource MobileCellStyle}" />
+                                                                            </StackLayout>
                                                                         </Grid>
+                                                                    </expander:SfExpander.Header>
+                                                                    <expander:SfExpander.Content>
+                                                                        <!-- Activity List -->
+                                                                        <StackLayout Padding="10,5" Spacing="5">
+                                                                            <Label Text="Activities" FontAttributes="Bold" />
 
-                                                                        <StackLayout BindableLayout.ItemsSource="{Binding Activities}">
-                                                                            <BindableLayout.ItemTemplate>
-                                                                                <DataTemplate>
-                                                                                    <Grid ColumnDefinitions="*,Auto,Auto" Padding="0,5" Margin="0,2" BackgroundColor="#FAFAFA">
-                                                                                        <Label Text="{Binding ActivityName}" 
-                                                                                               Grid.Column="0"
-                                                                                               Style="{StaticResource MobileCellStyle}"
-                                                                                               VerticalOptions="Center" />
+                                                                            <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,5">
+                                                                                <Label Text="Activity" Grid.Column="0" FontAttributes="Bold" />
+                                                                                <Label Text="Status" Grid.Column="1" FontAttributes="Bold" HorizontalOptions="Center" />
+                                                                                <Label Text="Action" Grid.Column="2" FontAttributes="Bold" HorizontalOptions="Center" />
+                                                                            </Grid>
 
-                                                                                        <Label Text="{Binding Status, Converter={StaticResource StatusConverter}}" 
-                                                                                               Grid.Column="1"
-                                                                                               Style="{StaticResource StatusLabelStyle}"
-                                                                                               BackgroundColor="{Binding Status, Converter={StaticResource StatusColorConverter}}"
-                                                                                               TextColor="White"
-                                                                                               Margin="5,0"
-                                                                                               WidthRequest="80"
-                                                                                               HeightRequest="30" />
+                                                                            <StackLayout BindableLayout.ItemsSource="{Binding Activities}">
+                                                                                <BindableLayout.ItemTemplate>
+                                                                                    <DataTemplate>
+                                                                                        <Grid ColumnDefinitions="*,Auto,Auto" Padding="0,5" Margin="0,2" BackgroundColor="#FAFAFA">
+                                                                                            <Label Text="{Binding ActivityName}" 
+                                                                                                   Grid.Column="0"
+                                                                                                   Style="{StaticResource MobileCellStyle}"
+                                                                                                   VerticalOptions="Center" />
 
-                                                                                        <Button Text="Go" 
-                                                                                                Grid.Column="2"
-                                                                                                Style="{StaticResource MobileButtonStyle}"
-                                                                                                CommandParameter="{Binding ActivityType}"
-                                                                                                Clicked="NavigateToPage"
-                                                                                                WidthRequest="60" />
-                                                                                    </Grid>
-                                                                                </DataTemplate>
-                                                                            </BindableLayout.ItemTemplate>
+                                                                                            <Label Text="{Binding Status, Converter={StaticResource StatusConverter}}" 
+                                                                                                   Grid.Column="1"
+                                                                                                   Style="{StaticResource StatusLabelStyle}"
+                                                                                                   BackgroundColor="{Binding Status, Converter={StaticResource StatusColorConverter}}"
+                                                                                                   TextColor="White"
+                                                                                                   Margin="5,0"
+                                                                                                   WidthRequest="80"
+                                                                                                   HeightRequest="30" />
+
+                                                                                            <Button Text="Go" 
+                                                                                                    Grid.Column="2"
+                                                                                                    Style="{StaticResource MobileButtonStyle}"
+                                                                                                    CommandParameter="{Binding ActivityType}"
+                                                                                                    Clicked="NavigateToPage"
+                                                                                                    WidthRequest="60" />
+                                                                                        </Grid>
+                                                                                    </DataTemplate>
+                                                                                </BindableLayout.ItemTemplate>
+                                                                            </StackLayout>
                                                                         </StackLayout>
-                                                                    </StackLayout>
-                                                                </expander:SfExpander.Content>
-                                                            </expander:SfExpander>
-                                                        </Border>
-                                                    </DataTemplate>
-                                                </BindableLayout.ItemTemplate>
+                                                                    </expander:SfExpander.Content>
+                                                                </expander:SfExpander>
+                                                            </Border>
+                                                        </DataTemplate>
+                                                    </BindableLayout.ItemTemplate>
+                                                </StackLayout>
                                             </StackLayout>
-                                        </StackLayout>
-                                    </expander:SfExpander.Content>
-                                </expander:SfExpander>
-                            </Border>
-                        </DataTemplate>
-                    </BindableLayout.ItemTemplate>
+                                        </expander:SfExpander.Content>
+                                    </expander:SfExpander>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </StackLayout>
                 </StackLayout>
-            </StackLayout>
-        </ScrollView>
+            </ScrollView>
+        </Grid>
     </Grid>
 </ContentPage>

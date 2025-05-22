@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Surveying.Models;
+using Surveying.Views;
 using System.ComponentModel;
 
 namespace Surveying.ViewModels
@@ -12,6 +13,7 @@ namespace Surveying.ViewModels
 
         public string ContainerNumber => Container?.ContNumber ?? Survey.ContNumber;
 
+        // Checkboxes for cleaning status
         [ObservableProperty]
         private bool cleaningAccept;
 
@@ -19,44 +21,22 @@ namespace Surveying.ViewModels
         private bool cleaningReject;
 
         [ObservableProperty]
-        private bool repairAccept;
-
-        [ObservableProperty]
-        private bool repairReject;
-
-        [ObservableProperty]
-        private bool periodicAccept;
-
-        [ObservableProperty]
-        private bool periodicReject;
-
-        [ObservableProperty]
         private string cleaningRejectionRemark = "";
 
-        [ObservableProperty]
-        private string repairRejectionRemark = "";
-
-        [ObservableProperty]
-        private string periodicRejectionRemark = "";
-
-        // New properties to track if items are ready for review
+        // Tracking if cleaning is ready for review
         [ObservableProperty]
         private bool cleaningReadyForReview;
 
-        [ObservableProperty]
-        private bool repairReadyForReview;
+        // Photo upload functionality
+        public PhotoUploadViewModel PhotoUploader { get; } = new PhotoUploadViewModel(4);
 
-        [ObservableProperty]
-        private bool periodicReadyForReview;
-
-        // Constructor with survey and container
         public SurveyorViewModel(SurveyModel survey, ContainerDetailModel container)
         {
             Survey = survey;
             Container = container;
 
             // Initialize checkbox states and review status
-            UpdateStatesFromContainer();
+            UpdateStateFromContainer();
 
             if (Container != null)
             {
@@ -66,85 +46,49 @@ namespace Surveying.ViewModels
             else
             {
                 // If no container, use survey for backward compatibility
-                UpdateStatesFromSurvey();
+                UpdateStateFromSurvey();
                 Survey.PropertyChanged += Survey_PropertyChanged;
             }
         }
 
-        private void Container_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        private void Container_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(ContainerDetailModel.CleaningStatus) ||
-                e.PropertyName == nameof(ContainerDetailModel.RepairStatus) ||
-                e.PropertyName == nameof(ContainerDetailModel.PeriodicStatus))
+            if (e.PropertyName == nameof(ContainerDetailModel.CleaningStatus))
             {
-                UpdateStatesFromContainer();
+                UpdateStateFromContainer();
             }
         }
 
-        private void Survey_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        private void Survey_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(SurveyModel.CleaningStatus) ||
-                e.PropertyName == nameof(SurveyModel.RepairStatus) ||
-                e.PropertyName == nameof(SurveyModel.PeriodicStatus))
+            if (e.PropertyName == nameof(SurveyModel.CleaningStatus))
             {
-                UpdateStatesFromSurvey();
+                UpdateStateFromSurvey();
             }
         }
 
-        private void UpdateStatesFromContainer()
+        private void UpdateStateFromContainer()
         {
             if (Container == null) return;
 
-            // Update cleaning checkboxes and review status
+            // Update cleaning checkbox and review status
             CleaningReadyForReview = Container.CleaningStatus == StatusType.OnReview;
-            CleaningAccept = Container.CleaningStatus == StatusType.Accepted;
+            CleaningAccept = Container.CleaningStatus == StatusType.Finished;
             CleaningReject = Container.CleaningStatus == StatusType.Rejected;
-
-            // Update repair checkboxes and review status
-            RepairReadyForReview = Container.RepairStatus == StatusType.OnReview;
-            RepairAccept = Container.RepairStatus == StatusType.Accepted;
-            RepairReject = Container.RepairStatus == StatusType.Rejected;
-
-            // Update periodic checkboxes and review status
-            PeriodicReadyForReview = Container.PeriodicStatus == StatusType.OnReview;
-            PeriodicAccept = Container.PeriodicStatus == StatusType.Accepted;
-            PeriodicReject = Container.PeriodicStatus == StatusType.Rejected;
         }
 
-        private void UpdateStatesFromSurvey()
+        private void UpdateStateFromSurvey()
         {
-            // Update cleaning checkboxes and review status
+            // Update cleaning checkbox and review status
             CleaningReadyForReview = Survey.CleaningStatus == StatusType.OnReview;
-            CleaningAccept = Survey.CleaningStatus == StatusType.Accepted;
+            CleaningAccept = Survey.CleaningStatus == StatusType.Finished;
             CleaningReject = Survey.CleaningStatus == StatusType.Rejected;
-
-            // Update repair checkboxes and review status
-            RepairReadyForReview = Survey.RepairStatus == StatusType.OnReview;
-            RepairAccept = Survey.RepairStatus == StatusType.Accepted;
-            RepairReject = Survey.RepairStatus == StatusType.Rejected;
-
-            // Update periodic checkboxes and review status
-            PeriodicReadyForReview = Survey.PeriodicStatus == StatusType.OnReview;
-            PeriodicAccept = Survey.PeriodicStatus == StatusType.Accepted;
-            PeriodicReject = Survey.PeriodicStatus == StatusType.Rejected;
         }
 
         partial void OnCleaningAcceptChanged(bool value)
         {
             if (value)
                 CleaningReject = false;
-        }
-
-        partial void OnRepairAcceptChanged(bool value)
-        {
-            if (value)
-                RepairReject = false;
-        }
-
-        partial void OnPeriodicAcceptChanged(bool value)
-        {
-            if (value)
-                PeriodicReject = false;
         }
 
         partial void OnCleaningRejectChanged(bool value)
@@ -159,38 +103,32 @@ namespace Surveying.ViewModels
             }
         }
 
-        partial void OnRepairRejectChanged(bool value)
+        [RelayCommand]
+        async void ViewFullImage(PhotoItem photo)
         {
-            if (value)
+            if (photo != null && photo.ImageSource != null)
             {
-                RepairAccept = false;
-            }
-            else
-            {
-                RepairRejectionRemark = string.Empty;
-            }
-        }
-
-        partial void OnPeriodicRejectChanged(bool value)
-        {
-            if (value)
-            {
-                PeriodicAccept = false;
-            }
-            else
-            {
-                PeriodicRejectionRemark = string.Empty;
+                var imageViewerPage = new ImageViewerPage(photo.ImageSource);
+                await Application.Current.MainPage.Navigation.PushAsync(imageViewerPage);
             }
         }
 
         [RelayCommand]
-        void SubmitCleaning()
+        async void SubmitCleaning()
         {
             // Only allow submission if status is OnReview
             if (!CleaningReadyForReview)
             {
-                Application.Current.MainPage.DisplayAlert("Not Ready",
+                await Application.Current.MainPage.DisplayAlert("Not Ready",
                     "This item is not ready for review. Make sure Cleaning has been submitted first.", "OK");
+                return;
+            }
+
+            // Require at least one photo
+            if (PhotoUploader.Photos == null || PhotoUploader.Photos.Count == 0)
+            {
+                await Application.Current.MainPage.DisplayAlert("Photo Required",
+                    "Please upload at least one photo before submitting.", "OK");
                 return;
             }
 
@@ -198,103 +136,37 @@ namespace Surveying.ViewModels
             {
                 if (Container != null)
                 {
-                    Container.CleaningStatus = StatusType.Accepted;
+                    Container.CleaningStatus = StatusType.Finished;
+                    Container.UpdateActivities();
                 }
                 // Also update survey
-                Survey.CleaningStatus = StatusType.Accepted;
+                Survey.CleaningStatus = StatusType.Finished;
+
+                await Application.Current.MainPage.DisplayAlert("Status Updated",
+                    "Cleaning has been marked as Finished.", "OK");
             }
             else if (CleaningReject)
             {
                 if (Container != null)
                 {
                     Container.CleaningStatus = StatusType.Rejected;
-                    // Store the rejection remark in the container
-                    // Container.CleaningRejectionRemark = CleaningRejectionRemark;
+                    Container.UpdateActivities();
                 }
                 // Also update survey
                 Survey.CleaningStatus = StatusType.Rejected;
+
+                await Application.Current.MainPage.DisplayAlert("Status Updated",
+                    "Cleaning has been rejected.", "OK");
             }
             else
             {
-                Application.Current.MainPage.DisplayAlert("Selection Required",
-                    "Please select either Accept or Reject before submitting.", "OK");
-            }
-        }
-
-        [RelayCommand]
-        void SubmitRepair()
-        {
-            // Only allow submission if status is OnReview
-            if (!RepairReadyForReview)
-            {
-                Application.Current.MainPage.DisplayAlert("Not Ready",
-                    "This item is not ready for review. Make sure Repair has been submitted first.", "OK");
+                await Application.Current.MainPage.DisplayAlert("Selection Required",
+                    "Please select either Finish or Reject before submitting.", "OK");
                 return;
             }
 
-            if (RepairAccept)
-            {
-                if (Container != null)
-                {
-                    Container.RepairStatus = StatusType.Accepted;
-                }
-                // Also update survey
-                Survey.RepairStatus = StatusType.Accepted;
-            }
-            else if (RepairReject)
-            {
-                if (Container != null)
-                {
-                    Container.RepairStatus = StatusType.Rejected;
-                    // Store the rejection remark
-                    // Container.RepairRejectionRemark = RepairRejectionRemark;
-                }
-                // Also update survey
-                Survey.RepairStatus = StatusType.Rejected;
-            }
-            else
-            {
-                Application.Current.MainPage.DisplayAlert("Selection Required",
-                    "Please select either Accept or Reject before submitting.", "OK");
-            }
-        }
-
-        [RelayCommand]
-        void SubmitPeriodic()
-        {
-            // Only allow submission if status is OnReview
-            if (!PeriodicReadyForReview)
-            {
-                Application.Current.MainPage.DisplayAlert("Not Ready",
-                    "This item is not ready for review. Make sure Periodic Maintenance has been submitted first.", "OK");
-                return;
-            }
-
-            if (PeriodicAccept)
-            {
-                if (Container != null)
-                {
-                    Container.PeriodicStatus = StatusType.Accepted;
-                }
-                // Also update survey
-                Survey.PeriodicStatus = StatusType.Accepted;
-            }
-            else if (PeriodicReject)
-            {
-                if (Container != null)
-                {
-                    Container.PeriodicStatus = StatusType.Rejected;
-                    // Store the rejection remark
-                    // Container.PeriodicRejectionRemark = PeriodicRejectionRemark;
-                }
-                // Also update survey
-                Survey.PeriodicStatus = StatusType.Rejected;
-            }
-            else
-            {
-                Application.Current.MainPage.DisplayAlert("Selection Required",
-                    "Please select either Accept or Reject before submitting.", "OK");
-            }
+            // Return to main page after successful submission
+            await Application.Current.MainPage.Navigation.PopToRootAsync();
         }
     }
 }

@@ -68,6 +68,7 @@
 		<PackageReference Include="Syncfusion.Maui.DataGrid" Version="29.2.4" />
 		<PackageReference Include="Syncfusion.Maui.Expander" Version="29.2.4" />
 		<PackageReference Include="Syncfusion.Maui.Inputs" Version="29.2.4" />
+		<PackageReference Include="Syncfusion.Maui.ListView" Version="29.2.4" />
 	</ItemGroup>
 
 	<ItemGroup>

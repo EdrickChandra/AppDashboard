@@ -54,17 +54,18 @@ namespace Surveying.ViewModels
                 return;
             }
 
-            // Update the container if available, otherwise update the survey
+            // Skip OnReview status and go directly to Finished
             if (Container != null)
             {
-                Container.RepairStatus = StatusType.OnReview;
+                Container.RepairStatus = StatusType.Finished;   
+                Container.UpdateActivities();
             }
 
-            // Always update the survey for backward compatibility
-            Survey.RepairStatus = StatusType.OnReview;
+            // Also update survey for backward compatibility
+            Survey.RepairStatus = StatusType.Finished; 
 
             await Application.Current.MainPage.DisplayAlert("Success",
-                "Repair data has been submitted for review.", "OK");
+                "Repair data has been submitted and marked as Finished.", "OK");
 
             await Application.Current.MainPage.Navigation.PopToRootAsync();
         }

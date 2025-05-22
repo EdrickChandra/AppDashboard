@@ -2,19 +2,20 @@
 <ContentPage x:Name="PageRoot"
              xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:syncfusion="clr-namespace:Syncfusion.Maui.ListView;assembly=Syncfusion.Maui.ListView"
              x:Class="Surveying.Views.Periodic"
              Title="Periodic Maintenance">
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="20">
             <Label Text="Periodic Maintenance" 
-             FontSize="24" 
-             FontAttributes="Bold"
-             HorizontalOptions="Center" />
+                   FontSize="24" 
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center" />
 
             <Frame Padding="15" 
-             BorderColor="LightGray" 
-             CornerRadius="8"
-             BackgroundColor="Transparent">
+                   BorderColor="LightGray" 
+                   CornerRadius="8"
+                   BackgroundColor="Transparent">
                 <VerticalStackLayout Spacing="15">
                     <Label Text="{Binding ContainerNumber, StringFormat='Tank No: {0}'}" FontAttributes="Bold" FontSize="18"/>
                     <Label Text="Periodic Test : 2,5 Year"/>
@@ -25,47 +26,68 @@
                 </VerticalStackLayout>
             </Frame>
 
-
             <Button Text="{Binding PhotoUploader.Photos.Count, StringFormat='Upload Photo, Max 1 ({0}/1)'}"
                     Command="{Binding PhotoUploader.UploadPhotoAsyncCommand}"
                     WidthRequest="300"
                     HorizontalOptions="Center" />
 
-            <CollectionView ItemsSource="{Binding PhotoUploader.Photos}">
-                <CollectionView.ItemsLayout>
-                    <GridItemsLayout Orientation="Vertical" Span="{Binding PhotoUploader.PhotoColumnCount}" />
-                </CollectionView.ItemsLayout>
-                <CollectionView.ItemTemplate>
+            <!-- SfListView with responsive image sizing -->
+            <syncfusion:SfListView ItemsSource="{Binding PhotoUploader.Photos}"
+                       HeightRequest="500"
+                       Orientation="Vertical"
+                       ItemSpacing="10"
+                       SelectionMode="None"
+                       AllowSwiping="False">
+                <syncfusion:SfListView.ItemTemplate>
                     <DataTemplate>
-                        <VerticalStackLayout Spacing="10" Padding="5">
-                            <Image Source="{Binding ImageSource}"
-                                   WidthRequest="300"
-                                   HeightRequest="300"
-                                   Aspect="AspectFill"
-                                   HorizontalOptions="Center">
-                                <Image.GestureRecognizers>
-                                    <TapGestureRecognizer Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.ViewFullImageCommand}"
-                                  CommandParameter="{Binding .}" />
-                                </Image.GestureRecognizers>
-                            </Image>
+                        <Grid Padding="15" BackgroundColor="White" Margin="8">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="200" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
 
-                            <Button Text="Delete"
-                                    WidthRequest="300"
-                                    HorizontalOptions="Center"
-                                    Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.PhotoUploader.DeletePhotoCommand}"
-                                    CommandParameter="{Binding .}" />
-                        </VerticalStackLayout>
+                            <!-- Image with constrained dimensions -->
+                            <Frame Grid.Row="0" 
+                       BorderColor="#E0E0E0"
+                       BackgroundColor="#F8F9FA"
+                       CornerRadius="8"
+                       Padding="5"
+                       HasShadow="False">
+                                <Image Source="{Binding ImageSource}"
+                           Aspect="AspectFit"
+                           HorizontalOptions="Fill"
+                           VerticalOptions="Fill"
+                           HeightRequest="180">
+                                    <Image.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.ViewFullImageCommand}"
+                                                  CommandParameter="{Binding .}" />
+                                    </Image.GestureRecognizers>
+                                </Image>
+                            </Frame>
+
+                            <!-- Delete button with icon -->
+                            <Button Grid.Row="1"
+                        Text="Delete"
+                        BackgroundColor="#FF6B6B"
+                        TextColor="White"
+                        CornerRadius="6"
+                        FontSize="14"
+                        HeightRequest="40"
+                        Margin="0,10,0,0"
+                        Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.PhotoUploader.DeletePhotoCommand}"
+                        CommandParameter="{Binding .}" />
+                        </Grid>
                     </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
-
+                </syncfusion:SfListView.ItemTemplate>
+            </syncfusion:SfListView>
+            
             <Button Text="Submit Periodic" 
-              Command="{Binding SubmitPeriodicCommand}" 
-              WidthRequest="300"
-              HorizontalOptions="Center"
-              BackgroundColor="#6200EE"
-              TextColor="White"
-              CornerRadius="8" />
+                    Command="{Binding SubmitPeriodicCommand}" 
+                    WidthRequest="300"
+                    HorizontalOptions="Center"
+                    BackgroundColor="#6200EE"
+                    TextColor="White"
+                    CornerRadius="8" />
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

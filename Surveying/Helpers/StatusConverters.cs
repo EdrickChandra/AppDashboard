@@ -18,8 +18,8 @@ namespace Surveying.Helpers
                         return "Pending";
                     case StatusType.OnReview:
                         return "Review";
-                    case StatusType.Accepted:
-                        return "Accepted";
+                    case StatusType.Finished:
+                        return "Finished";
                     case StatusType.Rejected:
                         return "Rejected";
                     default:
@@ -48,7 +48,7 @@ namespace Surveying.Helpers
                         return Colors.Gray;
                     case StatusType.OnReview:
                         return Colors.Orange;
-                    case StatusType.Accepted:
+                    case StatusType.Finished:
                         return Colors.Green;
                     case StatusType.Rejected:
                         return Colors.Red;

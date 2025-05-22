@@ -59,25 +59,25 @@ public static class DummyData
     static DummyData()
     {
         // Set some statuses for demonstration
-        Surveys[0].CleaningStatus = StatusType.Accepted;
+        Surveys[0].CleaningStatus = StatusType.Finished;
         Surveys[0].RepairStatus = StatusType.OnReview;
-        Surveys[0].PeriodicStatus = StatusType.Accepted;
+        Surveys[0].PeriodicStatus = StatusType.Finished;
 
         Surveys[1].CleaningStatus = StatusType.Rejected;
-        Surveys[1].RepairStatus = StatusType.Accepted;
+        Surveys[1].RepairStatus = StatusType.Finished;
 
         Surveys[2].CleaningStatus = StatusType.OnReview;
         Surveys[2].PeriodicStatus = StatusType.OnReview;
 
-        Surveys[3].RepairStatus = StatusType.Accepted;
-        Surveys[3].PeriodicStatus = StatusType.Accepted;
+        Surveys[3].RepairStatus = StatusType.Finished;
+        Surveys[3].PeriodicStatus = StatusType.Finished;
 
         Surveys[4].CleaningStatus = StatusType.OnReview;
         Surveys[4].RepairStatus = StatusType.Rejected;
 
-        Surveys[5].CleaningStatus = StatusType.Accepted;
-        Surveys[5].RepairStatus = StatusType.Accepted;
-        Surveys[5].PeriodicStatus = StatusType.Accepted;
-        Surveys[5].SurveyStatus = StatusType.Accepted;
+        Surveys[5].CleaningStatus = StatusType.Finished;
+        Surveys[5].RepairStatus = StatusType.Finished;
+        Surveys[5].PeriodicStatus = StatusType.Finished;
+        Surveys[5].SurveyStatus = StatusType.Finished;
     }
 }

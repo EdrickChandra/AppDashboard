@@ -14,7 +14,7 @@ namespace Surveying.Models
     {
         NotFilled,  // Will be displayed as "*"
         OnReview,   // Will be displayed as "R"
-        Accepted,   // Will be displayed as "A"
+        Finished,   // Will be displayed as "A"
         Rejected    // Will be displayed as "X"
     }
 
@@ -199,7 +199,7 @@ namespace Surveying.Models
                     return "*";
                 case StatusType.OnReview:
                     return "R";
-                case StatusType.Accepted:
+                case StatusType.Finished:
                     return "A";
                 case StatusType.Rejected:
                     return "X";
@@ -214,11 +214,11 @@ namespace Surveying.Models
                 RepairStatus != StatusType.NotFilled &&
                 PeriodicStatus != StatusType.NotFilled)
             {
-                if (CleaningStatus == StatusType.Accepted &&
-                    RepairStatus == StatusType.Accepted &&
-                    PeriodicStatus == StatusType.Accepted)
+                if (CleaningStatus == StatusType.Finished &&
+                    RepairStatus == StatusType.Finished &&
+                    PeriodicStatus == StatusType.Finished)
                 {
-                    SurveyStatus = StatusType.Accepted;
+                    SurveyStatus = StatusType.Finished;
                 }
                 else
                 {
