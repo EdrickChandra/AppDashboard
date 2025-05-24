@@ -37,10 +37,11 @@
             <syncfusion:SfListView ItemsSource="{Binding PhotoUploader.Photos}"
                        HeightRequest="400"
                        SelectionMode="None"
-                       AllowSwiping="False">
-                <syncfusion:SfListView.LayoutManager>
-                    <syncfusion:GridLayout SpanCount="2" />
-                </syncfusion:SfListView.LayoutManager>
+                       AllowSwiping="False"
+                       ItemSize="215">
+                <syncfusion:SfListView.ItemsLayout>
+                    <syncfusion:GridLayout SpanCount="{Binding PhotoUploader.PhotoColumnCount}" />
+                </syncfusion:SfListView.ItemsLayout>
 
                 <syncfusion:SfListView.ItemTemplate>
                     <DataTemplate>
@@ -52,8 +53,8 @@
 
                             <!-- Image in square format -->
                             <Border Grid.Row="0"
-                        Stroke="White" 
-                        StrokeThickness="2"
+                        Stroke="LightGray" 
+                        StrokeThickness="1"
                         BackgroundColor="White">
                                 <Image Source="{Binding ImageSource}"
                            Aspect="AspectFill"

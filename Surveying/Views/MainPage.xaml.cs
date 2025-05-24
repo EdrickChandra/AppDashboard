@@ -69,13 +69,33 @@ namespace Surveying.Views
         {
             await Navigation.PushAsync(new AddPage((surveyEntries) =>
             {
+                // First add all new surveys to DummyData
+                foreach (var survey in surveyEntries)
+                {
+                    // Add the container to DummyData if it doesn't exist
+                    if (!DummyData.Containers.Any(c => c.ContNumber == survey.ContNumber))
+                    {
+                        // Extract size and type from the survey or use defaults
+                        var newContainer = new ContModel
+                        {
+                            ContNumber = survey.ContNumber,
+                            ContSize = "20", // Default size, you might want to add this to AddPage
+                            ContType = "Tank" // Default type, you might want to add this to AddPage
+                        };
+                        DummyData.Containers.Add(newContainer);
+                    }
+
+                    // Add the survey to DummyData
+                    DummyData.Surveys.Add(survey);
+                }
+
                 // We need to handle adding new surveys differently now
                 // Group them by order number and add to OrderGroups
                 var newOrderNumbers = surveyEntries.Select(s => s.OrderNumber).Distinct();
 
                 foreach (var orderNumber in newOrderNumbers)
                 {
-                    var surveysForOrder = surveyEntries.Where(s => s.OrderNumber == orderNumber);
+                    var surveysForOrder = surveyEntries.Where(s => s.OrderNumber == orderNumber).ToList();
                     if (surveysForOrder.Any())
                     {
                         var firstSurvey = surveysForOrder.First();
@@ -108,13 +128,8 @@ namespace Surveying.Views
                                     SurveyStatus = survey.SurveyStatus
                                 };
 
-                                containerDetail.Activities = new ObservableCollection<ActivityModel>
-                                {
-                                    new ActivityModel("Cleaning", "Cleaning", survey.CleaningStatus),
-                                    new ActivityModel("Repair", "Repair", survey.RepairStatus),
-                                    new ActivityModel("Periodic", "Periodic", survey.PeriodicStatus),
-                                    new ActivityModel("Survey", "Survey", survey.SurveyStatus)
-                                };
+                                // Initialize activities using UpdateActivities method
+                                containerDetail.UpdateActivities();
 
                                 orderGroup.Containers.Add(containerDetail);
                             }
@@ -124,9 +139,12 @@ namespace Surveying.Views
                     }
                 }
 
-                _viewModel.SearchText = string.Empty;
+                // Refresh the filtered list
+                _viewModel.UpdateFilteredSurveyList();
             }));
         }
+
+
 
         private void DataGrid_CellTapped(object sender, DataGridCellTappedEventArgs e)
         {

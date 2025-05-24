@@ -136,7 +136,7 @@ namespace Surveying.ViewModels
             UpdateFilteredSurveyList();
         }
 
-        private void UpdateFilteredSurveyList()
+        public void UpdateFilteredSurveyList()
         {
             if (OrderGroups == null)
                 return;
