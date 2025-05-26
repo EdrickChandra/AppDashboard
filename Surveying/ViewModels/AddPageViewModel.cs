@@ -1,14 +1,18 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Surveying.Models;
+using Surveying.Services;
 using System;
 using System.Collections.ObjectModel;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace Surveying.ViewModels
 {
     public partial class AddPageViewModel : ObservableObject
     {
+        private readonly IContainerApiService _containerApiService;
+
         [ObservableProperty]
         private string orderNumber;
 
@@ -28,6 +32,12 @@ namespace Surveying.ViewModels
         private string contNumberError;
 
         [ObservableProperty]
+        private bool isValidatingContainer;
+
+        [ObservableProperty]
+        private bool isContainerValid;
+
+        [ObservableProperty]
         private DateTime orderDate = DateTime.Today;
 
         [ObservableProperty]
@@ -45,13 +55,21 @@ namespace Surveying.ViewModels
 
         public ObservableCollection<string> ConditionList => ConditionData.ConditionList;
 
+        public AddPageViewModel() : this(new ContainerApiService())
+        {
+        }
+
+        public AddPageViewModel(IContainerApiService containerApiService)
+        {
+            _containerApiService = containerApiService;
+        }
 
         partial void OnContNumberChanged(string value)
         {
-            ValidateContainerNumber();
+            _ = ValidateContainerNumberAsync();
         }
 
-        private void ValidateContainerNumber()
+        private async Task ValidateContainerNumberAsync()
         {
             // Clear previous errors
             ContNumberError = string.Empty;
@@ -89,8 +107,36 @@ namespace Surveying.ViewModels
                 return;
             }
 
-            // If we reach here, the container number is valid
-            System.Diagnostics.Debug.WriteLine($"Container number {ContNumber} is valid");
+            // If format validation passes, check with API
+            IsValidatingContainer = true;
+            IsContainerValid = false;
+            ContNumberError = "Checking container in depot...";
+
+            try
+            {
+                var apiResponse = await _containerApiService.CheckContainerExists(ContNumber);
+
+                if (apiResponse.IsSuccess)
+                {
+                    ContNumberError = string.Empty; // Clear error - container is valid
+                    IsContainerValid = true;
+                    System.Diagnostics.Debug.WriteLine($"Container {ContNumber} found in depot");
+                }
+                else
+                {
+                    ContNumberError = apiResponse.Message ?? "Container not found in depot or already left";
+                    IsContainerValid = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                ContNumberError = $"Error checking container: {ex.Message}";
+                IsContainerValid = false;
+            }
+            finally
+            {
+                IsValidatingContainer = false;
+            }
         }
 
         private int CalculateCheckDigit(string containerPrefix)
@@ -134,11 +180,20 @@ namespace Surveying.ViewModels
 
             return checkDigit;
         }
+
         [RelayCommand]
-        void AddSurveyEntry()
+        async Task AddSurveyEntry()
         {
+            // Wait for any ongoing validation to complete
+            if (IsValidatingContainer)
+            {
+                await Application.Current.MainPage.DisplayAlert("Please Wait",
+                    "Container validation in progress...", "OK");
+                return;
+            }
+
             // Validate container number first
-            ValidateContainerNumber();
+            await ValidateContainerNumberAsync();
 
             if (!string.IsNullOrWhiteSpace(OrderNumber) &&
                 !string.IsNullOrWhiteSpace(Surveyor) &&
@@ -168,7 +223,7 @@ namespace Surveying.ViewModels
             else
             {
                 // Show an error message if validation fails
-                Application.Current.MainPage.DisplayAlert("Validation Error",
+                await Application.Current.MainPage.DisplayAlert("Validation Error",
                     "Please correct all errors before adding the entry.", "OK");
             }
         }
