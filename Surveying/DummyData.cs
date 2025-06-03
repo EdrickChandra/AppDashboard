@@ -8,7 +8,7 @@ public static class DummyData
 {
     public static ObservableCollection<PrincipalModel> Principals = new ObservableCollection<PrincipalModel>
     {
-        new PrincipalModel(1, "P001", "Principal 1"),
+        new PrincipalModel(1, "P001", "Newport"),
         new PrincipalModel(2, "P002", "Principal 2"),
         new PrincipalModel(3, "P003", "Principal 3"),
         new PrincipalModel(4, "P004", "Principal 4"),
@@ -17,7 +17,7 @@ public static class DummyData
 
     public static ObservableCollection<ShipperModel> Shippers = new ObservableCollection<ShipperModel>
     {
-        new ShipperModel(1, "S001", "Shipper 1"),
+        new ShipperModel(1, "S001", "Musim Mas"),
         new ShipperModel(2, "S002", "Shipper 2"),
         new ShipperModel(3, "S003", "Shipper 3"),
         new ShipperModel(4, "S004", "Shipper 4"),

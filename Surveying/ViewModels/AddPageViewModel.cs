@@ -69,6 +69,8 @@ namespace Surveying.ViewModels
             _ = ValidateContainerNumberAsync();
         }
 
+        // Replace the ValidateContainerNumberAsync method in AddPageViewModel.cs
+
         private async Task ValidateContainerNumberAsync()
         {
             // Clear previous errors
@@ -80,34 +82,31 @@ namespace Surveying.ViewModels
                 return;
             }
 
-            // Trim and convert to uppercase
-            ContNumber = ContNumber.Trim().ToUpper();
+            // Clean up the input
+            ContNumber = ContNumber.Trim().ToUpper().Replace(" ", "");
 
-            // Check format: 4 letters followed by 6 digits and 1 check digit
-            if (!Regex.IsMatch(ContNumber, @"^[A-Z]{4}\d{7}$"))
+            // Simple format check: 4 letters + 7 digits
+            if (ContNumber.Length != 11)
             {
-                ContNumberError = "Invalid format. Required: 4 letters + 6 digits + 1 check digit";
+                ContNumberError = "Must be 11 characters (4 letters + 7 digits)";
                 return;
             }
 
-            // Calculate the check digit and verify it matches
-            char lastDigit = ContNumber[10];
-            if (!char.IsDigit(lastDigit))
+            // Check first 4 are letters
+            if (!ContNumber.Substring(0, 4).All(char.IsLetter))
             {
-                ContNumberError = "Last character must be a digit";
+                ContNumberError = "First 4 characters must be letters";
                 return;
             }
 
-            int providedCheckDigit = int.Parse(lastDigit.ToString());
-            int calculatedCheckDigit = CalculateCheckDigit(ContNumber.Substring(0, 10));
-
-            if (providedCheckDigit != calculatedCheckDigit)
+            // Check last 7 are digits
+            if (!ContNumber.Substring(4, 7).All(char.IsDigit))
             {
-                ContNumberError = $"Invalid check digit. Should be {calculatedCheckDigit}";
+                ContNumberError = "Last 7 characters must be digits";
                 return;
             }
 
-            // If format validation passes, check with API
+            // Skip complex check digit validation - just check with API
             IsValidatingContainer = true;
             IsContainerValid = false;
             ContNumberError = "Checking container in depot...";
@@ -118,13 +117,12 @@ namespace Surveying.ViewModels
 
                 if (apiResponse.IsSuccess)
                 {
-                    ContNumberError = string.Empty; // Clear error - container is valid
+                    ContNumberError = string.Empty;
                     IsContainerValid = true;
-                    System.Diagnostics.Debug.WriteLine($"Container {ContNumber} found in depot");
                 }
                 else
                 {
-                    ContNumberError = apiResponse.Message ?? "Container not found in depot or already left";
+                    ContNumberError = apiResponse.Message ?? "Container not found in depot";
                     IsContainerValid = false;
                 }
             }
@@ -139,47 +137,7 @@ namespace Surveying.ViewModels
             }
         }
 
-        private int CalculateCheckDigit(string containerPrefix)
-        {
-            // Ensure we have exactly 10 characters (4 letters + 6 digits)
-            if (containerPrefix.Length != 10)
-                return -1;
-
-            int sum = 0;
-            int[] multipliers = { 1, 2, 4, 8, 16, 32, 64, 128, 256, 512 };
-
-            for (int i = 0; i < 10; i++)
-            {
-                char c = containerPrefix[i];
-                int value;
-
-                if (char.IsLetter(c))
-                {
-                    // Convert letter to corresponding value (A=10, B=11, ..., Z=35)
-                    value = c - 'A' + 10;
-                }
-                else if (char.IsDigit(c))
-                {
-                    // Convert digit character to numeric value
-                    value = c - '0';
-                }
-                else
-                {
-                    // Invalid character
-                    return -1;
-                }
-
-                sum += value * multipliers[i];
-            }
-
-            // The check digit is the remainder when dividing by 11
-            // If the remainder is 10, the check digit is 0
-            int checkDigit = sum % 11;
-            if (checkDigit == 10)
-                checkDigit = 0;
-
-            return checkDigit;
-        }
+  
 
         [RelayCommand]
         async Task AddSurveyEntry()
