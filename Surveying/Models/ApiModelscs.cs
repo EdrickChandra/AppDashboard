@@ -41,24 +41,14 @@ namespace Surveying.Models
         public string ApprovedBy { get; set; } = string.Empty;
     }
 
-    // Enhanced repair code details with individual status tracking
     public partial class RepairCodeModel : ObservableObject
     {
-        // Your existing properties
+        // Your existing properties - fixed property names
         public string RepairCode { get; set; }
         public string ComponentCode { get; set; }
         public string LocationCode { get; set; }
-        public string ComponentDescription { get; set; }
+        public string ComponentDescription { get; set; } // This is the correct property name
         public string ComponentCategory { get; set; }
-
-        // NEW: Add the repair detail description
-        public string RepairDetailDescription { get; set; } = string.Empty;
-
-        // NEW: Add repair code description
-        public string RepairCodeDescription { get; set; } = string.Empty;
-
-        // NEW: Add component code description  
-        public string ComponentCodeDescription { get; set; } = string.Empty;
 
         [ObservableProperty]
         private bool isCompleted;
@@ -72,16 +62,40 @@ namespace Surveying.Models
         [ObservableProperty]
         private string repairNotes = string.Empty;
 
-        // Computed properties for UI binding
+
+        [ObservableProperty]
+        private ImageSource repairPhoto;
+
+        [ObservableProperty]
+        private bool hasPhoto;
+
         public string StatusText => IsCompleted ? "COMPLETED" : "PENDING";
 
-        public string StatusColor => IsCompleted ? "#28A745" : "#FFC107"; // Green : Orange
+        public string StatusColor => IsCompleted ? "#28A745" : "#FFC107";
 
         public string ButtonText => IsCompleted ? "Mark Pending" : "Mark Done";
 
-        public string ButtonColor => IsCompleted ? "#6C757D" : "#007BFF"; // Gray : Blue
+        public string ButtonColor => IsCompleted ? "#6C757D" : "#007BFF";
 
-        // Override OnPropertyChanged to notify UI when dependent properties change
+
+        public string RepairCodeDescription
+        {
+            get => RepairCode;
+            set => RepairCode = value;
+        }
+
+        public string ComponentCodeDescription
+        {
+            get => ComponentCode;
+            set => ComponentCode = value;
+        }
+
+        public string RepairDetailDescription
+        {
+            get => ComponentDescription;
+            set => ComponentDescription = value;
+        }
+
         protected override void OnPropertyChanged(System.ComponentModel.PropertyChangedEventArgs e)
         {
             base.OnPropertyChanged(e);

@@ -14,7 +14,8 @@ namespace Surveying.ViewModels
         public DateTime StartCleanDate { get; set; }
         public DateTime EndCleanDate { get; set; }
 
-        public PhotoUploadViewModel PhotoUploader { get; } = new PhotoUploadViewModel(4);
+        // Use factory method for cleaning-specific segments OR keep existing for backward compatibility
+        public PhotoUploadViewModel PhotoUploader { get; }
 
         // Constructor with just Survey (for backward compatibility)
         public CleaningViewModel(SurveyModel survey)
@@ -22,6 +23,10 @@ namespace Surveying.ViewModels
             Survey = survey;
             StartCleanDate = DateTime.Today;
             EndCleanDate = DateTime.Today.AddDays(1);
+
+            // Choose between new segmented approach or old approach
+            PhotoUploader = PhotoUploadViewModel.CreateForCleaning(); // New approach
+            // PhotoUploader = new PhotoUploadViewModel(4); // Old approach for backward compatibility
         }
 
         // New constructor with Survey and Container
@@ -31,7 +36,7 @@ namespace Surveying.ViewModels
         }
 
         [RelayCommand]
-        async void ViewFullImage(PhotoItem photo)
+        async void ViewFullImage(PhotoItem photo) // Keep as PhotoItem
         {
             if (photo != null && photo.ImageSource != null)
             {
@@ -46,10 +51,15 @@ namespace Surveying.ViewModels
             bool isValid = true;
             string errorMessage = "";
 
-            if (PhotoUploader.Photos == null || PhotoUploader.Photos.Count == 0)
+            // Check if all cleaning segments have exactly one photo
+            var requiredSegments = new[] { "Top Outside", "Front Upper Half", "Front Lower Half", "Back Upper Half", "Back Lower Half" };
+            var missingSegments = requiredSegments.Where(segment =>
+                PhotoUploader.GetPhotoCountForSegment(segment) == 0).ToList();
+
+            if (missingSegments.Any())
             {
                 isValid = false;
-                errorMessage += "Please upload at least one photo.\n";
+                errorMessage += $"Please upload photos for: {string.Join(", ", missingSegments)}\n";
             }
 
             if (EndCleanDate < StartCleanDate)

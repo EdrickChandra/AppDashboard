@@ -27,7 +27,7 @@ namespace Surveying.ViewModels
         [ObservableProperty]
         private bool cleaningReadyForReview;
 
-        // Photo upload functionality
+        // Photo upload functionality - keep using default constructor for backward compatibility
         public PhotoUploadViewModel PhotoUploader { get; } = new PhotoUploadViewModel(4);
 
         public SurveyorViewModel(SurveyModel survey, ContainerDetailModel container)
@@ -104,7 +104,7 @@ namespace Surveying.ViewModels
         }
 
         [RelayCommand]
-        async void ViewFullImage(PhotoItem photo)
+        async void ViewFullImage(PhotoItem photo) // Keep as PhotoItem for backward compatibility
         {
             if (photo != null && photo.ImageSource != null)
             {

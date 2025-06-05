@@ -12,7 +12,9 @@ namespace Surveying.ViewModels
         public ContainerDetailModel Container { get; }
 
         public string ContainerNumber => Container.ContNumber;
-        public PhotoUploadViewModel PhotoUploader { get; } = new PhotoUploadViewModel(1);
+
+        // Use factory method for periodic (CSC Plate only)
+        public PhotoUploadViewModel PhotoUploader { get; } = PhotoUploadViewModel.CreateForPeriodic();
 
         [ObservableProperty]
         private DateTime inspectionDate = DateTime.Today;
@@ -27,7 +29,7 @@ namespace Surveying.ViewModels
         }
 
         [RelayCommand]
-        async void ViewFullImage(PhotoItem photo)
+        async void ViewFullImage(PhotoItem photo) // Keep as PhotoItem
         {
             if (photo != null && photo.ImageSource != null)
             {
@@ -57,7 +59,7 @@ namespace Surveying.ViewModels
             // Skip OnReview status and go directly to Finished
             if (Container != null)
             {
-                Container.PeriodicStatus = StatusType.Finished; 
+                Container.PeriodicStatus = StatusType.Finished;
                 Container.UpdateActivities();
             }
 

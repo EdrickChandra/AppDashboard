@@ -17,7 +17,8 @@ namespace Surveying.ViewModels
         public ContainerDetailModel Container { get; }
 
         public string ContainerNumber => Container.ContNumber;
-        public PhotoUploadViewModel PhotoUploader { get; } = new PhotoUploadViewModel();
+
+        public PhotoUploadViewModel PhotoUploader { get; } = PhotoUploadViewModel.CreateForRepair();
 
         [ObservableProperty]
         private DateTime repairDate = DateTime.Today;
@@ -58,6 +59,8 @@ namespace Surveying.ViewModels
 
         [ObservableProperty]
         private string debugInfo = "";
+
+
 
         [RelayCommand]
         async void ShowDebugDetails()
@@ -195,6 +198,40 @@ namespace Surveying.ViewModels
             {
                 var imageViewerPage = new ImageViewerPage(photo.ImageSource);
                 await Application.Current.MainPage.Navigation.PushAsync(imageViewerPage);
+            }
+        }
+
+        [RelayCommand]
+        async void ViewRepairCodePhoto(RepairCodeModel repairCode)
+        {
+            if (repairCode?.RepairPhoto != null)
+            {
+                var imageViewerPage = new ImageViewerPage(repairCode.RepairPhoto);
+                await Application.Current.MainPage.Navigation.PushAsync(imageViewerPage);
+            }
+        }
+
+        [RelayCommand]
+        async void TakeRepairCodePhoto(RepairCodeModel repairCode)
+        {
+            try
+            {
+                var photoResult = await MediaPicker.CapturePhotoAsync(new MediaPickerOptions
+                {
+                    Title = $"Photo for {repairCode.RepairCode}"
+                });
+
+                if (photoResult != null)
+                {
+                    using var stream = await photoResult.OpenReadAsync();
+                    repairCode.RepairPhoto = ImageSource.FromStream(() => stream);
+                    repairCode.HasPhoto = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                await Application.Current.MainPage.DisplayAlert("Error",
+                    $"Failed to take photo: {ex.Message}", "OK");
             }
         }
 
