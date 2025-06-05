@@ -51,6 +51,15 @@ namespace Surveying.Models
         public string ComponentDescription { get; set; }
         public string ComponentCategory { get; set; }
 
+        // NEW: Add the repair detail description
+        public string RepairDetailDescription { get; set; } = string.Empty;
+
+        // NEW: Add repair code description
+        public string RepairCodeDescription { get; set; } = string.Empty;
+
+        // NEW: Add component code description  
+        public string ComponentCodeDescription { get; set; } = string.Empty;
+
         [ObservableProperty]
         private bool isCompleted;
 

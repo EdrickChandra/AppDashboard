@@ -114,8 +114,30 @@ namespace Surveying.ViewModels
                         RepairCodes.Clear();
                         foreach (var code in containerWithCodes.RepairCodes)
                         {
-                            RepairCodes.Add(code);
-                            System.Diagnostics.Debug.WriteLine($"Added repair code: {code.RepairCode} - {code.ComponentDescription}");
+                            // Map the API model to the view model with all new properties
+                            var repairCodeModel = new RepairCodeModel
+                            {
+                                RepairCode = code.RepairCode,
+                                ComponentCode = code.ComponentCode,
+                                LocationCode = code.LocationCode,
+                                ComponentCategory = code.ComponentCategory,
+                                ComponentDescription = code.ComponentDescription,
+                                // NEW: Map the additional description properties
+                                RepairCodeDescription = code.RepairCodeDescription ?? string.Empty,
+                                ComponentCodeDescription = code.ComponentCodeDescription ?? string.Empty,
+                                RepairDetailDescription = code.RepairDetailDescription ?? string.Empty,
+                                // Initialize status tracking
+                                IsCompleted = false,
+                                CompletedDate = null,
+                                CompletedBy = string.Empty,
+                                RepairNotes = string.Empty
+                            };
+
+                            RepairCodes.Add(repairCodeModel);
+                            System.Diagnostics.Debug.WriteLine($"Added repair code: {code.RepairCode}");
+                            System.Diagnostics.Debug.WriteLine($"  - Repair Type: {code.RepairCodeDescription}");
+                            System.Diagnostics.Debug.WriteLine($"  - Component Desc: {code.ComponentCodeDescription}");
+                            System.Diagnostics.Debug.WriteLine($"  - Detail Desc: {code.RepairDetailDescription}");
                         }
 
                         DebugInfo += $"\nLoaded {RepairCodes.Count} repair codes";
@@ -257,10 +279,22 @@ namespace Surveying.ViewModels
             }
             else
             {
-                // Mark as completed
+                // Mark as completed - Show detailed info about what's being completed
+                string detailMessage = $"Mark this repair as completed?\n\n";
+                detailMessage += $"Code: {repairItem.RepairCode}\n";
+
+                if (!string.IsNullOrEmpty(repairItem.RepairCodeDescription))
+                    detailMessage += $"Type: {repairItem.RepairCodeDescription}\n";
+
+                if (!string.IsNullOrEmpty(repairItem.ComponentCodeDescription))
+                    detailMessage += $"Component: {repairItem.ComponentCodeDescription}\n";
+
+                if (!string.IsNullOrEmpty(repairItem.RepairDetailDescription))
+                    detailMessage += $"Details: {repairItem.RepairDetailDescription}";
+
                 bool confirmComplete = await Application.Current.MainPage.DisplayAlert(
                     "Mark as Completed",
-                    $"Mark repair {repairItem.RepairCode} ({repairItem.ComponentDescription}) as completed?",
+                    detailMessage,
                     "Yes", "No");
 
                 if (confirmComplete)
@@ -315,44 +349,6 @@ namespace Surveying.ViewModels
             Survey.RepairStatus = Container.RepairStatus;
 
             System.Diagnostics.Debug.WriteLine($"Overall repair status: {completedCount}/{totalCount} completed");
-        }
-
-        [RelayCommand]
-        async void ShowRepairSummary()
-        {
-            if (RepairCodes.Count == 0)
-            {
-                await Application.Current.MainPage.DisplayAlert("No Repairs", "No repair codes found.", "OK");
-                return;
-            }
-
-            int completedCount = RepairCodes.Count(r => r.IsCompleted);
-            int pendingCount = RepairCodes.Count - completedCount;
-
-            string summary = $"Repair Summary:\n\n";
-            summary += $"✓ Completed: {completedCount}\n";
-            summary += $"⏳ Pending: {pendingCount}\n";
-            summary += $"📊 Progress: {(completedCount * 100 / RepairCodes.Count):F0}%\n\n";
-
-            if (completedCount > 0)
-            {
-                summary += "Completed Repairs:\n";
-                foreach (var repair in RepairCodes.Where(r => r.IsCompleted))
-                {
-                    summary += $"• {repair.RepairCode} - {repair.ComponentCode}\n";
-                }
-            }
-
-            if (pendingCount > 0)
-            {
-                summary += "\nPending Repairs:\n";
-                foreach (var repair in RepairCodes.Where(r => !r.IsCompleted))
-                {
-                    summary += $"• {repair.RepairCode} - {repair.ComponentCode}\n";
-                }
-            }
-
-            await Application.Current.MainPage.DisplayAlert("Repair Summary", summary, "OK");
         }
     }
 }

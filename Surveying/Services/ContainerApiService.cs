@@ -123,23 +123,67 @@ namespace Surveying.Services
                                 System.Diagnostics.Debug.WriteLine($"    - ComponentCode: {code.ComponentCode}");
                                 System.Diagnostics.Debug.WriteLine($"    - LocationCode: {code.LocationCode}");
                                 System.Diagnostics.Debug.WriteLine($"    - ComponentCategory: {code.ComponentCategory}");
-                                System.Diagnostics.Debug.WriteLine($"    - DisplayDescription: {code.ComponentDescription}");
+                                System.Diagnostics.Debug.WriteLine($"    - ComponentDescription: {code.ComponentDescription}");
+
+                                // NEW: Log the additional description fields
+                                System.Diagnostics.Debug.WriteLine($"    - RepairCodeDescription: {code.RepairCodeDescription}");
+                                System.Diagnostics.Debug.WriteLine($"    - ComponentCodeDescription: {code.ComponentCodeDescription}");
+                                System.Diagnostics.Debug.WriteLine($"    - RepairDetailDescription: {code.RepairDetailDescription}");
+                            }
+
+                            // NEW: Enhanced logging summary
+                            System.Diagnostics.Debug.WriteLine($"Repair Codes Summary:");
+                            foreach (var code in container.RepairCodes)
+                            {
+                                var summaryLine = $"  {code.RepairCode}";
+
+                                if (!string.IsNullOrEmpty(code.RepairCodeDescription))
+                                    summaryLine += $" ({code.RepairCodeDescription})";
+
+                                if (!string.IsNullOrEmpty(code.RepairDetailDescription))
+                                    summaryLine += $" - {code.RepairDetailDescription}";
+
+                                System.Diagnostics.Debug.WriteLine(summaryLine);
                             }
                         }
 
                         return container;
                     }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"API Response indicates failure:");
+                        System.Diagnostics.Debug.WriteLine($"  - IsSuccess: {apiResponse?.IsSuccess}");
+                        System.Diagnostics.Debug.WriteLine($"  - Message: {apiResponse?.Message}");
+                        System.Diagnostics.Debug.WriteLine($"  - Content is null: {apiResponse?.Content == null}");
+                    }
                 }
                 else
                 {
+                    var errorContent = await response.Content.ReadAsStringAsync();
                     System.Diagnostics.Debug.WriteLine($"API Error: {response.StatusCode} - {response.ReasonPhrase}");
+                    System.Diagnostics.Debug.WriteLine($"Error Content: {errorContent}");
                 }
 
                 return null;
             }
+            catch (JsonException jsonEx)
+            {
+                System.Diagnostics.Debug.WriteLine($"JSON Deserialization Exception in GetContainerWithRepairCodes: {jsonEx}");
+                System.Diagnostics.Debug.WriteLine($"JSON Exception Details: {jsonEx.Message}");
+                return null;
+            }
+            catch (HttpRequestException httpEx)
+            {
+                System.Diagnostics.Debug.WriteLine($"HTTP Request Exception in GetContainerWithRepairCodes: {httpEx}");
+                System.Diagnostics.Debug.WriteLine($"HTTP Exception Details: {httpEx.Message}");
+                return null;
+            }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Exception in GetContainerWithRepairCodes: {ex}");
+                System.Diagnostics.Debug.WriteLine($"General Exception in GetContainerWithRepairCodes: {ex}");
+                System.Diagnostics.Debug.WriteLine($"Exception Type: {ex.GetType().Name}");
+                System.Diagnostics.Debug.WriteLine($"Exception Message: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack Trace: {ex.StackTrace}");
                 return null;
             }
         }
@@ -157,7 +201,9 @@ namespace Surveying.Services
                 return formatted;
             }
 
+            System.Diagnostics.Debug.WriteLine($"Container number too short, using as-is: {contNumber}");
             return contNumber;
         }
+
     }
 }
