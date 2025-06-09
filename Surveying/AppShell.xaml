@@ -7,9 +7,18 @@
     Shell.FlyoutBehavior="Flyout"
     Title="Surveying">
 
+    <!-- Main Page -->
     <ShellContent
-        Title="Home"
+        Title="Survey List"
         ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+        Route="MainPage" 
+        Icon="home.png" />
+
+    <!-- Cleaning List Page -->
+    <ShellContent
+        Title="Cleaning List"
+        ContentTemplate="{DataTemplate local:CleaningList}"
+        Route="CleaningList"
+        Icon="cleaning.png" />
 
 </Shell>
