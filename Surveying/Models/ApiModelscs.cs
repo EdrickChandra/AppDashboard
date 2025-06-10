@@ -26,7 +26,7 @@ namespace Surveying.Models
         public string ApprovedBy { get; set; } = string.Empty;
     }
 
-    // Container with repair codes - FIXED: Now properly defined
+    // Container with repair codes - UPDATED: Now includes Commodity
     public class ContainerWithRepairCodesModel
     {
         public long Id { get; set; }
@@ -43,6 +43,9 @@ namespace Surveying.Models
         // Additional properties for cleaning
         public DateTime? CleaningStartDate { get; set; }
         public DateTime? CleaningCompleteDate { get; set; }
+
+        // NEW: Commodity information
+        public string Commodity { get; set; } = string.Empty;
     }
 
     public partial class RepairCodeModel : ObservableObject

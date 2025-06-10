@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Surveying.Views.FilterPopup"
+             Title="Filter Options"
+             BackgroundColor="#80000000">
+
+    <!-- Semi-transparent overlay -->
+    <Grid>
+        <Grid.GestureRecognizers>
+            <TapGestureRecognizer Tapped="OnBackgroundTapped" />
+        </Grid.GestureRecognizers>
+
+        <!-- Main filter popup -->
+        <Border BackgroundColor="White"
+                Stroke="#E0E0E0"
+                StrokeThickness="1"
+                VerticalOptions="Center"
+                HorizontalOptions="Center"
+                Margin="20"
+                Padding="0"
+                StrokeShape="RoundRectangle 12">
+
+            <Grid WidthRequest="400" MaximumHeightRequest="500">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- Header -->
+                <Border Grid.Row="0"
+                        BackgroundColor="#F8F9FA"
+                        Padding="20,15"
+                        StrokeShape="RoundRectangle 12,12,0,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <Label Grid.Column="0"
+                               Text="Filter Containers"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               VerticalOptions="Center" />
+
+                        <Button Grid.Column="1"
+                                Text="✕"
+                                BackgroundColor="Transparent"
+                                TextColor="#6C757D"
+                                FontSize="16"
+                                WidthRequest="30"
+                                HeightRequest="30"
+                                Clicked="OnCloseClicked" />
+                    </Grid>
+                </Border>
+
+                <!-- Filter Content -->
+                <ScrollView Grid.Row="1" Padding="20">
+                    <StackLayout Spacing="25">
+
+                        <!-- Customer Filter -->
+                        <StackLayout Spacing="10">
+                            <Label Text="Customer"
+                                   FontAttributes="Bold"
+                                   FontSize="16" />
+
+                            <!-- Search within customers -->
+                            <SearchBar x:Name="customerSearchBar"
+                                       Placeholder="Search customers..."
+                                       Text="{Binding CustomerSearchText, Mode=TwoWay}"
+                                       BackgroundColor="#F8F9FA"
+                                       Margin="0,0,0,5" />
+
+                            <!-- Customer selection buttons -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Button Grid.Column="0"
+                                        Text="Select All"
+                                        BackgroundColor="#007BFF"
+                                        TextColor="White"
+                                        FontSize="12"
+                                        HeightRequest="35"
+                                        Margin="0,0,5,0"
+                                        Command="{Binding SelectAllCustomersCommand}" />
+                                <Button Grid.Column="1"
+                                        Text="Clear All"
+                                        BackgroundColor="#6C757D"
+                                        TextColor="White"
+                                        FontSize="12"
+                                        HeightRequest="35"
+                                        Margin="5,0,0,0"
+                                        Command="{Binding ClearAllCustomersCommand}" />
+                            </Grid>
+
+                            <!-- Customer list -->
+                            <CollectionView ItemsSource="{Binding FilteredAvailableCustomers}"
+                                           MaximumHeightRequest="150">
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Padding="5">
+                                            <Grid.GestureRecognizers>
+                                                <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.ToggleCustomerCommand}"
+                                                                    CommandParameter="{Binding .}" />
+                                            </Grid.GestureRecognizers>
+
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <CheckBox Grid.Column="0"
+                                                     IsChecked="{Binding IsSelected}"
+                                                     VerticalOptions="Center" />
+
+                                            <Label Grid.Column="1"
+                                                   Text="{Binding CustomerCode}"
+                                                   VerticalOptions="Center"
+                                                   Margin="10,0,0,0" />
+
+                                            <Label Grid.Column="2"
+                                                   Text="{Binding ContainerCount, StringFormat='({0})'}"
+                                                   TextColor="#6C757D"
+                                                   FontSize="12"
+                                                   VerticalOptions="Center" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </StackLayout>
+
+                        <!-- Status Filter -->
+                        <StackLayout Spacing="10">
+                            <Label Text="Status"
+                                   FontAttributes="Bold"
+                                   FontSize="16" />
+
+                            <StackLayout Spacing="8">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <CheckBox Grid.Column="0"
+                                             IsChecked="{Binding ShowPendingStatus}"
+                                             VerticalOptions="Center" />
+                                    <Label Grid.Column="1"
+                                           Text="Pending"
+                                           VerticalOptions="Center"
+                                           Margin="10,0,0,0" />
+                                </Grid>
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <CheckBox Grid.Column="0"
+                                             IsChecked="{Binding ShowApprovedStatus}"
+                                             VerticalOptions="Center" />
+                                    <Label Grid.Column="1"
+                                           Text="Approved"
+                                           VerticalOptions="Center"
+                                           Margin="10,0,0,0" />
+                                </Grid>
+                            </StackLayout>
+                        </StackLayout>
+
+                        <!-- Cleaning Required Filter -->
+                        <StackLayout Spacing="10">
+                            <Label Text="Cleaning Required"
+                                   FontAttributes="Bold"
+                                   FontSize="16" />
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <CheckBox Grid.Column="0"
+                                         IsChecked="{Binding ShowCleaningRequired}"
+                                         VerticalOptions="Center" />
+                                <Label Grid.Column="1"
+                                       Text="YXT • 1101 • APNN"
+                                       VerticalOptions="Center"
+                                       Margin="10,0,0,0"
+                                       TextColor="#007BFF"
+                                       FontAttributes="Bold" />
+                            </Grid>
+                        </StackLayout>
+
+                    </StackLayout>
+                </ScrollView>
+
+                <!-- Footer Buttons -->
+                <Border Grid.Row="2"
+                        BackgroundColor="#F8F9FA"
+                        Padding="20,15"
+                        StrokeShape="RoundRectangle 0,0,12,12">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Active filters count -->
+                        <Label Grid.Column="0"
+                               Text="{Binding ActiveFiltersText}"
+                               TextColor="#6C757D"
+                               FontSize="12"
+                               VerticalOptions="Center" />
+
+                        <Button Grid.Column="1"
+                                Text="Clear All"
+                                BackgroundColor="Transparent"
+                                TextColor="#6C757D"
+                                BorderColor="#6C757D"
+                                BorderWidth="1"
+                                WidthRequest="100"
+                                HeightRequest="40"
+                                Margin="0,0,10,0"
+                                Command="{Binding ClearAllFiltersCommand}" />
+
+                        <Button Grid.Column="2"
+                                Text="Apply Filters"
+                                BackgroundColor="#007BFF"
+                                TextColor="White"
+                                WidthRequest="120"
+                                HeightRequest="40"
+                                Command="{Binding ApplyFiltersCommand}" />
+                    </Grid>
+                </Border>
+
+            </Grid>
+        </Border>
+    </Grid>
+</ContentPage>

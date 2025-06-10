@@ -2,7 +2,6 @@
 using Surveying.Services;
 using Surveying.Models;
 using Surveying.Views;
-using Surveying.Helpers;
 
 namespace Surveying.Views
 {
@@ -14,81 +13,12 @@ namespace Surveying.Views
         {
             InitializeComponent();
 
-            // ✅ FIXED: Only create ViewModel once, in code-behind
+            // Create ViewModel with proper dependency injection
             var containerApiService = new ContainerApiService();
             _viewModel = new CleaningListViewModel(containerApiService);
             BindingContext = _viewModel;
 
-            // ✅ RESTORED: Subscribe to pagination events with proper null checking
-            if (dataPager != null)
-            {
-                dataPager.PageChanged += OnPageChanged;
-                System.Diagnostics.Debug.WriteLine("Successfully subscribed to dataPager.PageChanged");
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("WARNING: dataPager is null during constructor");
-            }
-
-            System.Diagnostics.Debug.WriteLine("CleaningList constructor completed");
-        }
-
-        private void OnPageChanged(object sender, EventArgs e)
-        {
-            try
-            {
-                if (dataPager == null)
-                {
-                    System.Diagnostics.Debug.WriteLine("dataPager is null in OnPageChanged");
-                    return;
-                }
-
-                System.Diagnostics.Debug.WriteLine($"Page changing to: {dataPager.PageIndex}, PageSize: {dataPager.PageSize}");
-                System.Diagnostics.Debug.WriteLine($"PagedSource is null: {dataPager.PagedSource == null}");
-                System.Diagnostics.Debug.WriteLine($"PagedSource count: {dataPager.PagedSource?.Count ?? 0}");
-
-                // DON'T update page info immediately - wait for PagedSource to be ready
-                // Instead, use a small delay to let the DataPager finish its internal updates
-                MainThread.BeginInvokeOnMainThread(async () =>
-                {
-                    try
-                    {
-                        // Wait a short moment for the DataPager to update its PagedSource
-                        await Task.Delay(50);
-
-                        // Now check if PagedSource is ready
-                        if (dataPager.PagedSource != null && dataPager.PagedSource.Count > 0)
-                        {
-                            System.Diagnostics.Debug.WriteLine($"PagedSource ready with {dataPager.PagedSource.Count} items");
-
-                            // Now it's safe to update the page info for row numbering
-                            PaginatedRowNumberConverter.UpdatePageInfo(dataPager.PageIndex, dataPager.PageSize);
-
-                            System.Diagnostics.Debug.WriteLine("Page info updated successfully");
-                        }
-                        else
-                        {
-                            System.Diagnostics.Debug.WriteLine("PagedSource still not ready after delay");
-
-                            // Fallback: try again after a longer delay
-                            await Task.Delay(100);
-                            if (dataPager.PagedSource != null)
-                            {
-                                PaginatedRowNumberConverter.UpdatePageInfo(dataPager.PageIndex, dataPager.PageSize);
-                                System.Diagnostics.Debug.WriteLine("Page info updated after longer delay");
-                            }
-                        }
-                    }
-                    catch (Exception innerEx)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Error in delayed page update: {innerEx.Message}");
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error in OnPageChanged: {ex.Message}");
-            }
+            System.Diagnostics.Debug.WriteLine("CleaningList constructor completed - using ViewModel-calculated row numbers");
         }
 
         protected override async void OnAppearing()
@@ -99,36 +29,21 @@ namespace Surveying.Views
             {
                 System.Diagnostics.Debug.WriteLine("CleaningList OnAppearing started");
 
-                // Initialize page info for row numbering
-                if (dataPager != null)
-                {
-                    PaginatedRowNumberConverter.UpdatePageInfo(dataPager.PageIndex, dataPager.PageSize);
-                    System.Diagnostics.Debug.WriteLine($"Initialized pagination: PageIndex={dataPager.PageIndex}, PageSize={dataPager.PageSize}");
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine("WARNING: dataPager is null in OnAppearing");
-                }
-
-                // ✅ FIXED: Force data load and check if it's working
+                // Simple data loading - no complex pagination handling needed
                 if (_viewModel != null)
                 {
                     System.Diagnostics.Debug.WriteLine($"ViewModel state - IsLoading: {_viewModel.IsLoading}, HasError: {_viewModel.HasError}");
                     System.Diagnostics.Debug.WriteLine($"CleaningList count: {_viewModel.CleaningList?.Count ?? 0}");
                     System.Diagnostics.Debug.WriteLine($"FilteredCleaningList count: {_viewModel.FilteredCleaningList?.Count ?? 0}");
 
-                    // Force load the data
+                    // Load the data - row numbers are calculated automatically in ViewModel
                     await _viewModel.LoadCleaningDataFromApiCommand.ExecuteAsync(null);
 
                     System.Diagnostics.Debug.WriteLine($"After API call - CleaningList count: {_viewModel.CleaningList?.Count ?? 0}");
                     System.Diagnostics.Debug.WriteLine($"After API call - FilteredCleaningList count: {_viewModel.FilteredCleaningList?.Count ?? 0}");
                     System.Diagnostics.Debug.WriteLine($"After API call - HasError: {_viewModel.HasError}, ErrorMessage: {_viewModel.ErrorMessage}");
 
-                    // Check pagination after data load
-                    if (dataPager != null)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"After data load - PagedSource count: {dataPager.PagedSource?.Count ?? 0}");
-                    }
+                  
                 }
                 else
                 {
@@ -138,7 +53,6 @@ namespace Surveying.Views
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error in OnAppearing: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"StackTrace: {ex.StackTrace}");
                 await DisplayAlert("Loading Error", $"Failed to load page: {ex.Message}", "OK");
             }
         }
@@ -149,15 +63,16 @@ namespace Surveying.Views
             {
                 System.Diagnostics.Debug.WriteLine("OnGoToCleaningClicked started");
 
-                if (sender is Button button && button.CommandParameter is ContainerWithRepairCodesModel container)
+                // Updated to handle the extended model
+                if (sender is Button button && button.CommandParameter is ContainerWithRepairCodesModelExtended container)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Navigating to cleaning for container: {container.ContNumber}");
+                    System.Diagnostics.Debug.WriteLine($"Navigating to cleaning for container: {container.ContNumber} (Row: {container.RowNumber})");
 
                     // Show loading indicator while navigating
                     button.IsEnabled = false;
                     button.Text = "Loading...";
 
-                    // Create a survey model for the cleaning page (required for backward compatibility)
+                    // Create a survey model for the cleaning page
                     var survey = new SurveyModel
                     {
                         OrderNumber = $"CLN-{container.ContNumber}",
@@ -187,21 +102,34 @@ namespace Surveying.Views
                     // Initialize activities
                     containerDetail.UpdateActivities();
 
+                    // Convert extended model back to base model for navigation
+                    var baseContainer = new ContainerWithRepairCodesModel
+                    {
+                        Id = container.Id,
+                        ContNumber = container.ContNumber,
+                        DtmIn = container.DtmIn,
+                        CustomerCode = container.CustomerCode,
+                        RepairCodes = container.RepairCodes,
+                        IsRepairApproved = container.IsRepairApproved,
+                        ApprovalDate = container.ApprovalDate,
+                        ApprovedBy = container.ApprovedBy,
+                        Commodity = container.Commodity
+                    };
+
                     // Navigate to enhanced cleaning page
-                    var cleaningPage = new EnhancedCleaning(survey, containerDetail, container);
+                    var cleaningPage = new EnhancedCleaning(survey, containerDetail, baseContainer);
                     await Navigation.PushAsync(cleaningPage);
 
                     System.Diagnostics.Debug.WriteLine("Navigation completed successfully");
                 }
                 else
                 {
-            
+
                 }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Navigation error: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"StackTrace: {ex.StackTrace}");
                 await DisplayAlert("Navigation Error", $"Failed to open cleaning page: {ex.Message}", "OK");
             }
             finally
@@ -213,27 +141,6 @@ namespace Surveying.Views
                     button.Text = "Go to Cleaning";
                 }
             }
-        }
-
-        protected override void OnDisappearing()
-        {
-            base.OnDisappearing();
-
-            try
-            {
-                // Unsubscribe from events to prevent memory leaks
-                if (dataPager != null)
-                {
-                    dataPager.PageChanged -= OnPageChanged;
-                    System.Diagnostics.Debug.WriteLine("Successfully unsubscribed from dataPager.PageChanged");
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error in OnDisappearing: {ex.Message}");
-            }
-
-            System.Diagnostics.Debug.WriteLine("CleaningList OnDisappearing completed");
         }
     }
 }

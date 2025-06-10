@@ -11,7 +11,7 @@ namespace Surveying.Services
     {
         Task<ApiResponse> CheckContainerExists(string contNumber);
         Task<ContainerWithRepairCodesModel> GetContainerWithRepairCodes(string contNumber);
-        Task<ContainerWithRepairCodesModel> GetContainerCleaningDetails(string contNumber); // NEW METHOD
+        Task<ContainerWithRepairCodesModel> GetContainerCleaningDetails(string contNumber);
         Task<ApiResponse> GetContainersForCleaning();
     }
 
@@ -112,6 +112,7 @@ namespace Surveying.Services
                         System.Diagnostics.Debug.WriteLine($"  - ContNumber: {container?.ContNumber}");
                         System.Diagnostics.Debug.WriteLine($"  - IsRepairApproved: {container?.IsRepairApproved}");
                         System.Diagnostics.Debug.WriteLine($"  - ApprovalDate: {container?.ApprovalDate}");
+                        System.Diagnostics.Debug.WriteLine($"  - Commodity: {container?.Commodity}");
                         System.Diagnostics.Debug.WriteLine($"  - RepairCodes Count: {container?.RepairCodes?.Count ?? 0}");
 
                         return container;
@@ -131,7 +132,7 @@ namespace Surveying.Services
             }
         }
 
-        // NEW METHOD: Get container cleaning details
+        // Get container cleaning details - UPDATED to include commodity
         public async Task<ContainerWithRepairCodesModel> GetContainerCleaningDetails(string contNumber)
         {
             try
@@ -164,6 +165,7 @@ namespace Surveying.Services
                         System.Diagnostics.Debug.WriteLine($"Deserialized Cleaning Container:");
                         System.Diagnostics.Debug.WriteLine($"  - ContNumber: {container?.ContNumber}");
                         System.Diagnostics.Debug.WriteLine($"  - IsRepairApproved: {container?.IsRepairApproved}");
+                        System.Diagnostics.Debug.WriteLine($"  - Commodity: {container?.Commodity}");
                         System.Diagnostics.Debug.WriteLine($"  - Cleaning Requirements Count: {container?.RepairCodes?.Count ?? 0}");
 
                         // Log cleaning requirements details
@@ -224,6 +226,15 @@ namespace Surveying.Services
                         var containers = JsonSerializer.Deserialize<List<ContainerWithRepairCodesModel>>(contentJson, _jsonOptions);
 
                         System.Diagnostics.Debug.WriteLine($"Deserialized {containers?.Count ?? 0} containers for cleaning");
+
+                        // Log commodity information for first few containers
+                        if (containers != null && containers.Any())
+                        {
+                            foreach (var container in containers.Take(5))
+                            {
+                                System.Diagnostics.Debug.WriteLine($"Container {container.ContNumber}: Commodity = '{container.Commodity ?? "NULL"}'");
+                            }
+                        }
 
                         // Return the response with properly typed content
                         return new ApiResponse

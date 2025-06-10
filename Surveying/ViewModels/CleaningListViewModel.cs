@@ -1,9 +1,12 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Surveying.Models;
 using Surveying.Services;
+using Surveying.Views;
 using System.Collections.ObjectModel;
 using System.Linq;
+
 
 namespace Surveying.ViewModels
 {
@@ -12,10 +15,10 @@ namespace Surveying.ViewModels
         private readonly IContainerApiService _containerApiService;
 
         [ObservableProperty]
-        private ObservableCollection<ContainerWithRepairCodesModel> cleaningList;
+        private ObservableCollection<ContainerWithRepairCodesModelExtended> cleaningList;
 
         [ObservableProperty]
-        private ObservableCollection<ContainerWithRepairCodesModel> filteredCleaningList;
+        private ObservableCollection<ContainerWithRepairCodesModelExtended> filteredCleaningList;
 
         [ObservableProperty]
         private bool isRefreshing;
@@ -32,6 +35,16 @@ namespace Surveying.ViewModels
         [ObservableProperty]
         private string searchText = "";
 
+        // Filter properties
+        [ObservableProperty]
+        private FilterResult currentFilters = new FilterResult();
+
+        [ObservableProperty]
+        private string filterButtonText = "Filter";
+
+        [ObservableProperty]
+        private bool hasActiveFilters = false;
+
         public CleaningListViewModel() : this(new ContainerApiService())
         {
         }
@@ -40,8 +53,8 @@ namespace Surveying.ViewModels
         {
             _containerApiService = containerApiService;
             Title = "Cleaning List";
-            CleaningList = new ObservableCollection<ContainerWithRepairCodesModel>();
-            FilteredCleaningList = new ObservableCollection<ContainerWithRepairCodesModel>();
+            CleaningList = new ObservableCollection<ContainerWithRepairCodesModelExtended>();
+            FilteredCleaningList = new ObservableCollection<ContainerWithRepairCodesModelExtended>();
 
             // Load data when ViewModel is created
             _ = LoadCleaningDataFromApiAsync();
@@ -49,47 +62,140 @@ namespace Surveying.ViewModels
 
         partial void OnSearchTextChanged(string value)
         {
-            PerformSearch();
+            PerformFiltering();
         }
 
         [RelayCommand]
         void Search()
         {
-            PerformSearch();
+            PerformFiltering();
         }
 
-        private void PerformSearch()
+        [RelayCommand]
+        async Task ShowFilterPopup()
+        {
+            try
+            {
+                // Create list of available customers with counts
+                var customerCounts = CleaningList
+                    .GroupBy(c => c.CustomerCode)
+                    .Select(g => new CustomerFilterItem(g.Key, g.Count()))
+                    .OrderBy(c => c.CustomerCode)
+                    .ToList();
+
+                // Create and show filter popup
+                var filterViewModel = new FilterPopupViewModel(customerCounts, CurrentFilters);
+                var filterPopup = new FilterPopup(filterViewModel);
+
+                // Show popup and wait for result
+                filterPopup.TaskCompletionSource = new TaskCompletionSource<FilterResult>();
+                await Application.Current.MainPage.Navigation.PushModalAsync(filterPopup);
+
+                var result = await filterPopup.TaskCompletionSource.Task;
+
+                if (result != null)
+                {
+                    // Apply the new filters
+                    CurrentFilters = result;
+                    UpdateFilterButtonText();
+                    PerformFiltering();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error showing filter popup: {ex.Message}");
+                await Application.Current.MainPage.DisplayAlert("Error", "Failed to open filter options.", "OK");
+            }
+        }
+
+        private void UpdateFilterButtonText()
+        {
+            var activeCount = CurrentFilters.GetActiveFilterCount();
+            HasActiveFilters = activeCount > 0;
+
+            if (activeCount == 0)
+            {
+                FilterButtonText = "Filter";
+            }
+            else
+            {
+                FilterButtonText = $"Filter ({activeCount})";
+            }
+        }
+
+        private void PerformFiltering()
         {
             if (CleaningList == null)
                 return;
 
-            if (string.IsNullOrWhiteSpace(SearchText))
-            {
-                // Show all items when search is empty
-                FilteredCleaningList.Clear();
-                foreach (var item in CleaningList)
-                {
-                    FilteredCleaningList.Add(item);
-                }
-            }
-            else
+            var filtered = CleaningList.AsEnumerable();
+
+            // Apply search text filter
+            if (!string.IsNullOrWhiteSpace(SearchText))
             {
                 var searchTerm = SearchText.ToLower().Trim();
-                var filtered = CleaningList.Where(container =>
+                filtered = filtered.Where(container =>
                     container.ContNumber.ToLower().Contains(searchTerm) ||
                     container.CustomerCode.ToLower().Contains(searchTerm) ||
-                    container.Id.ToString().Contains(searchTerm)
-                ).ToList();
+                    container.Id.ToString().Contains(searchTerm));
+            }
 
-                FilteredCleaningList.Clear();
-                foreach (var item in filtered)
+            // Apply customer filter
+            if (CurrentFilters.SelectedCustomers.Any())
+            {
+                filtered = filtered.Where(container =>
+                    CurrentFilters.SelectedCustomers.Contains(container.CustomerCode));
+            }
+
+            // Apply status filter
+            if (!CurrentFilters.ShowPendingStatus || !CurrentFilters.ShowApprovedStatus)
+            {
+                filtered = filtered.Where(container =>
                 {
-                    FilteredCleaningList.Add(item);
-                }
+                    if (CurrentFilters.ShowPendingStatus && !container.IsRepairApproved)
+                        return true;
+                    if (CurrentFilters.ShowApprovedStatus && container.IsRepairApproved)
+                        return true;
+                    return false;
+                });
+            }
+
+            // Apply cleaning required filter
+            if (!CurrentFilters.ShowCleaningRequired)
+            {
+                // Filter logic for cleaning required - you can customize this
+                // For now, we'll assume all containers in this list require cleaning
+                // So if ShowCleaningRequired is false, we show nothing
+                filtered = Enumerable.Empty<ContainerWithRepairCodesModelExtended>();
+            }
+
+            var filteredList = filtered.ToList();
+
+            // Recalculate row numbers for filtered results
+            RecalculateRowNumbers(filteredList);
+
+            // Update the filtered collection
+            FilteredCleaningList.Clear();
+            foreach (var item in filteredList)
+            {
+                FilteredCleaningList.Add(item);
             }
 
             // Update total count
             OnPropertyChanged(nameof(FilteredCleaningList));
+
+            System.Diagnostics.Debug.WriteLine($"Filtering applied: {filteredList.Count} containers shown (from {CleaningList.Count} total)");
+        }
+
+        /// <summary>
+        /// Calculate sequential row numbers for the provided list
+        /// </summary>
+        private void RecalculateRowNumbers(List<ContainerWithRepairCodesModelExtended> items)
+        {
+            for (int i = 0; i < items.Count; i++)
+            {
+                items[i].RowNumber = i + 1;
+            }
         }
 
         [RelayCommand]
@@ -110,24 +216,65 @@ namespace Surveying.ViewModels
                     // Clear existing data
                     CleaningList.Clear();
 
+                    // Convert API models to extended models with row numbers
+                    var containers = new List<ContainerWithRepairCodesModelExtended>();
+
                     // Handle single container or list of containers
                     if (response.Content is IEnumerable<ContainerWithRepairCodesModel> containerList)
                     {
-                        foreach (var container in containerList)
+                        var containerArray = containerList.ToArray();
+                        for (int i = 0; i < containerArray.Length; i++)
                         {
-                            CleaningList.Add(container);
+                            var container = containerArray[i];
+                            var extendedContainer = new ContainerWithRepairCodesModelExtended
+                            {
+                                Id = container.Id,
+                                ContNumber = container.ContNumber,
+                                DtmIn = container.DtmIn,
+                                CustomerCode = container.CustomerCode,
+                                RepairCodes = container.RepairCodes,
+                                IsRepairApproved = container.IsRepairApproved,
+                                ApprovalDate = container.ApprovalDate,
+                                ApprovedBy = container.ApprovedBy,
+                                CleaningStartDate = container.CleaningStartDate,
+                                CleaningCompleteDate = container.CleaningCompleteDate,
+                                Commodity = container.Commodity ?? "Not Specified",
+                                RowNumber = i + 1 // Calculate sequential row number
+                            };
+                            containers.Add(extendedContainer);
                         }
                     }
                     else if (response.Content is ContainerWithRepairCodesModel singleContainer)
                     {
-                        CleaningList.Add(singleContainer);
+                        var extendedContainer = new ContainerWithRepairCodesModelExtended
+                        {
+                            Id = singleContainer.Id,
+                            ContNumber = singleContainer.ContNumber,
+                            DtmIn = singleContainer.DtmIn,
+                            CustomerCode = singleContainer.CustomerCode,
+                            RepairCodes = singleContainer.RepairCodes,
+                            IsRepairApproved = singleContainer.IsRepairApproved,
+                            ApprovalDate = singleContainer.ApprovalDate,
+                            ApprovedBy = singleContainer.ApprovedBy,
+                            CleaningStartDate = singleContainer.CleaningStartDate,
+                            CleaningCompleteDate = singleContainer.CleaningCompleteDate,
+                            Commodity = singleContainer.Commodity ?? "Not Specified",
+                            RowNumber = 1
+                        };
+                        containers.Add(extendedContainer);
+                    }
+
+                    // Add to collections
+                    foreach (var container in containers)
+                    {
+                        CleaningList.Add(container);
                     }
 
                     TotalContainers = CleaningList.Count;
-                    System.Diagnostics.Debug.WriteLine($"Loaded {TotalContainers} containers for cleaning");
+                    System.Diagnostics.Debug.WriteLine($"Loaded {TotalContainers} containers with calculated row numbers");
 
-                    // Initialize filtered list
-                    PerformSearch();
+                    // Initialize filtered list (this will also set up row numbers)
+                    PerformFiltering();
                 }
                 else
                 {
@@ -161,5 +308,14 @@ namespace Surveying.ViewModels
         {
             await LoadCleaningDataFromApiAsync();
         }
+    }
+
+    /// <summary>
+    /// Extended model that includes calculated row number
+    /// </summary>
+    public class ContainerWithRepairCodesModelExtended : ContainerWithRepairCodesModel
+    {
+        public int RowNumber { get; set; }
+        public string Commodity { get; set; } = "Not Specified";
     }
 }
