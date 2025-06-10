@@ -6,103 +6,115 @@ using System.Linq;
 
 namespace Surveying.Helpers
 {
-    public class RowNumberConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            // value = current data item
-            // parameter = PagedSource collection from DataPager
-
-            if (value != null && parameter is IList pagedSource)
-            {
-                // Find the index of the current item in the current page
-                int indexInPage = -1;
-
-                // Use a more reliable way to find the item
-                var currentItem = value;
-                for (int i = 0; i < pagedSource.Count; i++)
-                {
-                    var pageItem = pagedSource[i];
-                    if (pageItem != null &&
-                        pageItem.GetType().GetProperty("ContNumber") != null &&
-                        currentItem.GetType().GetProperty("ContNumber") != null)
-                    {
-                        var pageContNumber = pageItem.GetType().GetProperty("ContNumber").GetValue(pageItem)?.ToString();
-                        var currentContNumber = currentItem.GetType().GetProperty("ContNumber").GetValue(currentItem)?.ToString();
-
-                        if (pageContNumber == currentContNumber)
-                        {
-                            indexInPage = i;
-                            break;
-                        }
-                    }
-                }
-
-                if (indexInPage >= 0)
-                {
-                    // We need to get the current page index and page size to calculate the actual row number
-                    // For now, we'll show the index within the current page (1-based)
-                    // This will show 1,2,3... for each page
-                    return (indexInPage + 1).ToString();
-                }
-            }
-
-            return "1";
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    // Enhanced converter that works with actual pagination
+    // Enhanced converter that works with actual pagination - FINAL VERSION
     public class PaginatedRowNumberConverter : IValueConverter
     {
         private static int _currentPageIndex = 0;
         private static int _pageSize = 10;
+        private static readonly object _lock = new object();
 
         public static void UpdatePageInfo(int pageIndex, int pageSize)
         {
-            _currentPageIndex = pageIndex;
-            _pageSize = pageSize;
+            lock (_lock)
+            {
+                _currentPageIndex = pageIndex;
+                _pageSize = pageSize;
+                System.Diagnostics.Debug.WriteLine($"PaginatedRowNumberConverter: Updated page info - PageIndex={pageIndex}, PageSize={pageSize}");
+            }
         }
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value != null && parameter is IList pagedSource)
+            try
             {
+                if (value == null)
+                {
+                    return "1";
+                }
+
+                // CRITICAL FIX: Handle null parameter (PagedSource) gracefully
+                if (parameter == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("PaginatedRowNumberConverter: parameter is null - page is changing");
+                    return "1";
+                }
+
+                if (!(parameter is IList pagedSource))
+                {
+                    System.Diagnostics.Debug.WriteLine("PaginatedRowNumberConverter: parameter is not IList");
+                    return "1";
+                }
+
+                if (pagedSource.Count == 0)
+                {
+                    System.Diagnostics.Debug.WriteLine("PaginatedRowNumberConverter: pagedSource is empty - page is changing");
+                    return "1";
+                }
+
                 // Find the index of the current item in the current page
                 int indexInPage = -1;
 
                 var currentItem = value;
-                for (int i = 0; i < pagedSource.Count; i++)
-                {
-                    var pageItem = pagedSource[i];
-                    if (pageItem != null &&
-                        pageItem.GetType().GetProperty("ContNumber") != null &&
-                        currentItem.GetType().GetProperty("ContNumber") != null)
-                    {
-                        var pageContNumber = pageItem.GetType().GetProperty("ContNumber").GetValue(pageItem)?.ToString();
-                        var currentContNumber = currentItem.GetType().GetProperty("ContNumber").GetValue(currentItem)?.ToString();
 
-                        if (pageContNumber == currentContNumber)
+                // Try to get ContNumber property safely
+                var contNumberProperty = currentItem.GetType().GetProperty("ContNumber");
+                if (contNumberProperty == null)
+                {
+                    // Fallback: try to use the index in the collection
+                    for (int i = 0; i < pagedSource.Count; i++)
+                    {
+                        if (pagedSource[i] != null && pagedSource[i] == currentItem)
                         {
                             indexInPage = i;
                             break;
                         }
                     }
                 }
+                else
+                {
+                    var currentContNumber = contNumberProperty.GetValue(currentItem)?.ToString();
+                    if (!string.IsNullOrEmpty(currentContNumber))
+                    {
+                        for (int i = 0; i < pagedSource.Count; i++)
+                        {
+                            var pageItem = pagedSource[i];
+                            if (pageItem == null) continue;
+
+                            var pageContNumberProperty = pageItem.GetType().GetProperty("ContNumber");
+                            if (pageContNumberProperty == null) continue;
+
+                            var pageContNumber = pageContNumberProperty.GetValue(pageItem)?.ToString();
+                            if (string.IsNullOrEmpty(pageContNumber)) continue;
+
+                            if (pageContNumber == currentContNumber)
+                            {
+                                indexInPage = i;
+                                break;
+                            }
+                        }
+                    }
+                }
 
                 if (indexInPage >= 0)
                 {
-                    // Calculate actual row number across all pages
-                    int actualRowNumber = (_currentPageIndex * _pageSize) + indexInPage + 1;
+                    int actualRowNumber;
+                    lock (_lock)
+                    {
+                        // Calculate actual row number across all pages
+                        actualRowNumber = (_currentPageIndex * _pageSize) + indexInPage + 1;
+                    }
+
                     return actualRowNumber.ToString();
                 }
-            }
 
-            return "1";
+                // Fallback: if we can't find the item, just show 1
+                return "1";
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in PaginatedRowNumberConverter: {ex.Message}");
+                return "1";
+            }
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

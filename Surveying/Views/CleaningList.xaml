@@ -8,15 +8,11 @@
              x:Class="Surveying.Views.CleaningList"
              Title="Cleaning List">
 
-    <ContentPage.BindingContext>
-        <local:CleaningListViewModel />
-    </ContentPage.BindingContext>
-
     <ContentPage.Resources>
         <ResourceDictionary>
             <helpers:InverseBoolConverter x:Key="InverseBoolConverter" />
             <helpers:ZeroToVisibilityConverter x:Key="ZeroToVisibilityConverter" />
-            <helpers:StaticRowNumberConverter x:Key="StaticRowNumberConverter" />
+            <helpers:PaginatedRowNumberConverter x:Key="PaginatedRowNumberConverter" />
         </ResourceDictionary>
     </ContentPage.Resources>
 
@@ -135,7 +131,7 @@
             </StackLayout>
         </Border>
 
-        <!-- Data Grid with Static Row Numbering -->
+        <!-- Data Grid with Pagination (RESTORED) -->
         <Grid Grid.Row="3">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
@@ -169,12 +165,11 @@
                                    IsVisible="{Binding HasError, Converter={StaticResource InverseBoolConverter}}">
 
                 <syncfusion:SfDataGrid.Columns>
-                    <!-- Static Row Number Column -->
-                    <syncfusion:DataGridTemplateColumn HeaderText="#" 
-                                                     Width="60">
+                    <!-- Row Number Column with Pagination -->
+                    <syncfusion:DataGridTemplateColumn HeaderText="#" Width="60">
                         <syncfusion:DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <Label Text="{Binding ., Converter={StaticResource StaticRowNumberConverter}, ConverterParameter={Binding Source={x:Reference dataPager}, Path=PagedSource}}"
+                                <Label Text="{Binding ., Converter={StaticResource PaginatedRowNumberConverter}, ConverterParameter={Binding Source={x:Reference dataPager}, Path=PagedSource}}"
                                        HorizontalTextAlignment="Center"
                                        VerticalTextAlignment="Center"
                                        FontSize="12"
@@ -185,67 +180,64 @@
                     </syncfusion:DataGridTemplateColumn>
 
                     <syncfusion:DataGridTextColumn HeaderText="Container" 
-                                                 MappingName="ContNumber"
-                                                 Width="140" />
+                                             MappingName="ContNumber"
+                                             Width="140" />
 
                     <syncfusion:DataGridTextColumn HeaderText="Customer" 
-                                                 MappingName="CustomerCode"
-                                                 Width="100" />
+                                             MappingName="CustomerCode"
+                                             Width="100" />
 
                     <syncfusion:DataGridTextColumn HeaderText="Entry Date" 
-                                                 MappingName="DtmIn" 
-                                                 Format="dd/MM/yyyy"
-                                                 Width="110" />
+                                             MappingName="DtmIn" 
+                                             Format="dd/MM/yyyy"
+                                             Width="110" />
 
-                    <syncfusion:DataGridTemplateColumn HeaderText="Status" 
-                                                     Width="100">
+                    <syncfusion:DataGridTemplateColumn HeaderText="Status" Width="100">
                         <syncfusion:DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <Border Padding="8,4" 
-                                        BackgroundColor="#FFC107"
-                                        StrokeShape="RoundRectangle 4,4,4,4"
-                                        StrokeThickness="0"
-                                        HorizontalOptions="Center"
-                                        VerticalOptions="Center">
+                                    BackgroundColor="#FFC107"
+                                    StrokeShape="RoundRectangle 4,4,4,4"
+                                    StrokeThickness="0"
+                                    HorizontalOptions="Center"
+                                    VerticalOptions="Center">
                                     <Label Text="Pending" 
-                                           TextColor="White" 
-                                           FontSize="12"
-                                           FontAttributes="Bold"
-                                           HorizontalOptions="Center"
-                                           VerticalOptions="Center" />
+                                       TextColor="White" 
+                                       FontSize="12"
+                                       FontAttributes="Bold"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center" />
                                 </Border>
                             </DataTemplate>
                         </syncfusion:DataGridTemplateColumn.CellTemplate>
                     </syncfusion:DataGridTemplateColumn>
 
-                    <syncfusion:DataGridTemplateColumn HeaderText="Cleaning Required" 
-                                                     Width="130">
+                    <syncfusion:DataGridTemplateColumn HeaderText="Cleaning Required" Width="130">
                         <syncfusion:DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <Label Text="YXT • 1101 • APNN" 
-                                       HorizontalTextAlignment="Center"
-                                       VerticalTextAlignment="Center"
-                                       FontSize="11"
-                                       TextColor="#007BFF"
-                                       FontAttributes="Bold" />
+                                   HorizontalTextAlignment="Center"
+                                   VerticalTextAlignment="Center"
+                                   FontSize="11"
+                                   TextColor="#007BFF"
+                                   FontAttributes="Bold" />
                             </DataTemplate>
                         </syncfusion:DataGridTemplateColumn.CellTemplate>
                     </syncfusion:DataGridTemplateColumn>
 
-                    <syncfusion:DataGridTemplateColumn HeaderText="Action" 
-                                                     Width="120">
+                    <syncfusion:DataGridTemplateColumn HeaderText="Action" Width="120">
                         <syncfusion:DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <Button Text="Go to Cleaning" 
-                                        BackgroundColor="#28A745"
-                                        TextColor="White"
-                                        FontSize="11"
-                                        FontAttributes="Bold"
-                                        CornerRadius="6"
-                                        HeightRequest="36"
-                                        Margin="5,2"
-                                        Clicked="OnGoToCleaningClicked"
-                                        CommandParameter="{Binding .}" />
+                                    BackgroundColor="#28A745"
+                                    TextColor="White"
+                                    FontSize="11"
+                                    FontAttributes="Bold"
+                                    CornerRadius="6"
+                                    HeightRequest="36"
+                                    Margin="5,2"
+                                    Clicked="OnGoToCleaningClicked"
+                                    CommandParameter="{Binding .}" />
                             </DataTemplate>
                         </syncfusion:DataGridTemplateColumn.CellTemplate>
                     </syncfusion:DataGridTemplateColumn>
