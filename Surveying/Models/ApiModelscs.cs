@@ -26,29 +26,38 @@ namespace Surveying.Models
         public string ApprovedBy { get; set; } = string.Empty;
     }
 
-    // Container with repair codes
+    // Container with repair codes - FIXED: Now properly defined
     public class ContainerWithRepairCodesModel
     {
         public long Id { get; set; }
-        public string ContNumber { get; set; }
+        public string ContNumber { get; set; } = string.Empty;
         public DateTime? DtmIn { get; set; }
-        public string CustomerCode { get; set; }
+        public string CustomerCode { get; set; } = string.Empty;
         public List<RepairCodeModel> RepairCodes { get; set; } = new List<RepairCodeModel>();
 
         // Approval properties
         public bool IsRepairApproved { get; set; }
         public DateTime? ApprovalDate { get; set; }
         public string ApprovedBy { get; set; } = string.Empty;
+
+        // Additional properties for cleaning
+        public DateTime? CleaningStartDate { get; set; }
+        public DateTime? CleaningCompleteDate { get; set; }
     }
 
     public partial class RepairCodeModel : ObservableObject
     {
         // Your existing properties - fixed property names
-        public string RepairCode { get; set; }
-        public string ComponentCode { get; set; }
-        public string LocationCode { get; set; }
-        public string ComponentDescription { get; set; } // This is the correct property name
-        public string ComponentCategory { get; set; }
+        public string RepairCode { get; set; } = string.Empty;
+        public string ComponentCode { get; set; } = string.Empty;
+        public string LocationCode { get; set; } = string.Empty;
+        public string ComponentDescription { get; set; } = string.Empty; // This is the correct property name
+        public string ComponentCategory { get; set; } = string.Empty;
+
+        // NEW: Additional description properties to match API
+        public string RepairCodeDescription { get; set; } = string.Empty;
+        public string ComponentCodeDescription { get; set; } = string.Empty;
+        public string RepairDetailDescription { get; set; } = string.Empty;
 
         [ObservableProperty]
         private bool isCompleted;
@@ -61,7 +70,6 @@ namespace Surveying.Models
 
         [ObservableProperty]
         private string repairNotes = string.Empty;
-
 
         [ObservableProperty]
         private ImageSource repairPhoto;
@@ -77,23 +85,23 @@ namespace Surveying.Models
 
         public string ButtonColor => IsCompleted ? "#6C757D" : "#007BFF";
 
-
-        public string RepairCodeDescription
+        // Backward compatibility properties
+        public string RepairCodeDescription_Legacy
         {
-            get => RepairCode;
-            set => RepairCode = value;
+            get => RepairCodeDescription;
+            set => RepairCodeDescription = value;
         }
 
-        public string ComponentCodeDescription
+        public string ComponentCodeDescription_Legacy
         {
-            get => ComponentCode;
-            set => ComponentCode = value;
+            get => ComponentCodeDescription;
+            set => ComponentCodeDescription = value;
         }
 
-        public string RepairDetailDescription
+        public string RepairDetailDescription_Legacy
         {
-            get => ComponentDescription;
-            set => ComponentDescription = value;
+            get => RepairDetailDescription;
+            set => RepairDetailDescription = value;
         }
 
         protected override void OnPropertyChanged(System.ComponentModel.PropertyChangedEventArgs e)

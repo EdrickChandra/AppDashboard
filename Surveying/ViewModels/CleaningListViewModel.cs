@@ -15,6 +15,9 @@ namespace Surveying.ViewModels
         private ObservableCollection<ContainerWithRepairCodesModel> cleaningList;
 
         [ObservableProperty]
+        private ObservableCollection<ContainerWithRepairCodesModel> filteredCleaningList;
+
+        [ObservableProperty]
         private bool isRefreshing;
 
         [ObservableProperty]
@@ -26,6 +29,9 @@ namespace Surveying.ViewModels
         [ObservableProperty]
         private int totalContainers;
 
+        [ObservableProperty]
+        private string searchText = "";
+
         public CleaningListViewModel() : this(new ContainerApiService())
         {
         }
@@ -35,9 +41,55 @@ namespace Surveying.ViewModels
             _containerApiService = containerApiService;
             Title = "Cleaning List";
             CleaningList = new ObservableCollection<ContainerWithRepairCodesModel>();
+            FilteredCleaningList = new ObservableCollection<ContainerWithRepairCodesModel>();
 
             // Load data when ViewModel is created
             _ = LoadCleaningDataFromApiAsync();
+        }
+
+        partial void OnSearchTextChanged(string value)
+        {
+            PerformSearch();
+        }
+
+        [RelayCommand]
+        void Search()
+        {
+            PerformSearch();
+        }
+
+        private void PerformSearch()
+        {
+            if (CleaningList == null)
+                return;
+
+            if (string.IsNullOrWhiteSpace(SearchText))
+            {
+                // Show all items when search is empty
+                FilteredCleaningList.Clear();
+                foreach (var item in CleaningList)
+                {
+                    FilteredCleaningList.Add(item);
+                }
+            }
+            else
+            {
+                var searchTerm = SearchText.ToLower().Trim();
+                var filtered = CleaningList.Where(container =>
+                    container.ContNumber.ToLower().Contains(searchTerm) ||
+                    container.CustomerCode.ToLower().Contains(searchTerm) ||
+                    container.Id.ToString().Contains(searchTerm)
+                ).ToList();
+
+                FilteredCleaningList.Clear();
+                foreach (var item in filtered)
+                {
+                    FilteredCleaningList.Add(item);
+                }
+            }
+
+            // Update total count
+            OnPropertyChanged(nameof(FilteredCleaningList));
         }
 
         [RelayCommand]
@@ -73,6 +125,9 @@ namespace Surveying.ViewModels
 
                     TotalContainers = CleaningList.Count;
                     System.Diagnostics.Debug.WriteLine($"Loaded {TotalContainers} containers for cleaning");
+
+                    // Initialize filtered list
+                    PerformSearch();
                 }
                 else
                 {

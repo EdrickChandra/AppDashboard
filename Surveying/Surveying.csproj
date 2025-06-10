@@ -81,6 +81,9 @@
 	  <MauiXaml Update="Views\CleaningList.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="Views\EnhancedCleaning.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Views\ImageViewerPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

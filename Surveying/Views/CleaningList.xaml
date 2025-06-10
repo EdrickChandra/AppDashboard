@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:syncfusion="clr-namespace:Syncfusion.Maui.DataGrid;assembly=Syncfusion.Maui.DataGrid"
+             xmlns:pager="clr-namespace:Syncfusion.Maui.DataGrid.DataPager;assembly=Syncfusion.Maui.DataGrid"
              xmlns:helpers="clr-namespace:Surveying.Helpers"
              xmlns:local="clr-namespace:Surveying.ViewModels"
              x:Class="Surveying.Views.CleaningList"
@@ -15,11 +16,13 @@
         <ResourceDictionary>
             <helpers:InverseBoolConverter x:Key="InverseBoolConverter" />
             <helpers:ZeroToVisibilityConverter x:Key="ZeroToVisibilityConverter" />
+            <helpers:StaticRowNumberConverter x:Key="StaticRowNumberConverter" />
         </ResourceDictionary>
     </ContentPage.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -77,8 +80,21 @@
             </Grid>
         </Border>
 
+        <!-- Search Bar -->
+        <Border Grid.Row="1" 
+                BackgroundColor="White"
+                Padding="15,10"
+                Margin="0,0,0,2">
+            <SearchBar x:Name="searchBar"
+                       Placeholder="Search by container, customer..."
+                       Text="{Binding SearchText, Mode=TwoWay}"
+                       SearchCommand="{Binding SearchCommand}"
+                       HorizontalOptions="FillAndExpand"
+                       BackgroundColor="White" />
+        </Border>
+
         <!-- Loading Message -->
-        <StackLayout Grid.Row="1" 
+        <StackLayout Grid.Row="2" 
                      IsVisible="{Binding IsLoading}" 
                      Padding="20,10"
                      HorizontalOptions="Center">
@@ -89,7 +105,7 @@
         </StackLayout>
 
         <!-- Error Message -->
-        <Border Grid.Row="1" 
+        <Border Grid.Row="2" 
                IsVisible="{Binding HasError}"
                BackgroundColor="#FFF3CD"
                Stroke="#FFEAA7"
@@ -119,54 +135,126 @@
             </StackLayout>
         </Border>
 
-        <!-- Data Grid -->
-        <syncfusion:SfDataGrid Grid.Row="2"
-                               ItemsSource="{Binding CleaningList}"
-                               AutoGenerateColumnsMode="None"
-                               ColumnWidthMode="Auto"
-                               SelectionMode="Single"
-                               RowHeight="58"
-                               HeaderRowHeight="48"
-                               GridLinesVisibility="Horizontal"
-                               SortingMode="Single"
-                               Margin="0"
-                               IsVisible="{Binding HasError, Converter={StaticResource InverseBoolConverter}}">
+        <!-- Data Grid with Static Row Numbering -->
+        <Grid Grid.Row="3">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
 
-            <syncfusion:SfDataGrid.Columns>
-                <syncfusion:DataGridTextColumn HeaderText="Container" 
-                                             MappingName="ContNumber"
-                                             Width="140" />
+            <!-- Data Pager -->
+            <pager:SfDataPager x:Name="dataPager"
+                               Grid.Row="1"
+                               PageSize="10"
+                               NumericButtonCount="5"
+                               DisplayMode="PreviousNextNumeric"
+                               Source="{Binding FilteredCleaningList}"
+                               HorizontalOptions="Center"
+                               Margin="10"
+                               BackgroundColor="Transparent"
+                               IsVisible="{Binding HasError, Converter={StaticResource InverseBoolConverter}}" />
 
-                <syncfusion:DataGridTextColumn HeaderText="Customer" 
-                                             MappingName="CustomerCode"
-                                             Width="100" />
+            <!-- Data Grid -->
+            <syncfusion:SfDataGrid x:Name="cleaningDataGrid"
+                                   Grid.Row="0"
+                                   ItemsSource="{Binding Source={x:Reference dataPager}, Path=PagedSource}"
+                                   AutoGenerateColumnsMode="None"
+                                   ColumnWidthMode="Auto"
+                                   SelectionMode="Single"
+                                   RowHeight="58"
+                                   HeaderRowHeight="48"
+                                   GridLinesVisibility="Horizontal"
+                                   SortingMode="Single"
+                                   Margin="10"
+                                   IsVisible="{Binding HasError, Converter={StaticResource InverseBoolConverter}}">
 
-                <syncfusion:DataGridTextColumn HeaderText="Entry Date" 
-                                             MappingName="DtmIn" 
-                                             Format="dd/MM/yyyy"
-                                             Width="110" />
+                <syncfusion:SfDataGrid.Columns>
+                    <!-- Static Row Number Column -->
+                    <syncfusion:DataGridTemplateColumn HeaderText="#" 
+                                                     Width="60">
+                        <syncfusion:DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Label Text="{Binding ., Converter={StaticResource StaticRowNumberConverter}, ConverterParameter={Binding Source={x:Reference dataPager}, Path=PagedSource}}"
+                                       HorizontalTextAlignment="Center"
+                                       VerticalTextAlignment="Center"
+                                       FontSize="12"
+                                       FontAttributes="Bold"
+                                       TextColor="#6C757D" />
+                            </DataTemplate>
+                        </syncfusion:DataGridTemplateColumn.CellTemplate>
+                    </syncfusion:DataGridTemplateColumn>
 
-                <syncfusion:DataGridTextColumn HeaderText="Approved By" 
-                                             MappingName="ApprovedBy" 
-                                             Width="130" />
+                    <syncfusion:DataGridTextColumn HeaderText="Container" 
+                                                 MappingName="ContNumber"
+                                                 Width="140" />
 
-                <syncfusion:DataGridTemplateColumn HeaderText="Repair Codes" 
-                                                 Width="110">
-                    <syncfusion:DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <Label Text="{Binding RepairCodes.Count, StringFormat='{0} codes'}" 
-                                   HorizontalTextAlignment="Center"
-                                   VerticalTextAlignment="Center"
-                                   FontSize="12"
-                                   TextColor="#007BFF" />
-                        </DataTemplate>
-                    </syncfusion:DataGridTemplateColumn.CellTemplate>
-                </syncfusion:DataGridTemplateColumn>
-            </syncfusion:SfDataGrid.Columns>
-        </syncfusion:SfDataGrid>
+                    <syncfusion:DataGridTextColumn HeaderText="Customer" 
+                                                 MappingName="CustomerCode"
+                                                 Width="100" />
+
+                    <syncfusion:DataGridTextColumn HeaderText="Entry Date" 
+                                                 MappingName="DtmIn" 
+                                                 Format="dd/MM/yyyy"
+                                                 Width="110" />
+
+                    <syncfusion:DataGridTemplateColumn HeaderText="Status" 
+                                                     Width="100">
+                        <syncfusion:DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Border Padding="8,4" 
+                                        BackgroundColor="#FFC107"
+                                        StrokeShape="RoundRectangle 4,4,4,4"
+                                        StrokeThickness="0"
+                                        HorizontalOptions="Center"
+                                        VerticalOptions="Center">
+                                    <Label Text="Pending" 
+                                           TextColor="White" 
+                                           FontSize="12"
+                                           FontAttributes="Bold"
+                                           HorizontalOptions="Center"
+                                           VerticalOptions="Center" />
+                                </Border>
+                            </DataTemplate>
+                        </syncfusion:DataGridTemplateColumn.CellTemplate>
+                    </syncfusion:DataGridTemplateColumn>
+
+                    <syncfusion:DataGridTemplateColumn HeaderText="Cleaning Required" 
+                                                     Width="130">
+                        <syncfusion:DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Label Text="YXT • 1101 • APNN" 
+                                       HorizontalTextAlignment="Center"
+                                       VerticalTextAlignment="Center"
+                                       FontSize="11"
+                                       TextColor="#007BFF"
+                                       FontAttributes="Bold" />
+                            </DataTemplate>
+                        </syncfusion:DataGridTemplateColumn.CellTemplate>
+                    </syncfusion:DataGridTemplateColumn>
+
+                    <syncfusion:DataGridTemplateColumn HeaderText="Action" 
+                                                     Width="120">
+                        <syncfusion:DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Text="Go to Cleaning" 
+                                        BackgroundColor="#28A745"
+                                        TextColor="White"
+                                        FontSize="11"
+                                        FontAttributes="Bold"
+                                        CornerRadius="6"
+                                        HeightRequest="36"
+                                        Margin="5,2"
+                                        Clicked="OnGoToCleaningClicked"
+                                        CommandParameter="{Binding .}" />
+                            </DataTemplate>
+                        </syncfusion:DataGridTemplateColumn.CellTemplate>
+                    </syncfusion:DataGridTemplateColumn>
+                </syncfusion:SfDataGrid.Columns>
+            </syncfusion:SfDataGrid>
+        </Grid>
 
         <!-- Footer -->
-        <Border Grid.Row="3" 
+        <Border Grid.Row="4" 
                 BackgroundColor="#F8F9FA"
                 Padding="15,10"
                 Margin="0,2,0,0"
@@ -178,13 +266,13 @@
                 </Grid.ColumnDefinitions>
 
                 <Label Grid.Column="0"
-                       Text="Filtered by repair codes: YXT • 1101 • APNN"
+                       Text="Filtered by cleaning criteria: YXT • 1101 • APNN"
                        FontSize="12"
                        TextColor="#6C757D"
                        VerticalOptions="Center" />
 
                 <Label Grid.Column="1"
-                       Text="{Binding CleaningList.Count, StringFormat='Showing {0} containers'}"
+                       Text="{Binding FilteredCleaningList.Count, StringFormat='Showing {0} containers'}"
                        FontSize="12"
                        TextColor="#6C757D"
                        VerticalOptions="Center" />

@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Name="PageRoot"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:buttons="clr-namespace:Syncfusion.Maui.Buttons;assembly=Syncfusion.Maui.Buttons"
+             xmlns:syncfusion="clr-namespace:Syncfusion.Maui.ListView;assembly=Syncfusion.Maui.ListView"
+             xmlns:helpers="clr-namespace:Surveying.Helpers"
+             x:Class="Surveying.Views.EnhancedCleaning"
+             Title="Enhanced Cleaning">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <helpers:InverseBoolConverter x:Key="InverseBoolConverter"/>
+            <helpers:StringIsNotEmptyConverter x:Key="StringIsNotEmptyConverter"/>
+            <helpers:PhotoCountConverter x:Key="PhotoCountConverter"/>
+
+            <!-- Styles for cleaning requirements -->
+            <Style x:Key="RequirementFrameStyle" TargetType="Frame">
+                <Setter Property="Padding" Value="12" />
+                <Setter Property="Margin" Value="0,4" />
+                <Setter Property="BackgroundColor" Value="#F8F8F8" />
+                <Setter Property="CornerRadius" Value="8" />
+                <Setter Property="HasShadow" Value="False" />
+            </Style>
+
+            <Style x:Key="FieldLabelStyle" TargetType="Label">
+                <Setter Property="FontAttributes" Value="Bold" />
+                <Setter Property="FontSize" Value="12" />
+                <Setter Property="WidthRequest" Value="80" />
+                <Setter Property="VerticalOptions" Value="Start" />
+            </Style>
+
+            <Style x:Key="FieldValueStyle" TargetType="Label">
+                <Setter Property="FontSize" Value="12" />
+                <Setter Property="VerticalOptions" Value="Start" />
+                <Setter Property="LineBreakMode" Value="WordWrap" />
+            </Style>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="20">
+
+            <!-- Container Info and Cleaning Overview -->
+            <Frame Padding="15" Margin="0,0,0,10" BorderColor="LightGray" CornerRadius="8">
+                <VerticalStackLayout Spacing="15">
+                    <Label Text="{Binding ContainerNumber, StringFormat='Tank No: {0}'}"
+                           FontAttributes="Bold"
+                           FontSize="18" />
+
+                    <HorizontalStackLayout Spacing="10">
+                        <Label Text="Start Date:" VerticalOptions="Center" />
+                        <DatePicker Date="{Binding StartCleanDate}" />
+                    </HorizontalStackLayout>
+
+                    <HorizontalStackLayout Spacing="10">
+                        <Label Text="End Date:" VerticalOptions="Center" />
+                        <DatePicker Date="{Binding EndCleanDate}" />
+                    </HorizontalStackLayout>
+
+                    <!-- Cleaning Description -->
+                    <Label Text="{Binding CleaningDescription}" 
+                           FontSize="14"
+                           TextColor="#666666"
+                           LineBreakMode="WordWrap" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Cleaning Code Section -->
+            <Frame Padding="15" BorderColor="#007BFF" CornerRadius="8" BackgroundColor="Transparent">
+                <VerticalStackLayout Spacing="15">
+                    <HorizontalStackLayout Spacing="15" HorizontalOptions="FillAndExpand">
+                        <Label Text="Cleaning Code" 
+                               FontAttributes="Bold" 
+                               FontSize="16"
+                               HorizontalOptions="StartAndExpand" />
+
+                        <Button Text="Refresh" 
+                                Command="{Binding RefreshCleaningRequirementsCommand}"
+                                BackgroundColor="#6C757D"
+                                TextColor="White"
+                                FontSize="12"
+                                HeightRequest="32"
+                                WidthRequest="80"
+                                HorizontalOptions="End"
+                                CornerRadius="4" />
+                    </HorizontalStackLayout>
+
+                    <!-- Loading indicator -->
+                    <ActivityIndicator IsRunning="{Binding IsLoadingCleaningRequirements}" 
+                                     IsVisible="{Binding IsLoadingCleaningRequirements}"
+                                     Color="#007BFF" />
+
+                    <Label Text="{Binding LoadingMessage}" 
+                           IsVisible="{Binding IsLoadingCleaningRequirements}"
+                           HorizontalTextAlignment="Center"
+                           TextColor="Gray" />
+
+                    <!-- Debug info button (remove in production) -->
+                    <Button Text="Show Debug Info" 
+                            Command="{Binding ShowDebugDetailsCommand}"
+                            IsVisible="{Binding ShowDebugInfo}"
+                            BackgroundColor="#FFC107"
+                            TextColor="#212529"
+                            FontSize="10"
+                            HeightRequest="28"
+                            WidthRequest="120"
+                            HorizontalOptions="Center" />
+
+                    <!-- Simplified cleaning code display -->
+                    <VerticalStackLayout IsVisible="{Binding IsLoadingCleaningRequirements, Converter={StaticResource InverseBoolConverter}}"
+                                         Spacing="5">
+
+                        <!-- Show message if no cleaning code -->
+                        <Label Text="No specific cleaning code found. Standard cleaning procedures apply." 
+                               IsVisible="{Binding HasCleaningRequirements, Converter={StaticResource InverseBoolConverter}}"
+                               TextColor="Gray"
+                               FontAttributes="Italic"
+                               HorizontalTextAlignment="Center"
+                               Margin="10,20" />
+
+                        <!-- Single cleaning code display (no border frame) -->
+                        <VerticalStackLayout IsVisible="{Binding HasCleaningRequirements}"
+                                           Spacing="10"
+                                           Margin="0,10">
+
+                            <!-- Cleaning Code -->
+                            <Label FontSize="16" FontAttributes="Bold" HorizontalTextAlignment="Center">
+                                <Label.FormattedText>
+                                    <FormattedString>
+                                        <Span Text="YXT • 1101 • APNN" 
+                                              FontAttributes="Bold"
+                                              TextColor="#007BFF" />
+                                    </FormattedString>
+                                </Label.FormattedText>
+                            </Label>
+
+                            <!-- Description -->
+                            <Label Text="EXTERIOR CLEANING - WATER WASH" 
+                                   FontSize="14"
+                                   TextColor="#6C757D"
+                                   HorizontalTextAlignment="Center"
+                                   FontAttributes="Italic" />
+
+                            <!-- Details -->
+                            <Label Text="TANK SHELL EXTERIOR / DIRTY - 1X WATER WASH" 
+                                   FontSize="12"
+                                   TextColor="#495057"
+                                   HorizontalTextAlignment="Center"
+                                   LineBreakMode="WordWrap" />
+
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Photo Section with Segmented Control -->
+            <Frame Padding="15" BorderColor="LightGray" CornerRadius="8">
+                <VerticalStackLayout Spacing="15">
+                    <Label Text="Photo Documentation" FontAttributes="Bold" FontSize="16" />
+
+                    <!-- Segmented Control for Photo Categories -->
+                    <buttons:SfSegmentedControl x:Name="photoSegmentControl"
+                                               ItemsSource="{Binding PhotoUploader.PhotoSegments}"
+                                               SelectedIndex="{Binding PhotoUploader.SelectedSegmentIndex, Mode=TwoWay}"
+                                               HeightRequest="40"
+                                               CornerRadius="8">
+                        <buttons:SfSegmentedControl.TextStyle>
+                            <buttons:SegmentTextStyle FontSize="12" />
+                        </buttons:SfSegmentedControl.TextStyle>
+                    </buttons:SfSegmentedControl>
+
+                    <!-- Upload button -->
+                    <Button Text="{Binding PhotoUploader.CurrentSegmentPhotos.Count, StringFormat='Upload Photo for {Binding PhotoUploader.CurrentSegmentLabel} ({0}/1)'}"
+                            Command="{Binding PhotoUploader.UploadPhotoAsyncCommand}"
+                            WidthRequest="300"
+                            HorizontalOptions="Center"
+                            BackgroundColor="#007BFF" />
+
+                    <!-- Loading indicator -->
+                    <ActivityIndicator IsRunning="{Binding PhotoUploader.IsUploading}" 
+                                     IsVisible="{Binding PhotoUploader.IsUploading}"
+                                     Color="#007BFF" />
+
+                    <Label Text="{Binding PhotoUploader.UploadStatusMessage}" 
+                           IsVisible="{Binding PhotoUploader.UploadStatusMessage, Converter={StaticResource StringIsNotEmptyConverter}}"
+                           HorizontalTextAlignment="Center"
+                           TextColor="Gray" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Photo Gallery for Current Segment -->
+            <syncfusion:SfListView ItemsSource="{Binding PhotoUploader.CurrentSegmentPhotos}"
+                                   HeightRequest="400"
+                                   SelectionMode="None"
+                                   AllowSwiping="False"
+                                   ItemSize="215">
+                <syncfusion:SfListView.ItemsLayout>
+                    <syncfusion:GridLayout SpanCount="{Binding PhotoUploader.PhotoColumnCount}" />
+                </syncfusion:SfListView.ItemsLayout>
+
+                <syncfusion:SfListView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Margin="5">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="150" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <!-- Image in square format -->
+                            <Border Grid.Row="0"
+                                    Stroke="LightGray" 
+                                    StrokeThickness="1"
+                                    BackgroundColor="White">
+                                <Image Source="{Binding ImageSource}"
+                                       Aspect="AspectFill"
+                                       HorizontalOptions="Fill"
+                                       VerticalOptions="Fill">
+                                    <Image.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.ViewFullImageCommand}"
+                                                              CommandParameter="{Binding .}" />
+                                    </Image.GestureRecognizers>
+                                </Image>
+                            </Border>
+
+                            <!-- Segment label -->
+                            <Label Grid.Row="1"
+                                   Text="{Binding Segment}"
+                                   FontSize="12"
+                                   FontAttributes="Bold"
+                                   HorizontalTextAlignment="Center"
+                                   Margin="2"
+                                   TextColor="#007BFF" />
+
+                            <!-- Delete button -->
+                            <Button Grid.Row="2"
+                                    Text="Delete"
+                                    BackgroundColor="#FF4444"
+                                    TextColor="White"
+                                    FontSize="12"
+                                    HeightRequest="30"
+                                    Margin="2"
+                                    Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.PhotoUploader.DeletePhotoCommand}"
+                                    CommandParameter="{Binding .}" />
+                        </Grid>
+                    </DataTemplate>
+                </syncfusion:SfListView.ItemTemplate>
+            </syncfusion:SfListView>
+
+            <!-- Summary of all segments -->
+            <Frame Padding="10" BorderColor="LightBlue" CornerRadius="8" BackgroundColor="#F0F8FF">
+                <VerticalStackLayout Spacing="5">
+                    <Label Text="Photo Summary" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+                    <StackLayout BindableLayout.ItemsSource="{Binding PhotoUploader.PhotoSegments}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate>
+                                <HorizontalStackLayout Spacing="10" Margin="0,2">
+                                    <Label Text="{Binding .}" 
+                                           WidthRequest="120" 
+                                           FontSize="12" />
+                                    <Label Text="{Binding Source={x:Reference PageRoot}, Path=BindingContext.PhotoUploader, Converter={StaticResource PhotoCountConverter}, ConverterParameter={Binding .}}"
+                                           FontSize="12"
+                                           TextColor="Green" />
+                                </HorizontalStackLayout>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </StackLayout>
+                </VerticalStackLayout>
+            </Frame>
+
+            <Button Text="Submit Cleaning"
+                    Command="{Binding SubmitCleaningCommand}"
+                    WidthRequest="300"
+                    HorizontalOptions="Center"
+                    BackgroundColor="#28A745"
+                    TextColor="White" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

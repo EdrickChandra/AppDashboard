@@ -11,7 +11,8 @@ namespace Surveying.Services
     {
         Task<ApiResponse> CheckContainerExists(string contNumber);
         Task<ContainerWithRepairCodesModel> GetContainerWithRepairCodes(string contNumber);
-        Task<ApiResponse> GetContainersForCleaning(); // New method
+        Task<ContainerWithRepairCodesModel> GetContainerCleaningDetails(string contNumber); // NEW METHOD
+        Task<ApiResponse> GetContainersForCleaning();
     }
 
     public class ContainerApiService : IContainerApiService
@@ -130,7 +131,70 @@ namespace Surveying.Services
             }
         }
 
-        // New method for cleaning list
+        // NEW METHOD: Get container cleaning details
+        public async Task<ContainerWithRepairCodesModel> GetContainerCleaningDetails(string contNumber)
+        {
+            try
+            {
+                string formattedContNumber = FormatContainerNumber(contNumber);
+                string url = $"{_baseUrl}/api/container/GetContainerCleaningDetails/{formattedContNumber}";
+
+                System.Diagnostics.Debug.WriteLine($"Getting cleaning details for: {contNumber} -> {formattedContNumber}");
+                System.Diagnostics.Debug.WriteLine($"API URL: {url}");
+
+                var response = await _httpClient.GetAsync(url);
+                System.Diagnostics.Debug.WriteLine($"Response Status: {response.StatusCode}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    System.Diagnostics.Debug.WriteLine($"Raw API Response: {json}");
+
+                    var apiResponse = JsonSerializer.Deserialize<ApiResponse>(json, _jsonOptions);
+                    System.Diagnostics.Debug.WriteLine($"API Response IsSuccess: {apiResponse?.IsSuccess}");
+                    System.Diagnostics.Debug.WriteLine($"API Response Message: {apiResponse?.Message}");
+
+                    if (apiResponse?.IsSuccess == true && apiResponse.Content != null)
+                    {
+                        var contentJson = JsonSerializer.Serialize(apiResponse.Content, _jsonOptions);
+                        System.Diagnostics.Debug.WriteLine($"Content JSON: {contentJson}");
+
+                        var container = JsonSerializer.Deserialize<ContainerWithRepairCodesModel>(contentJson, _jsonOptions);
+
+                        System.Diagnostics.Debug.WriteLine($"Deserialized Cleaning Container:");
+                        System.Diagnostics.Debug.WriteLine($"  - ContNumber: {container?.ContNumber}");
+                        System.Diagnostics.Debug.WriteLine($"  - IsRepairApproved: {container?.IsRepairApproved}");
+                        System.Diagnostics.Debug.WriteLine($"  - Cleaning Requirements Count: {container?.RepairCodes?.Count ?? 0}");
+
+                        // Log cleaning requirements details
+                        if (container?.RepairCodes != null)
+                        {
+                            foreach (var req in container.RepairCodes)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"  - Cleaning Code: {req.RepairCode} - {req.RepairCodeDescription}");
+                                System.Diagnostics.Debug.WriteLine($"    Component: {req.ComponentCode} - {req.ComponentCodeDescription}");
+                                System.Diagnostics.Debug.WriteLine($"    Location: {req.LocationCode}");
+                                System.Diagnostics.Debug.WriteLine($"    Details: {req.RepairDetailDescription}");
+                            }
+                        }
+
+                        return container;
+                    }
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"API Error: {response.StatusCode} - {response.ReasonPhrase}");
+                }
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Exception in GetContainerCleaningDetails: {ex}");
+                return null;
+            }
+        }
+
         public async Task<ApiResponse> GetContainersForCleaning()
         {
             try
