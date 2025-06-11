@@ -13,6 +13,7 @@ namespace Surveying.ViewModels
     public partial class CleaningListViewModel : BaseViewModel
     {
         private readonly IContainerApiService _containerApiService;
+        private readonly ICleaningCriteriaService _cleaningCriteriaService;
 
         [ObservableProperty]
         private ObservableCollection<ContainerWithRepairCodesModelExtended> cleaningList;
@@ -45,19 +46,66 @@ namespace Surveying.ViewModels
         [ObservableProperty]
         private bool hasActiveFilters = false;
 
-        public CleaningListViewModel() : this(new ContainerApiService())
+        // Dynamic cleaning criteria display
+        [ObservableProperty]
+        private string cleaningCriteriaText = "Loading...";
+
+        [ObservableProperty]
+        private List<string> cleaningCriteriaList = new List<string>();
+
+        [ObservableProperty]
+        private string footerCriteriaText = "Loading cleaning criteria...";
+
+        public CleaningListViewModel() : this(new ContainerApiService(), new CleaningCriteriaService())
         {
         }
 
-        public CleaningListViewModel(IContainerApiService containerApiService)
+        public CleaningListViewModel(IContainerApiService containerApiService, ICleaningCriteriaService cleaningCriteriaService)
         {
             _containerApiService = containerApiService;
+            _cleaningCriteriaService = cleaningCriteriaService;
             Title = "Cleaning List";
             CleaningList = new ObservableCollection<ContainerWithRepairCodesModelExtended>();
             FilteredCleaningList = new ObservableCollection<ContainerWithRepairCodesModelExtended>();
 
-            // Load data when ViewModel is created
-            _ = LoadCleaningDataFromApiAsync();
+            // Load cleaning criteria and data
+            _ = InitializeAsync();
+        }
+
+        private async Task InitializeAsync()
+        {
+            // Load cleaning criteria first
+            await LoadCleaningCriteriaAsync();
+
+            // Then load container data
+            await LoadCleaningDataFromApiAsync();
+        }
+
+        private async Task LoadCleaningCriteriaAsync()
+        {
+            try
+            {
+                var criteria = await _cleaningCriteriaService.GetCleaningCriteriaAsync();
+                var formattedCriteria = _cleaningCriteriaService.GetFormattedCleaningCriteria();
+                var criteriaList = _cleaningCriteriaService.GetFormattedCriteriaList();
+
+                CleaningCriteriaText = formattedCriteria;
+                CleaningCriteriaList = criteriaList;
+                FooterCriteriaText = $"Filtered by cleaning criteria: {formattedCriteria}";
+
+                System.Diagnostics.Debug.WriteLine($"Loaded cleaning criteria: {formattedCriteria}");
+                System.Diagnostics.Debug.WriteLine($"Criteria groups: {string.Join(", ", criteriaList)}");
+                System.Diagnostics.Debug.WriteLine($"Components: {string.Join(", ", criteria.ComponentCodes)}");
+                System.Diagnostics.Debug.WriteLine($"Repair Codes: {string.Join(", ", criteria.RepairCodes)}");
+                System.Diagnostics.Debug.WriteLine($"Location Codes: {string.Join(", ", criteria.LocationCodes)}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading cleaning criteria: {ex.Message}");
+                CleaningCriteriaText = "YXT • 1101 • APNN"; // Fallback
+                CleaningCriteriaList = new List<string> { "YXT • 1101 • APNN" };
+                FooterCriteriaText = "Filtered by cleaning criteria: YXT • 1101 • APNN";
+            }
         }
 
         partial void OnSearchTextChanged(string value)
@@ -84,7 +132,7 @@ namespace Surveying.ViewModels
                     .ToList();
 
                 // Create and show filter popup
-                var filterViewModel = new FilterPopupViewModel(customerCounts, CurrentFilters);
+                var filterViewModel = new FilterPopupViewModel(customerCounts, CurrentFilters, CleaningCriteriaText);
                 var filterPopup = new FilterPopup(filterViewModel);
 
                 // Show popup and wait for result
@@ -239,6 +287,7 @@ namespace Surveying.ViewModels
                                 CleaningStartDate = container.CleaningStartDate,
                                 CleaningCompleteDate = container.CleaningCompleteDate,
                                 Commodity = container.Commodity ?? "Not Specified",
+                                CleaningRequirementsText = container.CleaningRequirementsText ?? "No requirements",
                                 RowNumber = i + 1 // Calculate sequential row number
                             };
                             containers.Add(extendedContainer);
@@ -259,6 +308,7 @@ namespace Surveying.ViewModels
                             CleaningStartDate = singleContainer.CleaningStartDate,
                             CleaningCompleteDate = singleContainer.CleaningCompleteDate,
                             Commodity = singleContainer.Commodity ?? "Not Specified",
+                            CleaningRequirementsText = singleContainer.CleaningRequirementsText ?? "No requirements",
                             RowNumber = 1
                         };
                         containers.Add(extendedContainer);
@@ -316,6 +366,8 @@ namespace Surveying.ViewModels
     public class ContainerWithRepairCodesModelExtended : ContainerWithRepairCodesModel
     {
         public int RowNumber { get; set; }
-        public string Commodity { get; set; } = "Not Specified";
+
+        // Override to ensure we use the container-specific requirements
+        public new string CleaningRequirementsText { get; set; } = "Not Specified";
     }
 }

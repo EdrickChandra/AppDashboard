@@ -13,12 +13,13 @@ namespace Surveying.Views
         {
             InitializeComponent();
 
-            // Create ViewModel with proper dependency injection
+            // Create ViewModel with proper dependency injection including cleaning criteria service
             var containerApiService = new ContainerApiService();
-            _viewModel = new CleaningListViewModel(containerApiService);
+            var cleaningCriteriaService = new CleaningCriteriaService();
+            _viewModel = new CleaningListViewModel(containerApiService, cleaningCriteriaService);
             BindingContext = _viewModel;
 
-            System.Diagnostics.Debug.WriteLine("CleaningList constructor completed - using ViewModel-calculated row numbers");
+            System.Diagnostics.Debug.WriteLine("CleaningList constructor completed - using dynamic cleaning criteria from API");
         }
 
         protected override async void OnAppearing()
@@ -43,7 +44,12 @@ namespace Surveying.Views
                     System.Diagnostics.Debug.WriteLine($"After API call - FilteredCleaningList count: {_viewModel.FilteredCleaningList?.Count ?? 0}");
                     System.Diagnostics.Debug.WriteLine($"After API call - HasError: {_viewModel.HasError}, ErrorMessage: {_viewModel.ErrorMessage}");
 
-                  
+                    // Check pagination after data load
+                    if (dataPager != null)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"After data load - PagedSource count: {dataPager.PagedSource?.Count ?? 0}");
+                        System.Diagnostics.Debug.WriteLine("Row numbers are calculated in ViewModel - pagination works automatically");
+                    }
                 }
                 else
                 {
@@ -113,7 +119,9 @@ namespace Surveying.Views
                         IsRepairApproved = container.IsRepairApproved,
                         ApprovalDate = container.ApprovalDate,
                         ApprovedBy = container.ApprovedBy,
-                        Commodity = container.Commodity
+                        Commodity = container.Commodity,
+                        CleaningRequirementsText = container.CleaningRequirementsText,
+                        CleaningRequirementsJson = container.CleaningRequirementsJson
                     };
 
                     // Navigate to enhanced cleaning page
@@ -124,7 +132,7 @@ namespace Surveying.Views
                 }
                 else
                 {
-
+ 
                 }
             }
             catch (Exception ex)

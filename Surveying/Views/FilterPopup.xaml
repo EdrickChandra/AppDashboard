@@ -186,7 +186,7 @@
                                          IsChecked="{Binding ShowCleaningRequired}"
                                          VerticalOptions="Center" />
                                 <Label Grid.Column="1"
-                                       Text="YXT • 1101 • APNN"
+                                       Text="{Binding CleaningCriteriaText}"
                                        VerticalOptions="Center"
                                        Margin="10,0,0,0"
                                        TextColor="#007BFF"

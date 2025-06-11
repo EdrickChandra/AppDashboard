@@ -153,7 +153,7 @@
             <!-- Data Pager -->
             <pager:SfDataPager x:Name="dataPager"
                                Grid.Row="1"
-                               PageSize="20"
+                               PageSize="10"
                                NumericButtonCount="5"
                                DisplayMode="PreviousNextNumeric"
                                Source="{Binding FilteredCleaningList}"
@@ -193,7 +193,7 @@
 
                     <syncfusion:DataGridTextColumn HeaderText="Commodity" 
                                                  MappingName="Commodity"
-                                                 Width="200" />
+                                                 Width="120" />
 
                     <syncfusion:DataGridTextColumn HeaderText="Entry Date" 
                                                  MappingName="DtmIn" 
@@ -220,15 +220,16 @@
                         </syncfusion:DataGridTemplateColumn.CellTemplate>
                     </syncfusion:DataGridTemplateColumn>
 
-                    <syncfusion:DataGridTemplateColumn HeaderText="Cleaning Required" Width="130">
+                    <syncfusion:DataGridTemplateColumn HeaderText="Cleaning Required" Width="150">
                         <syncfusion:DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <Label Text="YXT • 1101 • APNN" 
+                                <Label Text="{Binding CleaningRequirementsText}" 
                                        HorizontalTextAlignment="Center"
                                        VerticalTextAlignment="Center"
-                                       FontSize="11"
+                                       FontSize="10"
                                        TextColor="#007BFF"
-                                       FontAttributes="Bold" />
+                                       FontAttributes="Bold"
+                                       LineBreakMode="WordWrap" />
                             </DataTemplate>
                         </syncfusion:DataGridTemplateColumn.CellTemplate>
                     </syncfusion:DataGridTemplateColumn>
@@ -266,7 +267,7 @@
                 </Grid.ColumnDefinitions>
 
                 <Label Grid.Column="0"
-                       Text="Filtered by cleaning criteria: YXT • 1101 • APNN"
+                       Text="{Binding FooterCriteriaText}"
                        FontSize="12"
                        TextColor="#6C757D"
                        VerticalOptions="Center" />

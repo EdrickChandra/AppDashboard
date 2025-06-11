@@ -36,8 +36,18 @@ namespace Surveying.ViewModels
         [ObservableProperty]
         private string activeFiltersText = "No filters applied";
 
-        public FilterPopupViewModel(List<CustomerFilterItem> customers, FilterResult currentFilters = null)
+        // Dynamic cleaning criteria display
+        [ObservableProperty]
+        private string cleaningCriteriaText = "YXT • 1101 • APNN"; // Default fallback
+
+        public FilterPopupViewModel(List<CustomerFilterItem> customers, FilterResult currentFilters = null, string cleaningCriteria = null)
         {
+            // Set dynamic cleaning criteria text
+            if (!string.IsNullOrEmpty(cleaningCriteria))
+            {
+                CleaningCriteriaText = cleaningCriteria;
+            }
+
             // Initialize available customers
             foreach (var customer in customers)
             {

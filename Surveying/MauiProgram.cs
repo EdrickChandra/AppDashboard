@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Syncfusion.Maui.Core.Hosting;
 using Surveying.Services;
+
 namespace Surveying;
 
 public static class MauiProgram
@@ -18,6 +19,7 @@ public static class MauiProgram
             });
 
         builder.Services.AddSingleton<IContainerApiService, ContainerApiService>();
+        builder.Services.AddSingleton<ICleaningCriteriaService, CleaningCriteriaService>();
 
 #if DEBUG
         builder.Logging.AddDebug();
