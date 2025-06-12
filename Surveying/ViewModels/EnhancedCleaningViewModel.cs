@@ -10,23 +10,29 @@ using System.Linq;
 
 namespace Surveying.ViewModels
 {
+    // ===== MIGRATED: EnhancedCleaningViewModel using simplified models =====
     public partial class EnhancedCleaningViewModel : BaseViewModel
     {
         private readonly IContainerApiService _containerApiService;
 
-        public SurveyModel Survey { get; }
-        public ContainerDetailModel Container { get; private set; }
-        public ContainerWithRepairCodesModel ContainerFromApi { get; private set; }
+        // ===== SIMPLIFIED MODELS =====
+        // OLD: SurveyModel survey, ContainerDetailModel container, ContainerWithRepairCodesModel containerFromApi
+        // NEW: Order order, Container container (unified - no separate API model needed!)
+        public Order Order { get; }
+        public Container Container { get; }
 
-        public string ContainerNumber => Container?.ContNumber ?? Survey.ContNumber;
+        public string ContainerNumber => Container.ContNumber;
         public DateTime StartCleanDate { get; set; }
         public DateTime EndCleanDate { get; set; }
 
-        // Photo uploader using the cleaning-specific factory method
+        // ===== SIMPLIFIED PHOTO UPLOADER =====
+        // Photo uploader using cleaning-specific factory method
         public PhotoUploadViewModel PhotoUploader { get; }
 
-        [ObservableProperty]
-        private ObservableCollection<RepairCodeModel> cleaningRequirements = new ObservableCollection<RepairCodeModel>();
+        // ===== SIMPLIFIED CLEANING REQUIREMENTS =====
+        // OLD: ObservableCollection<RepairCodeModel> cleaningRequirements (separate from container)
+        // NEW: Direct access to Container.RepairCodes (filtering for cleaning-specific codes)
+        public ObservableCollection<RepairCode> CleaningRequirements { get; private set; } = new ObservableCollection<RepairCode>();
 
         [ObservableProperty]
         private bool isLoadingCleaningRequirements = true;
@@ -46,12 +52,13 @@ namespace Surveying.ViewModels
         [ObservableProperty]
         private string debugInfo = "";
 
-        // Constructor with container from API
-        public EnhancedCleaningViewModel(SurveyModel survey, ContainerDetailModel container, ContainerWithRepairCodesModel containerFromApi)
+        // ===== CONSTRUCTOR - SIMPLIFIED =====
+        // OLD: Needed separate ContainerWithRepairCodesModel from API
+        // NEW: Just takes Order + Container (API data gets merged into Container)
+        public EnhancedCleaningViewModel(Order order, Container container)
         {
-            Survey = survey;
+            Order = order;
             Container = container;
-            ContainerFromApi = containerFromApi;
             _containerApiService = new ContainerApiService();
 
             StartCleanDate = DateTime.Today;
@@ -64,6 +71,7 @@ namespace Surveying.ViewModels
             _ = LoadCleaningRequirementsAsync();
         }
 
+        // ===== SIMPLIFIED CLEANING REQUIREMENTS LOADING =====
         private async Task LoadCleaningRequirementsAsync()
         {
             try
@@ -74,7 +82,7 @@ namespace Surveying.ViewModels
 
                 System.Diagnostics.Debug.WriteLine($"Starting LoadCleaningRequirementsAsync for {ContainerNumber}");
 
-                // FIXED: Use the new method that returns ContainerWithRepairCodesModel directly
+                // SIMPLIFIED: API returns Container directly, merge with current Container
                 var cleaningContainer = await _containerApiService.GetContainerCleaningDetails(ContainerNumber);
 
                 System.Diagnostics.Debug.WriteLine($"API call completed. Result: {(cleaningContainer != null ? "Success" : "Failed")}");
@@ -83,34 +91,42 @@ namespace Surveying.ViewModels
                 {
                     DebugInfo += $"\nAPI Success - Cleaning details found";
 
-                    // Update cleaning requirements
+                    // SIMPLIFIED: Update current Container with API data (no separate models!)
+                    Container.CleaningRequirementsText = cleaningContainer.CleaningRequirementsText ?? "";
+                    Container.Commodity = cleaningContainer.Commodity ?? "Not Specified";
+                    Container.IsRepairApproved = cleaningContainer.IsRepairApproved;
+                    Container.ApprovalDate = cleaningContainer.ApprovalDate;
+                    Container.ApprovedBy = cleaningContainer.ApprovedBy ?? "";
+
+                    // SIMPLIFIED: Merge repair codes (cleaning-specific)
                     if (cleaningContainer.RepairCodes != null && cleaningContainer.RepairCodes.Count > 0)
                     {
                         CleaningRequirements.Clear();
-                        foreach (var code in cleaningContainer.RepairCodes)
+
+                        foreach (var apiCode in cleaningContainer.RepairCodes)
                         {
-                            var cleaningRequirement = new RepairCodeModel
+                            // SIMPLIFIED: No more complex mapping - direct RepairCode creation
+                            var cleaningRequirement = new RepairCode
                             {
-                                RepairCode = code.RepairCode,
-                                ComponentCode = code.ComponentCode,
-                                LocationCode = code.LocationCode,
-                                ComponentCategory = code.ComponentCategory,
-                                ComponentDescription = code.ComponentDescription,
-                                RepairCodeDescription = code.RepairCodeDescription ?? string.Empty,
-                                ComponentCodeDescription = code.ComponentCodeDescription ?? string.Empty,
-                                RepairDetailDescription = code.RepairDetailDescription ?? string.Empty,
+                                Code = apiCode.Code,                           // Clean property names
+                                ComponentCode = apiCode.ComponentCode,
+                                LocationCode = apiCode.LocationCode,
+                                Description = apiCode.Description ?? string.Empty,             // No more legacy handling!
+                                ComponentDescription = apiCode.ComponentDescription ?? string.Empty,
+                                DetailDescription = apiCode.DetailDescription ?? string.Empty,
+
                                 // Initialize cleaning status tracking
                                 IsCompleted = false,
                                 CompletedDate = null,
                                 CompletedBy = string.Empty,
-                                RepairNotes = string.Empty
+                                Notes = string.Empty
                             };
 
                             CleaningRequirements.Add(cleaningRequirement);
-                            System.Diagnostics.Debug.WriteLine($"Added cleaning requirement: {code.RepairCode}");
-                            System.Diagnostics.Debug.WriteLine($"  - Cleaning Type: {code.RepairCodeDescription}");
-                            System.Diagnostics.Debug.WriteLine($"  - Component: {code.ComponentCodeDescription}");
-                            System.Diagnostics.Debug.WriteLine($"  - Details: {code.RepairDetailDescription}");
+                            System.Diagnostics.Debug.WriteLine($"Added cleaning requirement: {apiCode.Code}");
+                            System.Diagnostics.Debug.WriteLine($"  - Cleaning Type: {apiCode.Description}");
+                            System.Diagnostics.Debug.WriteLine($"  - Component: {apiCode.ComponentDescription}");
+                            System.Diagnostics.Debug.WriteLine($"  - Details: {apiCode.DetailDescription}");
                         }
 
                         HasCleaningRequirements = true;
@@ -151,6 +167,7 @@ namespace Surveying.ViewModels
             }
         }
 
+        // ===== UI COMMANDS - SIMPLIFIED =====
         [RelayCommand]
         async void ShowDebugDetails()
         {
@@ -164,7 +181,7 @@ namespace Surveying.ViewModels
         }
 
         [RelayCommand]
-        async void ViewFullImage(PhotoItem photo)
+        async void ViewFullImage(Photo photo)  // SIMPLIFIED: Single Photo type instead of PhotoItem
         {
             if (photo != null && photo.ImageSource != null)
             {
@@ -174,7 +191,7 @@ namespace Surveying.ViewModels
         }
 
         [RelayCommand]
-        async void ToggleCleaningStatus(RepairCodeModel cleaningItem)
+        async void ToggleCleaningStatus(RepairCode cleaningItem)
         {
             if (cleaningItem == null) return;
 
@@ -183,7 +200,7 @@ namespace Surveying.ViewModels
                 // Undo completion
                 bool confirmUndo = await Application.Current.MainPage.DisplayAlert(
                     "Undo Completion",
-                    $"Mark cleaning task {cleaningItem.RepairCode} as pending again?",
+                    $"Mark cleaning task {cleaningItem.Code} as pending again?",  // SIMPLIFIED: .Code instead of .RepairCode
                     "Yes", "No");
 
                 if (confirmUndo)
@@ -191,26 +208,26 @@ namespace Surveying.ViewModels
                     cleaningItem.IsCompleted = false;
                     cleaningItem.CompletedDate = null;
                     cleaningItem.CompletedBy = string.Empty;
-                    cleaningItem.RepairNotes = string.Empty;
+                    cleaningItem.Notes = string.Empty;  // SIMPLIFIED: .Notes instead of .RepairNotes
 
                     await Application.Current.MainPage.DisplayAlert("Status Updated",
-                        $"Cleaning task {cleaningItem.RepairCode} marked as pending.", "OK");
+                        $"Cleaning task {cleaningItem.Code} marked as pending.", "OK");
                 }
             }
             else
             {
-                // Mark as completed
+                // Mark as completed - SIMPLIFIED: Clean property access
                 string detailMessage = $"Mark this cleaning task as completed?\n\n";
-                detailMessage += $"Code: {cleaningItem.RepairCode}\n";
+                detailMessage += $"Code: {cleaningItem.Code}\n";
 
-                if (!string.IsNullOrEmpty(cleaningItem.RepairCodeDescription))
-                    detailMessage += $"Type: {cleaningItem.RepairCodeDescription}\n";
+                if (!string.IsNullOrEmpty(cleaningItem.Description))
+                    detailMessage += $"Type: {cleaningItem.Description}\n";
 
-                if (!string.IsNullOrEmpty(cleaningItem.ComponentCodeDescription))
-                    detailMessage += $"Component: {cleaningItem.ComponentCodeDescription}\n";
+                if (!string.IsNullOrEmpty(cleaningItem.ComponentDescription))
+                    detailMessage += $"Component: {cleaningItem.ComponentDescription}\n";
 
-                if (!string.IsNullOrEmpty(cleaningItem.RepairDetailDescription))
-                    detailMessage += $"Details: {cleaningItem.RepairDetailDescription}";
+                if (!string.IsNullOrEmpty(cleaningItem.DetailDescription))
+                    detailMessage += $"Details: {cleaningItem.DetailDescription}";
 
                 bool confirmComplete = await Application.Current.MainPage.DisplayAlert(
                     "Mark as Completed",
@@ -229,10 +246,10 @@ namespace Surveying.ViewModels
                         "Add any notes about this cleaning task:",
                         placeholder: "e.g., Used detergent solution, steam cleaned...");
 
-                    cleaningItem.RepairNotes = notes ?? string.Empty;
+                    cleaningItem.Notes = notes ?? string.Empty;
 
                     await Application.Current.MainPage.DisplayAlert("Cleaning Completed",
-                        $"✓ Cleaning task {cleaningItem.RepairCode} marked as completed!", "OK");
+                        $"✓ Cleaning task {cleaningItem.Code} marked as completed!", "OK");
                 }
             }
 
@@ -250,7 +267,7 @@ namespace Surveying.ViewModels
             // Update loading message to show progress
             LoadingMessage = $"Cleaning Progress: {completedCount}/{totalCount} completed";
 
-            // Update container status based on progress
+            // SIMPLIFIED: Direct status update on Container
             if (completedCount == 0)
             {
                 Container.CleaningStatus = StatusType.NotFilled;
@@ -264,9 +281,8 @@ namespace Surveying.ViewModels
                 Container.CleaningStatus = StatusType.OnReview; // In progress
             }
 
-            // Update activities
+            // Update activities automatically
             Container.UpdateActivities();
-            Survey.CleaningStatus = Container.CleaningStatus;
 
             System.Diagnostics.Debug.WriteLine($"Overall cleaning status: {completedCount}/{totalCount} completed");
         }
@@ -316,15 +332,9 @@ namespace Surveying.ViewModels
                 return;
             }
 
-            // Update the container status
-            if (Container != null)
-            {
-                Container.CleaningStatus = StatusType.OnReview;
-                Container.UpdateActivities();
-            }
-
-            // Always update the survey for backward compatibility
-            Survey.CleaningStatus = StatusType.OnReview;
+            // SIMPLIFIED: Direct status update
+            Container.CleaningStatus = StatusType.OnReview;
+            Container.UpdateActivities();
 
             string successMessage = HasCleaningRequirements
                 ? $"Cleaning data submitted with {CleaningRequirements.Count(r => r.IsCompleted)}/{CleaningRequirements.Count} requirements completed."

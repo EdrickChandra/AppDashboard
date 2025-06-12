@@ -6,14 +6,19 @@ using System;
 
 namespace Surveying.ViewModels
 {
+    // ===== MIGRATED: PeriodicViewModel using simplified models =====
     public partial class PeriodicViewModel : BaseViewModel
     {
-        public SurveyModel Survey { get; }
-        public ContainerDetailModel Container { get; }
+        // ===== SIMPLIFIED MODELS =====
+        // OLD: SurveyModel survey, ContainerDetailModel container
+        // NEW: Order order, Container container (unified models)
+        public Order Order { get; }
+        public Container Container { get; }
 
         public string ContainerNumber => Container.ContNumber;
 
-        // Use factory method for periodic (CSC Plate only)
+        // ===== SIMPLIFIED PHOTO UPLOADER =====
+        // Use factory method for periodic (CSC Plate only) - single Photo type
         public PhotoUploadViewModel PhotoUploader { get; } = PhotoUploadViewModel.CreateForPeriodic();
 
         [ObservableProperty]
@@ -22,14 +27,18 @@ namespace Surveying.ViewModels
         [ObservableProperty]
         private DateTime nextDueDate = DateTime.Today.AddYears(2).AddMonths(6);
 
-        public PeriodicViewModel(SurveyModel survey, ContainerDetailModel container)
+        // ===== CONSTRUCTOR - SIMPLIFIED =====
+        // OLD: Took SurveyModel + ContainerDetailModel
+        // NEW: Takes Order + Container (unified models)
+        public PeriodicViewModel(Order order, Container container)
         {
-            Survey = survey;
+            Order = order;
             Container = container;
         }
 
+        // ===== UI COMMANDS - SIMPLIFIED =====
         [RelayCommand]
-        async void ViewFullImage(PhotoItem photo) // Keep as PhotoItem
+        async void ViewFullImage(Photo photo)  // SIMPLIFIED: Single Photo type instead of PhotoItem
         {
             if (photo != null && photo.ImageSource != null)
             {
@@ -44,10 +53,11 @@ namespace Surveying.ViewModels
             bool isValid = true;
             string errorMessage = "";
 
+            // Check if CSC Plate photo is uploaded
             if (PhotoUploader.Photos == null || PhotoUploader.Photos.Count == 0)
             {
                 isValid = false;
-                errorMessage += "Please upload at least one photo.\n";
+                errorMessage += "Please upload at least one photo of the CSC Plate.\n";
             }
 
             if (!isValid)
@@ -56,15 +66,13 @@ namespace Surveying.ViewModels
                 return;
             }
 
-            // Skip OnReview status and go directly to Finished
-            if (Container != null)
-            {
-                Container.PeriodicStatus = StatusType.Finished;
-                Container.UpdateActivities();
-            }
+            // SIMPLIFIED: Direct status update on Container (no manual syncing needed)
+            Container.PeriodicStatus = StatusType.Finished;
+            Container.UpdateActivities();
 
-            // Also update survey for backward compatibility
-            Survey.PeriodicStatus = StatusType.Finished;
+            // Set periodic maintenance dates
+            Container.CleaningStartDate = InspectionDate;  // Reuse existing property for inspection date
+            Container.CleaningCompleteDate = NextDueDate;  // Reuse existing property for next due date
 
             await Application.Current.MainPage.DisplayAlert("Success",
                 "Periodic maintenance data has been submitted and marked as Finished.", "OK");
@@ -72,4 +80,6 @@ namespace Surveying.ViewModels
             await Application.Current.MainPage.Navigation.PopToRootAsync();
         }
     }
+}
+
 }

@@ -8,16 +8,20 @@ using System.Linq;
 
 namespace Surveying.ViewModels
 {
+    // ===== MIGRATED: CleaningListViewModel using simplified models =====
     public partial class CleaningListViewModel : BaseViewModel
     {
         private readonly IContainerApiService _containerApiService;
         private readonly ICleaningCriteriaService _cleaningCriteriaService;
 
+        // ===== SIMPLIFIED COLLECTIONS (single Container type!) =====
+        // OLD: ObservableCollection<ContainerWithRepairCodesModelExtended> cleaningList
+        // NEW: Single Container class for everything
         [ObservableProperty]
-        private ObservableCollection<ContainerWithRepairCodesModelExtended> cleaningList;
+        private ObservableCollection<Container> cleaningList;
 
         [ObservableProperty]
-        private ObservableCollection<ContainerWithRepairCodesModelExtended> filteredCleaningList;
+        private ObservableCollection<Container> filteredCleaningList;
 
         [ObservableProperty]
         private bool isRefreshing;
@@ -34,9 +38,23 @@ namespace Surveying.ViewModels
         [ObservableProperty]
         private string searchText = "";
 
-        // Filter properties
+        // ===== SIMPLIFIED FILTER PROPERTIES (no more complex FilterResult!) =====
+        // OLD: FilterResult currentFilters = new FilterResult();
+        // NEW: Direct properties - much simpler!
         [ObservableProperty]
-        private FilterResult currentFilters = new FilterResult();
+        private List<string> selectedCustomers = new();
+
+        [ObservableProperty]
+        private List<string> selectedCleaningRequirements = new();
+
+        [ObservableProperty]
+        private bool showPendingStatus = true;
+
+        [ObservableProperty]
+        private bool showApprovedStatus = true;
+
+        [ObservableProperty]
+        private bool showAllCleaningContainers = true;
 
         [ObservableProperty]
         private string filterButtonText = "Filter";
@@ -44,7 +62,7 @@ namespace Surveying.ViewModels
         [ObservableProperty]
         private bool hasActiveFilters = false;
 
-        // Dynamic cleaning criteria display
+        // ===== CLEANING CRITERIA - UNCHANGED =====
         [ObservableProperty]
         private string cleaningCriteriaText = "Loading...";
 
@@ -54,6 +72,7 @@ namespace Surveying.ViewModels
         [ObservableProperty]
         private string footerCriteriaText = "Loading cleaning criteria...";
 
+        // ===== CONSTRUCTORS =====
         public CleaningListViewModel() : this(new ContainerApiService(), new CleaningCriteriaService())
         {
         }
@@ -63,19 +82,19 @@ namespace Surveying.ViewModels
             _containerApiService = containerApiService;
             _cleaningCriteriaService = cleaningCriteriaService;
             Title = "Cleaning List";
-            CleaningList = new ObservableCollection<ContainerWithRepairCodesModelExtended>();
-            FilteredCleaningList = new ObservableCollection<ContainerWithRepairCodesModelExtended>();
+
+            // SIMPLIFIED: Only need two collections instead of multiple types
+            CleaningList = new ObservableCollection<Container>();
+            FilteredCleaningList = new ObservableCollection<Container>();
 
             // Load cleaning criteria and data
             _ = InitializeAsync();
         }
 
+        // ===== INITIALIZATION - SIMPLIFIED =====
         private async Task InitializeAsync()
         {
-            // Load cleaning criteria first
             await LoadCleaningCriteriaAsync();
-
-            // Then load container data
             await LoadCleaningDataFromApiAsync();
         }
 
@@ -92,10 +111,6 @@ namespace Surveying.ViewModels
                 FooterCriteriaText = $"Filtered by cleaning criteria: {formattedCriteria}";
 
                 System.Diagnostics.Debug.WriteLine($"Loaded cleaning criteria: {formattedCriteria}");
-                System.Diagnostics.Debug.WriteLine($"Criteria groups: {string.Join(", ", criteriaList)}");
-                System.Diagnostics.Debug.WriteLine($"Components: {string.Join(", ", criteria.ComponentCodes)}");
-                System.Diagnostics.Debug.WriteLine($"Repair Codes: {string.Join(", ", criteria.RepairCodes)}");
-                System.Diagnostics.Debug.WriteLine($"Location Codes: {string.Join(", ", criteria.LocationCodes)}");
             }
             catch (Exception ex)
             {
@@ -106,6 +121,7 @@ namespace Surveying.ViewModels
             }
         }
 
+        // ===== SEARCH/FILTER - SIMPLIFIED =====
         partial void OnSearchTextChanged(string value)
         {
             PerformFiltering();
@@ -122,14 +138,13 @@ namespace Surveying.ViewModels
         {
             try
             {
-                // Create list of available customers with counts
+                // SIMPLIFIED: Direct operations on Container model (no wrapper classes!)
                 var customerCounts = CleaningList
                     .GroupBy(c => c.CustomerCode)
                     .Select(g => new CustomerFilterItem(g.Key, g.Count()))
                     .OrderBy(c => c.CustomerCode)
                     .ToList();
 
-                // NEW: Create list of available cleaning requirements with counts
                 var cleaningRequirementCounts = CleaningList
                     .Where(c => !string.IsNullOrEmpty(c.CleaningRequirementsText) && c.CleaningRequirementsText != "No requirements")
                     .SelectMany(c => c.CleaningRequirementsText.Split('\n', StringSplitOptions.RemoveEmptyEntries))
@@ -141,11 +156,19 @@ namespace Surveying.ViewModels
                     .OrderBy(c => c.CleaningCode)
                     .ToList();
 
-                // Create and show filter popup with cleaning requirements
-                var filterViewModel = new FilterPopupViewModel(customerCounts, cleaningRequirementCounts, CurrentFilters, CleaningCriteriaText);
+                // SIMPLIFIED: Create simple object instead of complex FilterResult
+                var currentFilters = new
+                {
+                    SelectedCustomers = SelectedCustomers,
+                    SelectedCleaningRequirements = SelectedCleaningRequirements,
+                    ShowPendingStatus = ShowPendingStatus,
+                    ShowApprovedStatus = ShowApprovedStatus,
+                    ShowAllCleaningContainers = ShowAllCleaningContainers
+                };
+
+                var filterViewModel = new FilterPopupViewModel(customerCounts, cleaningRequirementCounts, currentFilters, CleaningCriteriaText);
                 var filterPopup = new FilterPopup(filterViewModel);
 
-                // Show popup and wait for result
                 filterPopup.TaskCompletionSource = new TaskCompletionSource<FilterResult>();
                 await Application.Current.MainPage.Navigation.PushModalAsync(filterPopup);
 
@@ -153,8 +176,13 @@ namespace Surveying.ViewModels
 
                 if (result != null)
                 {
-                    // Apply the new filters
-                    CurrentFilters = result;
+                    // SIMPLIFIED: Direct property assignment instead of complex object mapping
+                    SelectedCustomers = result.SelectedCustomers;
+                    SelectedCleaningRequirements = result.SelectedCleaningRequirements;
+                    ShowPendingStatus = result.ShowPendingStatus;
+                    ShowApprovedStatus = result.ShowApprovedStatus;
+                    ShowAllCleaningContainers = result.ShowAllCleaningContainers;
+
                     UpdateFilterButtonText();
                     PerformFiltering();
                 }
@@ -168,7 +196,6 @@ namespace Surveying.ViewModels
 
         private string GetCleaningRequirementDescription(string cleaningCode)
         {
-            // Map common cleaning codes to descriptions
             var descriptions = new Dictionary<string, string>
             {
                 { "YXT • 1101 • APNN", "Exterior Water Wash - Tank Shell" },
@@ -182,17 +209,15 @@ namespace Surveying.ViewModels
 
         private void UpdateFilterButtonText()
         {
-            var activeCount = CurrentFilters.GetActiveFilterCount();
-            HasActiveFilters = activeCount > 0;
+            // SIMPLIFIED: Direct counting instead of complex FilterResult.GetActiveFilterCount()
+            var activeCount = 0;
+            if (SelectedCustomers.Any()) activeCount++;
+            if (SelectedCleaningRequirements.Any()) activeCount++;
+            if (!ShowPendingStatus || !ShowApprovedStatus) activeCount++;
+            if (!ShowAllCleaningContainers) activeCount++;
 
-            if (activeCount == 0)
-            {
-                FilterButtonText = "Filter";
-            }
-            else
-            {
-                FilterButtonText = $"Filter ({activeCount})";
-            }
+            HasActiveFilters = activeCount > 0;
+            FilterButtonText = activeCount == 0 ? "Filter" : $"Filter ({activeCount})";
         }
 
         private void PerformFiltering()
@@ -202,7 +227,7 @@ namespace Surveying.ViewModels
 
             var filtered = CleaningList.AsEnumerable();
 
-            // Apply search text filter
+            // SIMPLIFIED: Direct property access instead of wrapper properties
             if (!string.IsNullOrWhiteSpace(SearchText))
             {
                 var searchTerm = SearchText.ToLower().Trim();
@@ -213,15 +238,13 @@ namespace Surveying.ViewModels
                     (container.CleaningRequirementsText?.ToLower().Contains(searchTerm) ?? false));
             }
 
-            // Apply customer filter
-            if (CurrentFilters.SelectedCustomers.Any())
+            if (SelectedCustomers.Any())
             {
                 filtered = filtered.Where(container =>
-                    CurrentFilters.SelectedCustomers.Contains(container.CustomerCode));
+                    SelectedCustomers.Contains(container.CustomerCode));
             }
 
-            // NEW: Apply cleaning requirements filter
-            if (CurrentFilters.SelectedCleaningRequirements.Any())
+            if (SelectedCleaningRequirements.Any())
             {
                 filtered = filtered.Where(container =>
                 {
@@ -232,28 +255,25 @@ namespace Surveying.ViewModels
                         .Split('\n', StringSplitOptions.RemoveEmptyEntries)
                         .Select(req => req.Trim());
 
-                    return CurrentFilters.SelectedCleaningRequirements
+                    return SelectedCleaningRequirements
                         .Any(selectedReq => containerRequirements.Contains(selectedReq));
                 });
             }
 
-            // Apply status filter
-            if (!CurrentFilters.ShowPendingStatus || !CurrentFilters.ShowApprovedStatus)
+            if (!ShowPendingStatus || !ShowApprovedStatus)
             {
                 filtered = filtered.Where(container =>
                 {
-                    if (CurrentFilters.ShowPendingStatus && !container.IsRepairApproved)
+                    if (ShowPendingStatus && !container.IsRepairApproved)
                         return true;
-                    if (CurrentFilters.ShowApprovedStatus && container.IsRepairApproved)
+                    if (ShowApprovedStatus && container.IsRepairApproved)
                         return true;
                     return false;
                 });
             }
 
-            // Apply display options filter
-            if (!CurrentFilters.ShowAllCleaningContainers)
+            if (!ShowAllCleaningContainers)
             {
-                // If not showing all, filter to only specific cleaning requirements
                 filtered = filtered.Where(container =>
                     !string.IsNullOrEmpty(container.CleaningRequirementsText) &&
                     container.CleaningRequirementsText != "No requirements" &&
@@ -262,8 +282,11 @@ namespace Surveying.ViewModels
 
             var filteredList = filtered.ToList();
 
-            // Recalculate row numbers for filtered results
-            RecalculateRowNumbers(filteredList);
+            // SIMPLIFIED: Row numbers are now just a property on Container
+            for (int i = 0; i < filteredList.Count; i++)
+            {
+                filteredList[i].RowNumber = i + 1;
+            }
 
             // Update the filtered collection
             FilteredCleaningList.Clear();
@@ -272,29 +295,10 @@ namespace Surveying.ViewModels
                 FilteredCleaningList.Add(item);
             }
 
-            // Update total count
-            OnPropertyChanged(nameof(FilteredCleaningList));
-
             System.Diagnostics.Debug.WriteLine($"Filtering applied: {filteredList.Count} containers shown (from {CleaningList.Count} total)");
-
-            // Log filter details
-            if (CurrentFilters.SelectedCleaningRequirements.Any())
-            {
-                System.Diagnostics.Debug.WriteLine($"Cleaning requirements filter: {string.Join(", ", CurrentFilters.SelectedCleaningRequirements)}");
-            }
         }
 
-        /// <summary>
-        /// Calculate sequential row numbers for the provided list
-        /// </summary>
-        private void RecalculateRowNumbers(List<ContainerWithRepairCodesModelExtended> items)
-        {
-            for (int i = 0; i < items.Count; i++)
-            {
-                items[i].RowNumber = i + 1;
-            }
-        }
-
+        // ===== API LOADING - SIMPLIFIED =====
         [RelayCommand]
         async Task LoadCleaningDataFromApiAsync()
         {
@@ -310,79 +314,29 @@ namespace Surveying.ViewModels
 
                 if (response.IsSuccess && response.Content != null)
                 {
-                    // Clear existing data
                     CleaningList.Clear();
 
-                    // Convert API models to extended models with row numbers
-                    var containers = new List<ContainerWithRepairCodesModelExtended>();
-
-                    // Handle single container or list of containers
-                    if (response.Content is IEnumerable<ContainerWithRepairCodesModel> containerList)
+                    // SIMPLIFIED: No more complex type conversion - API returns Container objects
+                    if (response.Content is IEnumerable<Container> containerList)
                     {
                         var containerArray = containerList.ToArray();
                         for (int i = 0; i < containerArray.Length; i++)
                         {
                             var container = containerArray[i];
-                            var extendedContainer = new ContainerWithRepairCodesModelExtended
-                            {
-                                Id = container.Id,
-                                ContNumber = container.ContNumber,
-                                DtmIn = container.DtmIn,
-                                CustomerCode = container.CustomerCode,
-                                RepairCodes = container.RepairCodes,
-                                IsRepairApproved = container.IsRepairApproved,
-                                ApprovalDate = container.ApprovalDate,
-                                ApprovedBy = container.ApprovedBy,
-                                CleaningStartDate = container.CleaningStartDate,
-                                CleaningCompleteDate = container.CleaningCompleteDate,
-                                Commodity = container.Commodity ?? "Not Specified",
-                                CleaningRequirementsText = container.CleaningRequirementsText ?? "No requirements",
-                                RowNumber = i + 1 // Calculate sequential row number
-                            };
-                            containers.Add(extendedContainer);
+                            container.RowNumber = i + 1; // Set row number directly
+                            CleaningList.Add(container);
                         }
                     }
-                    else if (response.Content is ContainerWithRepairCodesModel singleContainer)
+                    else if (response.Content is Container singleContainer)
                     {
-                        var extendedContainer = new ContainerWithRepairCodesModelExtended
-                        {
-                            Id = singleContainer.Id,
-                            ContNumber = singleContainer.ContNumber,
-                            DtmIn = singleContainer.DtmIn,
-                            CustomerCode = singleContainer.CustomerCode,
-                            RepairCodes = singleContainer.RepairCodes,
-                            IsRepairApproved = singleContainer.IsRepairApproved,
-                            ApprovalDate = singleContainer.ApprovalDate,
-                            ApprovedBy = singleContainer.ApprovedBy,
-                            CleaningStartDate = singleContainer.CleaningStartDate,
-                            CleaningCompleteDate = singleContainer.CleaningCompleteDate,
-                            Commodity = singleContainer.Commodity ?? "Not Specified",
-                            CleaningRequirementsText = singleContainer.CleaningRequirementsText ?? "No requirements",
-                            RowNumber = 1
-                        };
-                        containers.Add(extendedContainer);
-                    }
-
-                    // Add to collections
-                    foreach (var container in containers)
-                    {
-                        CleaningList.Add(container);
+                        singleContainer.RowNumber = 1;
+                        CleaningList.Add(singleContainer);
                     }
 
                     TotalContainers = CleaningList.Count;
                     System.Diagnostics.Debug.WriteLine($"Loaded {TotalContainers} containers with calculated row numbers");
 
-                    // Log cleaning requirements for debugging
-                    var uniqueRequirements = CleaningList
-                        .Where(c => !string.IsNullOrEmpty(c.CleaningRequirementsText) && c.CleaningRequirementsText != "No requirements")
-                        .SelectMany(c => c.CleaningRequirementsText.Split('\n', StringSplitOptions.RemoveEmptyEntries))
-                        .Select(req => req.Trim())
-                        .Distinct()
-                        .ToList();
-
-                    System.Diagnostics.Debug.WriteLine($"Unique cleaning requirements found: {string.Join(", ", uniqueRequirements)}");
-
-                    // Initialize filtered list (this will also set up row numbers)
+                    // Initialize filtered list
                     PerformFiltering();
                 }
                 else
@@ -417,16 +371,5 @@ namespace Surveying.ViewModels
         {
             await LoadCleaningDataFromApiAsync();
         }
-    }
-
-    /// <summary>
-    /// Extended model that includes calculated row number
-    /// </summary>
-    public class ContainerWithRepairCodesModelExtended : ContainerWithRepairCodesModel
-    {
-        public int RowNumber { get; set; }
-
-        // Override to ensure we use the container-specific requirements
-        public new string CleaningRequirementsText { get; set; } = "Not Specified";
     }
 }

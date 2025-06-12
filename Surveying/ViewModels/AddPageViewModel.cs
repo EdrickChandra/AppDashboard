@@ -2,34 +2,45 @@
 using CommunityToolkit.Mvvm.Input;
 using Surveying.Models;
 using Surveying.Services;
-using System;
 using System.Collections.ObjectModel;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Surveying.ViewModels
 {
+    // ===== MIGRATED: AddPageViewModel using simplified models =====
     public partial class AddPageViewModel : ObservableObject
     {
         private readonly IContainerApiService _containerApiService;
 
+        // ===== ORDER INFO - SIMPLIFIED (no more ID lookups!) =====
         [ObservableProperty]
-        private string orderNumber;
+        private string orderNumber = string.Empty;
 
         [ObservableProperty]
-        private long principalId;
+        private string surveyor = string.Empty;
+
+        // OLD: Had long principalId + complex lookup
+        // NEW: Direct string properties - much cleaner!
+        [ObservableProperty]
+        private string principalCode = string.Empty;
 
         [ObservableProperty]
-        private string surveyor;
+        private string principalName = string.Empty;
+
+        // OLD: Had long shipperId + complex lookup  
+        // NEW: Direct string properties - much cleaner!
+        [ObservableProperty]
+        private string shipperCode = string.Empty;
 
         [ObservableProperty]
-        private long shipperId;
+        private string shipperName = string.Empty;
+
+        // ===== CONTAINER INFO - SIMPLIFIED =====
+        [ObservableProperty]
+        private string contNumber = string.Empty;
 
         [ObservableProperty]
-        private string contNumber;
-
-        [ObservableProperty]
-        private string contNumberError;
+        private string contNumberError = string.Empty;
 
         [ObservableProperty]
         private bool isValidatingContainer;
@@ -37,6 +48,10 @@ namespace Surveying.ViewModels
         [ObservableProperty]
         private bool isContainerValid;
 
+        [ObservableProperty]
+        private string condition = string.Empty;
+
+        // ===== DATE INFO - UNCHANGED =====
         [ObservableProperty]
         private DateTime orderDate = DateTime.Today;
 
@@ -46,15 +61,21 @@ namespace Surveying.ViewModels
         [ObservableProperty]
         private DateTime pickupDate = DateTime.Today;
 
-        [ObservableProperty]
-        private string condition;
+        // ===== COLLECTIONS - SIMPLIFIED =====
+        // OLD: ObservableCollection<SurveyModel> SurveyEntries
+        // NEW: Single Order with multiple Containers
+        public Order CurrentOrder { get; set; } = new Order();
 
-        public ObservableCollection<SurveyModel> SurveyEntries { get; } = new ObservableCollection<SurveyModel>();
+        // For display in the grid - show individual containers being added
+        public ObservableCollection<Container> ContainerEntries { get; } = new ObservableCollection<Container>();
 
-        public Action<ObservableCollection<SurveyModel>> OnSubmitCompleted { get; set; }
+        // Callback when submission is complete
+        public Action<Order> OnSubmitCompleted { get; set; }
 
+        // Condition list - unchanged
         public ObservableCollection<string> ConditionList => ConditionData.ConditionList;
 
+        // ===== CONSTRUCTORS =====
         public AddPageViewModel() : this(new ContainerApiService())
         {
         }
@@ -64,16 +85,14 @@ namespace Surveying.ViewModels
             _containerApiService = containerApiService;
         }
 
+        // ===== VALIDATION - SIMPLIFIED =====
         partial void OnContNumberChanged(string value)
         {
             _ = ValidateContainerNumberAsync();
         }
 
-        // Replace the ValidateContainerNumberAsync method in AddPageViewModel.cs
-
         private async Task ValidateContainerNumberAsync()
         {
-            // Clear previous errors
             ContNumberError = string.Empty;
 
             if (string.IsNullOrWhiteSpace(ContNumber))
@@ -106,7 +125,7 @@ namespace Surveying.ViewModels
                 return;
             }
 
-            // Skip complex check digit validation - just check with API
+            // Check with API
             IsValidatingContainer = true;
             IsContainerValid = false;
             ContNumberError = "Checking container in depot...";
@@ -137,12 +156,11 @@ namespace Surveying.ViewModels
             }
         }
 
-  
-
+        // ===== ADD CONTAINER - SIMPLIFIED =====
         [RelayCommand]
-        async Task AddSurveyEntry()
+        async Task AddContainerEntry()
         {
-            // Wait for any ongoing validation to complete
+            // Wait for any ongoing validation
             if (IsValidatingContainer)
             {
                 await Application.Current.MainPage.DisplayAlert("Please Wait",
@@ -150,46 +168,102 @@ namespace Surveying.ViewModels
                 return;
             }
 
-            // Validate container number first
+            // Validate all required fields
             await ValidateContainerNumberAsync();
 
-            if (!string.IsNullOrWhiteSpace(OrderNumber) &&
-                !string.IsNullOrWhiteSpace(Surveyor) &&
-                !string.IsNullOrWhiteSpace(ContNumber) &&
-                string.IsNullOrWhiteSpace(ContNumberError) && // Make sure there's no validation error
-                !string.IsNullOrWhiteSpace(Condition))
+            if (!IsValidContainer() || !string.IsNullOrWhiteSpace(ContNumberError))
             {
-                var survey = new SurveyModel
-                {
-                    OrderNumber = OrderNumber,
-                    PrincipalId = PrincipalId,
-                    Surveyor = Surveyor,
-                    ShipperId = ShipperId,
-                    ContNumber = ContNumber,
-                    OrderDate = OrderDate,
-                    SurveyDate = SurveyDate,
-                    PickupDate = PickupDate,
-                    Condition = Condition
-                };
-
-                SurveyEntries.Add(survey);
-                ContNumber = string.Empty;
-                Condition = string.Empty;
-                OnPropertyChanged(nameof(ContNumber));
-                OnPropertyChanged(nameof(Condition));
-            }
-            else
-            {
-                // Show an error message if validation fails
                 await Application.Current.MainPage.DisplayAlert("Validation Error",
-                    "Please correct all errors before adding the entry.", "OK");
+                    "Please correct all errors before adding the container.", "OK");
+                return;
             }
+
+            // Create new container with simplified model
+            var container = new Container
+            {
+                ContNumber = ContNumber,
+                Condition = Condition,
+                ContSize = "20", // Default - could be enhanced later
+                ContType = "Tank",
+                CustomerCode = "TBD", // Will be populated from API if needed
+                DtmIn = DateTime.Now,
+
+                // Initialize statuses
+                CleaningStatus = StatusType.NotFilled,
+                RepairStatus = StatusType.NotFilled,
+                PeriodicStatus = StatusType.NotFilled,
+                SurveyStatus = StatusType.NotFilled
+            };
+
+            // Update activities
+            container.UpdateActivities();
+
+            // Add to current order
+            CurrentOrder.Containers.Add(container);
+
+            // Also add to display collection
+            ContainerEntries.Add(container);
+
+            // Clear input fields
+            ContNumber = string.Empty;
+            Condition = string.Empty;
+            OnPropertyChanged(nameof(ContNumber));
+            OnPropertyChanged(nameof(Condition));
         }
 
+        // ===== SUBMIT ORDER - SIMPLIFIED =====
         [RelayCommand]
         void Submit()
         {
-            OnSubmitCompleted?.Invoke(SurveyEntries);
+            if (!IsValidOrder())
+            {
+                return;
+            }
+
+            // Update order with current info
+            CurrentOrder.OrderNumber = OrderNumber;
+            CurrentOrder.Surveyor = Surveyor;
+            CurrentOrder.PrincipalCode = PrincipalCode;
+            CurrentOrder.PrincipalName = PrincipalName;
+            CurrentOrder.ShipperCode = ShipperCode;
+            CurrentOrder.ShipperName = ShipperName;
+            CurrentOrder.OrderDate = OrderDate;
+            CurrentOrder.SurveyDate = SurveyDate;
+            CurrentOrder.PickupDate = PickupDate;
+
+            // Invoke callback with completed order
+            OnSubmitCompleted?.Invoke(CurrentOrder);
+        }
+
+        // ===== VALIDATION HELPERS =====
+        private bool IsValidContainer()
+        {
+            return !string.IsNullOrWhiteSpace(ContNumber) &&
+                   !string.IsNullOrWhiteSpace(Condition) &&
+                   IsContainerValid;
+        }
+
+        private bool IsValidOrder()
+        {
+            if (string.IsNullOrWhiteSpace(OrderNumber))
+            {
+                Application.Current.MainPage.DisplayAlert("Validation Error", "Order number is required.", "OK");
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(Surveyor))
+            {
+                Application.Current.MainPage.DisplayAlert("Validation Error", "Surveyor is required.", "OK");
+                return false;
+            }
+
+            if (!ContainerEntries.Any())
+            {
+                Application.Current.MainPage.DisplayAlert("Validation Error", "At least one container is required.", "OK");
+                return false;
+            }
+
+            return true;
         }
     }
 }

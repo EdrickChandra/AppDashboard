@@ -1,18 +1,19 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Surveying.Models;
-using Surveying.Views;
-using System.ComponentModel;
 
 namespace Surveying.ViewModels
 {
     public partial class SurveyorViewModel : BaseViewModel
     {
-        public SurveyModel Survey { get; }
-        public ContainerDetailModel Container { get; }
+        // ===== SIMPLIFIED MODELS =====
+        // OLD: SurveyModel survey, ContainerDetailModel container
+        // NEW: Order order, Container container (unified models)
+        public Order Order { get; }
+        public Container Container { get; }
 
-        public string ContainerNumber => Container?.ContNumber ?? Survey.ContNumber;
+        public string ContainerNumber => Container.ContNumber;
 
+        // ===== SIMPLIFIED CLEANING REVIEW PROPERTIES =====
         // Checkboxes for cleaning status
         [ObservableProperty]
         private bool cleaningAccept;
@@ -23,68 +24,48 @@ namespace Surveying.ViewModels
         [ObservableProperty]
         private string cleaningRejectionRemark = "";
 
-        // Tracking if cleaning is ready for review
-        [ObservableProperty]
-        private bool cleaningReadyForReview;
+        // ===== SIMPLIFIED STATUS TRACKING =====
+        // OLD: Complex property change events and manual syncing
+        // NEW: Direct access to Container.CleaningStatus
+        public bool CleaningReadyForReview => Container.CleaningStatus == StatusType.OnReview;
 
-        // Photo upload functionality - keep using default constructor for backward compatibility
+        // ===== SIMPLIFIED PHOTO UPLOADER =====
+        // Photo upload functionality - single Photo type
         public PhotoUploadViewModel PhotoUploader { get; } = new PhotoUploadViewModel(4);
 
-        public SurveyorViewModel(SurveyModel survey, ContainerDetailModel container)
+        // ===== CONSTRUCTOR - SIMPLIFIED =====
+        // OLD: Took SurveyModel + ContainerDetailModel with complex event handling
+        // NEW: Takes Order + Container (unified models)
+        public SurveyorViewModel(Order order, Container container)
         {
-            Survey = survey;
+            Order = order;
             Container = container;
 
-            // Initialize checkbox states and review status
+            // Initialize checkbox states from container
             UpdateStateFromContainer();
 
-            if (Container != null)
-            {
-                // Subscribe to container property changes
-                Container.PropertyChanged += Container_PropertyChanged;
-            }
-            else
-            {
-                // If no container, use survey for backward compatibility
-                UpdateStateFromSurvey();
-                Survey.PropertyChanged += Survey_PropertyChanged;
-            }
+            // Subscribe to container property changes (simplified)
+            Container.PropertyChanged += Container_PropertyChanged;
         }
 
+        // ===== SIMPLIFIED STATE MANAGEMENT =====
         private void Container_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(ContainerDetailModel.CleaningStatus))
+            if (e.PropertyName == nameof(Container.CleaningStatus))
             {
                 UpdateStateFromContainer();
-            }
-        }
-
-        private void Survey_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(SurveyModel.CleaningStatus))
-            {
-                UpdateStateFromSurvey();
+                OnPropertyChanged(nameof(CleaningReadyForReview));
             }
         }
 
         private void UpdateStateFromContainer()
         {
-            if (Container == null) return;
-
-            // Update cleaning checkbox and review status
-            CleaningReadyForReview = Container.CleaningStatus == StatusType.OnReview;
+            // Update cleaning checkbox and review status directly from Container
             CleaningAccept = Container.CleaningStatus == StatusType.Finished;
             CleaningReject = Container.CleaningStatus == StatusType.Rejected;
         }
 
-        private void UpdateStateFromSurvey()
-        {
-            // Update cleaning checkbox and review status
-            CleaningReadyForReview = Survey.CleaningStatus == StatusType.OnReview;
-            CleaningAccept = Survey.CleaningStatus == StatusType.Finished;
-            CleaningReject = Survey.CleaningStatus == StatusType.Rejected;
-        }
-
+        // ===== CHECKBOX LOGIC - SIMPLIFIED =====
         partial void OnCleaningAcceptChanged(bool value)
         {
             if (value)
@@ -103,8 +84,9 @@ namespace Surveying.ViewModels
             }
         }
 
+        // ===== UI COMMANDS - SIMPLIFIED =====
         [RelayCommand]
-        async void ViewFullImage(PhotoItem photo) // Keep as PhotoItem for backward compatibility
+        async void ViewFullImage(Photo photo)  // SIMPLIFIED: Single Photo type instead of PhotoItem
         {
             if (photo != null && photo.ImageSource != null)
             {
@@ -132,28 +114,19 @@ namespace Surveying.ViewModels
                 return;
             }
 
+            // SIMPLIFIED: Direct status update (no manual syncing needed)
             if (CleaningAccept)
             {
-                if (Container != null)
-                {
-                    Container.CleaningStatus = StatusType.Finished;
-                    Container.UpdateActivities();
-                }
-                // Also update survey
-                Survey.CleaningStatus = StatusType.Finished;
+                Container.CleaningStatus = StatusType.Finished;
+                Container.UpdateActivities();
 
                 await Application.Current.MainPage.DisplayAlert("Status Updated",
                     "Cleaning has been marked as Finished.", "OK");
             }
             else if (CleaningReject)
             {
-                if (Container != null)
-                {
-                    Container.CleaningStatus = StatusType.Rejected;
-                    Container.UpdateActivities();
-                }
-                // Also update survey
-                Survey.CleaningStatus = StatusType.Rejected;
+                Container.CleaningStatus = StatusType.Rejected;
+                Container.UpdateActivities();
 
                 await Application.Current.MainPage.DisplayAlert("Status Updated",
                     "Cleaning has been rejected.", "OK");
