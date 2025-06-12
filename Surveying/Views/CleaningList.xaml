@@ -10,8 +10,9 @@
 
     <ContentPage.Resources>
         <ResourceDictionary>
-            <helpers:InverseBoolConverter x:Key="InverseBoolConverter" />
-            <helpers:FilterButtonColorConverter x:Key="FilterButtonColorConverter" />
+            <!-- ===== CONSOLIDATED CONVERTERS ===== -->
+            <helpers:UniversalBoolConverter x:Key="BoolInverse" ConversionType="Inverse"/>
+            <helpers:UniversalFilterConverter x:Key="FilterButtonColor" ConversionType="ButtonColor" ActiveColor="#FF6B35" InactiveColor="#007BFF"/>
         </ResourceDictionary>
     </ContentPage.Resources>
 
@@ -69,7 +70,7 @@
                         FontSize="14"
                         WidthRequest="80"
                         HeightRequest="36"
-                        BackgroundColor="{Binding HasActiveFilters, Converter={StaticResource FilterButtonColorConverter}}"
+                        BackgroundColor="{Binding HasActiveFilters, Converter={StaticResource FilterButtonColor}}"
                         TextColor="White"
                         CornerRadius="8"
                         Margin="5,0,0,0"
@@ -160,7 +161,7 @@
                                HorizontalOptions="Center"
                                Margin="10"
                                BackgroundColor="Transparent"
-                               IsVisible="{Binding HasError, Converter={StaticResource InverseBoolConverter}}" />
+                               IsVisible="{Binding HasError, Converter={StaticResource BoolInverse}}" />
 
             <!-- Data Grid -->
             <syncfusion:SfDataGrid x:Name="cleaningDataGrid"
@@ -174,10 +175,10 @@
                                    GridLinesVisibility="Horizontal"
                                    SortingMode="Single"
                                    Margin="10"
-                                   IsVisible="{Binding HasError, Converter={StaticResource InverseBoolConverter}}">
+                                   IsVisible="{Binding HasError, Converter={StaticResource BoolInverse}}">
 
                 <syncfusion:SfDataGrid.Columns>
-                    <!-- ✅ CLEAN SOLUTION: Row Number from ViewModel -->
+                    <!-- Row Number from ViewModel -->
                     <syncfusion:DataGridTextColumn HeaderText="#" 
                                                   MappingName="RowNumber"
                                                   Width="60"
@@ -259,7 +260,7 @@
                 BackgroundColor="#F8F9FA"
                 Padding="15,10"
                 Margin="0,2,0,0"
-                IsVisible="{Binding HasError, Converter={StaticResource InverseBoolConverter}}">
+                IsVisible="{Binding HasError, Converter={StaticResource BoolInverse}}">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />

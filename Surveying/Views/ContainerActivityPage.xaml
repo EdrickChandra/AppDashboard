@@ -1,0 +1,485 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Name="PageRoot"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:buttons="clr-namespace:Syncfusion.Maui.Buttons;assembly=Syncfusion.Maui.Buttons"
+             xmlns:syncfusion="clr-namespace:Syncfusion.Maui.ListView;assembly=Syncfusion.Maui.ListView"
+             xmlns:helpers="clr-namespace:Surveying.Helpers"
+             xmlns:local="clr-namespace:Surveying.ViewModels"
+             x:Class="Surveying.Views.ContainerActivityPage"
+             Title="{Binding PageTitle}">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <!-- ===== CONSOLIDATED CONVERTERS ===== -->
+            <!-- Boolean Converters -->
+            <helpers:UniversalBoolConverter x:Key="BoolInverse" ConversionType="Inverse"/>
+            <helpers:UniversalBoolConverter x:Key="StringNotEmpty" ConversionType="StringNotEmpty"/>
+            <helpers:UniversalBoolConverter x:Key="StringEmpty" ConversionType="StringEmpty"/>
+            <helpers:UniversalBoolConverter x:Key="ZeroToTrue" ConversionType="ZeroToTrue"/>
+            <helpers:UniversalBoolConverter x:Key="GreaterThanOne" ConversionType="GreaterThanOne"/>
+
+            <!-- Numeric Converters -->
+            <helpers:UniversalNumericConverter x:Key="PhotoCount" ConversionType="PhotoCount"/>
+            <helpers:UniversalNumericConverter x:Key="CountGreaterThanOne" ConversionType="GreaterThan" ComparisonValue="1"/>
+
+            <!-- Status Converters -->
+            <helpers:UniversalStatusConverter x:Key="StatusText" ConversionType="Text"/>
+            <helpers:UniversalStatusConverter x:Key="StatusColor" ConversionType="Color"/>
+            <helpers:UniversalStatusConverter x:Key="StatusColorHex" ConversionType="ColorHex"/>
+
+            <!-- Activity Converters -->
+            <helpers:UniversalActivityConverter x:Key="ActivityShowEndDate" ConversionType="ShowEndDate"/>
+            <helpers:UniversalActivityConverter x:Key="ActivitySubmitButton" ConversionType="SubmitButtonText"/>
+
+            <!-- Other Converters -->
+            <helpers:UniversalOpacityConverter x:Key="BoolToOpacity" EnabledOpacity="1.0" DisabledOpacity="0.3"/>
+
+            <!-- Activity-specific templates -->
+            <DataTemplate x:Key="CleaningTemplate">
+                <StackLayout Spacing="15">
+                    <!-- Cleaning-specific UI -->
+                    <Frame Padding="15" BorderColor="#007BFF" CornerRadius="8" BackgroundColor="Transparent">
+                        <VerticalStackLayout Spacing="15">
+                            <HorizontalStackLayout Spacing="15" HorizontalOptions="FillAndExpand">
+                                <Label Text="Cleaning Code" 
+                                       FontAttributes="Bold" 
+                                       FontSize="16"
+                                       HorizontalOptions="StartAndExpand" />
+
+                                <Button Text="Refresh" 
+                                        Command="{Binding RefreshActivityDataCommand}"
+                                        BackgroundColor="#6C757D"
+                                        TextColor="White"
+                                        FontSize="12"
+                                        HeightRequest="32"
+                                        WidthRequest="80"
+                                        HorizontalOptions="End"
+                                        CornerRadius="4" />
+                            </HorizontalStackLayout>
+
+                            <!-- Loading indicator -->
+                            <ActivityIndicator IsRunning="{Binding IsLoadingData}" 
+                                             IsVisible="{Binding IsLoadingData}"
+                                             Color="#007BFF" />
+
+                            <Label Text="{Binding LoadingMessage}" 
+                                   IsVisible="{Binding IsLoadingData}"
+                                   HorizontalTextAlignment="Center"
+                                   TextColor="Gray" />
+
+                            <!-- Debug info button (remove in production) -->
+                            <Button Text="Show Debug Info" 
+                                    Command="{Binding ShowDebugDetailsCommand}"
+                                    IsVisible="{Binding ShowDebugInfo}"
+                                    BackgroundColor="#FFC107"
+                                    TextColor="#212529"
+                                    FontSize="10"
+                                    HeightRequest="28"
+                                    WidthRequest="120"
+                                    HorizontalOptions="Center" />
+
+                            <!-- Cleaning code display -->
+                            <VerticalStackLayout IsVisible="{Binding IsLoadingData, Converter={StaticResource BoolInverse}}"
+                                               Spacing="5">
+
+                                <!-- Show message if no cleaning code -->
+                                <Label Text="No specific cleaning code found. Standard cleaning procedures apply." 
+                                       IsVisible="{Binding CleaningRequirements.Count, Converter={StaticResource ZeroToTrue}}"
+                                       TextColor="Gray"
+                                       FontAttributes="Italic"
+                                       HorizontalTextAlignment="Center"
+                                       Margin="10,20" />
+
+                                <!-- Single cleaning code display -->
+                                <VerticalStackLayout IsVisible="{Binding HasActivityData}"
+                                                   Spacing="10"
+                                                   Margin="0,10">
+
+                                    <!-- Cleaning Code -->
+                                    <Label FontSize="16" FontAttributes="Bold" HorizontalTextAlignment="Center">
+                                        <Label.FormattedText>
+                                            <FormattedString>
+                                                <Span Text="YXT • 1101 • APNN" 
+                                                      FontAttributes="Bold"
+                                                      TextColor="#007BFF" />
+                                            </FormattedString>
+                                        </Label.FormattedText>
+                                    </Label>
+
+                                    <!-- Description -->
+                                    <Label Text="EXTERIOR CLEANING - WATER WASH" 
+                                           FontSize="14"
+                                           TextColor="#6C757D"
+                                           HorizontalTextAlignment="Center"
+                                           FontAttributes="Italic" />
+
+                                    <!-- Details -->
+                                    <Label Text="TANK SHELL EXTERIOR / DIRTY - 1X WATER WASH" 
+                                           FontSize="12"
+                                           TextColor="#495057"
+                                           HorizontalTextAlignment="Center"
+                                           LineBreakMode="WordWrap" />
+
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Frame>
+                </StackLayout>
+            </DataTemplate>
+
+            <DataTemplate x:Key="RepairTemplate">
+                <StackLayout Spacing="15">
+                    <!-- Repair-specific UI -->
+                    <Frame Padding="15" BorderColor="LightGray" CornerRadius="8" BackgroundColor="Transparent">
+                        <VerticalStackLayout Spacing="15">
+                            <!-- Loading indicator for repair codes -->
+                            <ActivityIndicator IsRunning="{Binding IsLoadingData}" 
+                                             IsVisible="{Binding IsLoadingData}"
+                                             Color="#6200EE" />
+
+                            <Label Text="{Binding LoadingMessage}" 
+                                   IsVisible="{Binding IsLoadingData}"
+                                   HorizontalTextAlignment="Center"
+                                   TextColor="Gray" />
+
+                            <!-- Repair codes list -->
+                            <VerticalStackLayout IsVisible="{Binding IsLoadingData, Converter={StaticResource BoolInverse}}"
+                                               Spacing="5">
+                                <Label Text="Repair needed:" FontAttributes="Bold" />
+
+                                <!-- Show message if no repair codes -->
+                                <Label Text="No repair codes found for this container." 
+                                       IsVisible="{Binding RepairCodes.Count, Converter={StaticResource ZeroToTrue}}"
+                                       TextColor="Gray"
+                                       Margin="10,0,0,0" />
+
+                                <!-- Repair codes display -->
+                                <VerticalStackLayout BindableLayout.ItemsSource="{Binding RepairCodes}"
+                                                   Margin="10,0,0,0">
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate>
+                                            <Frame Padding="12" 
+                                                   Margin="0,4" 
+                                                   BorderColor="{Binding StatusColorHex}"
+                                                   BackgroundColor="#F8F8F8"
+                                                   CornerRadius="8"
+                                                   Opacity="{Binding Source={x:Reference PageRoot}, Path=BindingContext.IsActivityApproved, Converter={StaticResource BoolToOpacity}}">
+                                                <VerticalStackLayout Spacing="8">
+                                                    <Label Text="{Binding FormattedCode}" 
+                                                           FontAttributes="Bold" />
+                                                    <Label Text="{Binding FormattedComponent}" />
+                                                    <Label Text="{Binding FullDescription}" 
+                                                           FontSize="12"
+                                                           TextColor="Gray" />
+                                                </VerticalStackLayout>
+                                            </Frame>
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Frame>
+                </StackLayout>
+            </DataTemplate>
+
+            <DataTemplate x:Key="PeriodicTemplate">
+                <StackLayout Spacing="15">
+                    <!-- Periodic-specific UI -->
+                    <Frame Padding="15" BorderColor="LightGray" CornerRadius="8" BackgroundColor="Transparent">
+                        <VerticalStackLayout Spacing="15">
+                            <Label Text="Periodic Test : 2,5 Year"/>
+                            <Label Text="Inspection Date:" FontAttributes="Bold" />
+                            <DatePicker Date="{Binding ActivityDate}" />
+                            <Label Text="Next Due:" FontAttributes="Bold" />
+                            <DatePicker Date="{Binding EndDate}" />
+                        </VerticalStackLayout>
+                    </Frame>
+                </StackLayout>
+            </DataTemplate>
+
+            <DataTemplate x:Key="SurveyTemplate">
+                <StackLayout Spacing="15">
+                    <!-- Survey-specific UI -->
+                    <Frame Padding="15" BorderColor="#DDDDDD" CornerRadius="8" BackgroundColor="White">
+                        <VerticalStackLayout Spacing="10">
+                            <Label Text="Activity Review" FontAttributes="Bold" FontSize="16"/>
+
+                            <!-- Status indicator -->
+                            <HorizontalStackLayout Spacing="10">
+                                <Label Text="Status:" FontAttributes="Bold" VerticalOptions="Center"/>
+                                <Border Padding="8,3" 
+                                        BackgroundColor="{Binding Container.CleaningStatus, Converter={StaticResource StatusColor}}"
+                                        StrokeShape="RoundRectangle 4,4,4,4"
+                                        StrokeThickness="0"
+                                        HorizontalOptions="Start"
+                                        VerticalOptions="Center">
+                                    <Label Text="{Binding Container.CleaningStatus, Converter={StaticResource StatusText}}" 
+                                           TextColor="White" 
+                                           FontSize="14"
+                                           HorizontalOptions="Center"
+                                           VerticalOptions="Center"/>
+                                </Border>
+                            </HorizontalStackLayout>
+
+                            <!-- Controls for reviewer -->
+                            <VerticalStackLayout IsVisible="{Binding CanReviewActivity}" Spacing="10" Margin="0,10,0,0">
+                                <HorizontalStackLayout Spacing="15">
+                                    <Label Text="Review Decision:" VerticalOptions="Center"/>
+
+                                    <buttons:SfCheckBox IsChecked="{Binding ActivityAccept, Mode=TwoWay}"
+                                                       Text="Finish" VerticalOptions="Center"/>
+
+                                    <buttons:SfCheckBox IsChecked="{Binding ActivityReject, Mode=TwoWay}"
+                                                       Text="Reject" VerticalOptions="Center"/>
+                                </HorizontalStackLayout>
+
+                                <VerticalStackLayout IsVisible="{Binding ActivityReject}" Padding="10,5,0,0">
+                                    <Label Text="Enter Rejection Reason:" />
+                                    <Entry Text="{Binding RejectionRemark}" 
+                                           Placeholder="Type your remark here..." 
+                                           HeightRequest="40"
+                                           Margin="0,5,0,0"/>
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+
+                            <!-- Message when not ready for review -->
+                            <Label Text="Activity data has not been submitted yet. No action required." 
+                                   IsVisible="{Binding CanReviewActivity, Converter={StaticResource BoolInverse}}"
+                                   TextColor="Gray" />
+                        </VerticalStackLayout>
+                    </Frame>
+                </StackLayout>
+            </DataTemplate>
+
+            <!-- Template selector -->
+            <local:ActivityTemplateSelector x:Key="ActivityTemplateSelector"
+                                           CleaningTemplate="{StaticResource CleaningTemplate}"
+                                           RepairTemplate="{StaticResource RepairTemplate}"
+                                           PeriodicTemplate="{StaticResource PeriodicTemplate}"
+                                           SurveyTemplate="{StaticResource SurveyTemplate}" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="20">
+
+            <!-- Container Info Header -->
+            <Frame Padding="15" Margin="0,0,0,10" BorderColor="LightGray" CornerRadius="8" BackgroundColor="Transparent">
+                <VerticalStackLayout Spacing="15">
+                    <HorizontalStackLayout Spacing="15" HorizontalOptions="FillAndExpand">
+                        <Label Text="{Binding ContainerNumber, StringFormat='Tank No: {0}'}"
+                               FontAttributes="Bold"
+                               FontSize="18"
+                               HorizontalOptions="StartAndExpand" />
+
+                        <!-- Approval Status Badge -->
+                        <Border Padding="8,4" 
+                                BackgroundColor="{Binding ApprovalStatusColor}"
+                                StrokeShape="RoundRectangle 12,12,12,12"
+                                StrokeThickness="0"
+                                HorizontalOptions="End"
+                                VerticalOptions="Center">
+                            <Label Text="{Binding ApprovalStatus}" 
+                                   TextColor="White" 
+                                   FontSize="12"
+                                   FontAttributes="Bold"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center" />
+                        </Border>
+                    </HorizontalStackLayout>
+
+                    <!-- Approval Details (shown when approved) -->
+                    <VerticalStackLayout IsVisible="{Binding ShowApprovalInfo}" Spacing="5">
+                        <Label Text="{Binding ApprovalDate, StringFormat='Approved on: {0:dd/MM/yyyy HH:mm}'}" 
+                               FontSize="12" 
+                               TextColor="Green" />
+                        <Label Text="{Binding ApprovedBy, StringFormat='Approved by: {0}'}" 
+                               FontSize="12" 
+                               TextColor="Green"
+                               IsVisible="{Binding ApprovedBy, Converter={StaticResource StringNotEmpty}}" />
+                    </VerticalStackLayout>
+
+                    <!-- Date fields (activity and end date) -->
+                    <HorizontalStackLayout Spacing="10">
+                        <Label Text="Start Date:" VerticalOptions="Center" />
+                        <DatePicker Date="{Binding ActivityDate}" />
+                    </HorizontalStackLayout>
+
+                    <HorizontalStackLayout Spacing="10" IsVisible="{Binding ActivityType, Converter={StaticResource ActivityShowEndDate}}">
+                        <Label Text="End Date:" VerticalOptions="Center" />
+                        <DatePicker Date="{Binding EndDate}" />
+                    </HorizontalStackLayout>
+
+                    <!-- Activity Description -->
+                    <Label Text="{Binding ActivityDescription}" 
+                           FontSize="14"
+                           TextColor="#666666"
+                           LineBreakMode="WordWrap"
+                           IsVisible="{Binding ActivityDescription, Converter={StaticResource StringNotEmpty}}" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Activity-Specific Content using DataTemplateSelector -->
+            <ContentView Content="{Binding .}" 
+                        ContentTemplate="{StaticResource ActivityTemplateSelector}" />
+
+            <!-- Photo Section with Segmented Control -->
+            <Frame Padding="15" BorderColor="LightGray" CornerRadius="8">
+                <VerticalStackLayout Spacing="15">
+                    <Label Text="Photo Documentation" FontAttributes="Bold" FontSize="16" />
+
+                    <!-- Segmented Control for Photo Categories (only if multiple segments) -->
+                    <buttons:SfSegmentedControl x:Name="photoSegmentControl"
+                                               ItemsSource="{Binding PhotoSegments}"
+                                               SelectedIndex="{Binding SelectedSegmentIndex, Mode=TwoWay}"
+                                               HeightRequest="40"
+                                               CornerRadius="8"
+                                               IsVisible="{Binding PhotoSegments.Count, Converter={StaticResource GreaterThanOne}}">
+                        <buttons:SfSegmentedControl.TextStyle>
+                            <buttons:SegmentTextStyle FontSize="12" />
+                        </buttons:SfSegmentedControl.TextStyle>
+                    </buttons:SfSegmentedControl>
+
+                    <!-- Upload button -->
+                    <Button Text="{Binding CurrentSegmentPhotos.Count, StringFormat='Upload Photo for {Binding CurrentSegmentLabel} ({0}/{Binding MaxAllowedPhotos})'}"
+                            Command="{Binding UploadPhotoAsyncCommand}"
+                            WidthRequest="300"
+                            HorizontalOptions="Center"
+                            BackgroundColor="#007BFF"
+                            IsEnabled="{Binding IsActivityApproved}" />
+
+                    <!-- Loading indicator -->
+                    <ActivityIndicator IsRunning="{Binding IsUploading}" 
+                                     IsVisible="{Binding IsUploading}"
+                                     Color="#007BFF" />
+
+                    <Label Text="{Binding UploadStatusMessage}" 
+                           IsVisible="{Binding UploadStatusMessage, Converter={StaticResource StringNotEmpty}}"
+                           HorizontalTextAlignment="Center"
+                           TextColor="Gray" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Photo Gallery for Current Segment -->
+            <syncfusion:SfListView ItemsSource="{Binding CurrentSegmentPhotos}"
+                                   HeightRequest="400"
+                                   SelectionMode="None"
+                                   AllowSwiping="False"
+                                   ItemSize="215">
+                <syncfusion:SfListView.ItemsLayout>
+                    <syncfusion:GridLayout SpanCount="{Binding PhotoColumnCount}" />
+                </syncfusion:SfListView.ItemsLayout>
+
+                <syncfusion:SfListView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Margin="5">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="150" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <!-- Image in square format -->
+                            <Border Grid.Row="0"
+                                    Stroke="LightGray" 
+                                    StrokeThickness="1"
+                                    BackgroundColor="White">
+                                <Image Source="{Binding ImageSource}"
+                                       Aspect="AspectFill"
+                                       HorizontalOptions="Fill"
+                                       VerticalOptions="Fill">
+                                    <Image.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.ViewFullImageCommand}"
+                                                              CommandParameter="{Binding .}" />
+                                    </Image.GestureRecognizers>
+                                </Image>
+                            </Border>
+
+                            <!-- Segment label -->
+                            <Label Grid.Row="1"
+                                   Text="{Binding Segment}"
+                                   FontSize="12"
+                                   FontAttributes="Bold"
+                                   HorizontalTextAlignment="Center"
+                                   Margin="2"
+                                   TextColor="#007BFF" />
+
+                            <!-- Delete button -->
+                            <Button Grid.Row="2"
+                                    Text="Delete"
+                                    BackgroundColor="#FF4444"
+                                    TextColor="White"
+                                    FontSize="12"
+                                    HeightRequest="30"
+                                    Margin="2"
+                                    IsEnabled="{Binding Source={x:Reference PageRoot}, Path=BindingContext.IsActivityApproved}"
+                                    Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.DeletePhotoCommand}"
+                                    CommandParameter="{Binding .}" />
+                        </Grid>
+                    </DataTemplate>
+                </syncfusion:SfListView.ItemTemplate>
+            </syncfusion:SfListView>
+
+            <!-- Summary of all segments (for multi-segment activities) -->
+            <Frame Padding="10" 
+                   BorderColor="LightBlue" 
+                   CornerRadius="8" 
+                   BackgroundColor="#F0F8FF"
+                   IsVisible="{Binding PhotoSegments.Count, Converter={StaticResource GreaterThanOne}}">
+                <VerticalStackLayout Spacing="5">
+                    <Label Text="Photo Summary" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+                    <StackLayout BindableLayout.ItemsSource="{Binding PhotoSegments}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate>
+                                <HorizontalStackLayout Spacing="10" Margin="0,2">
+                                    <Label Text="{Binding .}" 
+                                           WidthRequest="120" 
+                                           FontSize="12" />
+                                    <Label Text="{Binding Source={x:Reference PageRoot}, Path=BindingContext, Converter={StaticResource PhotoCount}, ConverterParameter={Binding .}}"
+                                           FontSize="12"
+                                           TextColor="Green" />
+                                </HorizontalStackLayout>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </StackLayout>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Approval Required Message (for activities that need approval) -->
+            <Frame Padding="15" 
+                   Margin="0,0,0,10" 
+                   BorderColor="#FFC107" 
+                   BackgroundColor="#FFF3CD"     
+                   CornerRadius="8"
+                   IsVisible="{Binding IsActivityApproved, Converter={StaticResource BoolInverse}}">
+                <VerticalStackLayout Spacing="10">
+                    <HorizontalStackLayout Spacing="10">
+                        <Label Text="⚠️" FontSize="20" VerticalOptions="Center" />
+                        <VerticalStackLayout HorizontalOptions="FillAndExpand">
+                            <Label Text="Approval Required" 
+                                   FontSize="16" 
+                                   FontAttributes="Bold"
+                                   TextColor="#856404" />
+                            <Label Text="This activity must be approved before you can make changes or submit data." 
+                                   FontSize="12"
+                                   TextColor="#856404"
+                                   LineBreakMode="WordWrap" />
+                        </VerticalStackLayout>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Submit Button -->
+            <Button Text="{Binding ActivityType, Converter={StaticResource ActivitySubmitButton}}"
+                    Command="{Binding SubmitActivityCommand}"
+                    WidthRequest="300"
+                    HorizontalOptions="Center"
+                    BackgroundColor="#28A745"
+                    TextColor="White"
+                    CornerRadius="8"
+                    Margin="0,10,0,20" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

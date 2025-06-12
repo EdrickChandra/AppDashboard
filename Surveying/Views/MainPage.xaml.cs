@@ -65,83 +65,18 @@ namespace Surveying.Views
                 }
             }
         }
-
         private async void OnAddSurveyClicked(object sender, EventArgs e)
         {
-            await Navigation.PushAsync(new AddPage((surveyEntries) =>
+            await Navigation.PushAsync(new AddPage((newOrder) =>
             {
-                // First add all new surveys to DummyData
-                foreach (var survey in surveyEntries)
+                // Add the new order to the ViewModel
+                _viewModel.AddOrder(newOrder);
+
+                // Navigate back
+                Device.BeginInvokeOnMainThread(async () =>
                 {
-                    // Add the container to DummyData if it doesn't exist
-                    if (!DummyData.Containers.Any(c => c.ContNumber == survey.ContNumber))
-                    {
-                        // Extract size and type from the survey or use defaults
-                        var newContainer = new ContModel
-                        {
-                            ContNumber = survey.ContNumber,
-                            ContSize = "20", // Default size, you might want to add this to AddPage
-                            ContType = "Tank" // Default type, you might want to add this to AddPage
-                        };
-                        DummyData.Containers.Add(newContainer);
-                    }
-
-                    // Add the survey to DummyData
-                    DummyData.Surveys.Add(survey);
-                }
-
-                // We need to handle adding new surveys differently now
-                // Group them by order number and add to OrderGroups
-                var newOrderNumbers = surveyEntries.Select(s => s.OrderNumber).Distinct();
-
-                foreach (var orderNumber in newOrderNumbers)
-                {
-                    var surveysForOrder = surveyEntries.Where(s => s.OrderNumber == orderNumber).ToList();
-                    if (surveysForOrder.Any())
-                    {
-                        var firstSurvey = surveysForOrder.First();
-                        var orderGroup = new SurveyModel
-                        {
-                            OrderNumber = orderNumber,
-                            PrincipalId = firstSurvey.PrincipalId,
-                            Surveyor = firstSurvey.Surveyor,
-                            ShipperId = firstSurvey.ShipperId,
-                            OrderDate = firstSurvey.OrderDate,
-                            SurveyDate = firstSurvey.SurveyDate,
-                            PickupDate = firstSurvey.PickupDate,
-                            Containers = new ObservableCollection<ContainerDetailModel>()
-                        };
-
-                        foreach (var survey in surveysForOrder)
-                        {
-                            var containerInfo = DummyData.Containers.FirstOrDefault(c => c.ContNumber == survey.ContNumber);
-                            if (containerInfo != null)
-                            {
-                                var containerDetail = new ContainerDetailModel
-                                {
-                                    ContNumber = survey.ContNumber,
-                                    ContSize = containerInfo.ContSize,
-                                    ContType = containerInfo.ContType,
-                                    Condition = survey.Condition,
-                                    CleaningStatus = survey.CleaningStatus,
-                                    RepairStatus = survey.RepairStatus,
-                                    PeriodicStatus = survey.PeriodicStatus,
-                                    SurveyStatus = survey.SurveyStatus
-                                };
-
-                                // Initialize activities using UpdateActivities method
-                                containerDetail.UpdateActivities();
-
-                                orderGroup.Containers.Add(containerDetail);
-                            }
-                        }
-
-                        _viewModel.OrderGroups.Add(orderGroup);
-                    }
-                }
-
-                // Refresh the filtered list
-                _viewModel.UpdateFilteredSurveyList();
+                    await Navigation.PopAsync();
+                });
             }));
         }
 
@@ -163,6 +98,8 @@ namespace Surveying.Views
             }
         }
 
+        // Updated NavigateToPage method in MainPage.xaml.cs
+
         private async void NavigateToPage(object sender, EventArgs e)
         {
             if (sender is Button button)
@@ -175,18 +112,20 @@ namespace Surveying.Views
                 }
 
                 // Find the container from the button context
-                ContainerDetailModel container = null;
+                Container container = null;
+                Order order = null;
 
-                if (button.BindingContext is ActivityModel activity)
+                if (button.BindingContext is Activity activity)
                 {
                     // Find the container that contains this activity
-                    foreach (var surveyItem in _viewModel.OrderGroups)
+                    foreach (var orderItem in _viewModel.Orders)
                     {
-                        foreach (var cont in surveyItem.Containers)
+                        foreach (var cont in orderItem.Containers)
                         {
                             if (cont.Activities.Contains(activity))
                             {
                                 container = cont;
+                                order = orderItem;
                                 break;
                             }
                         }
@@ -195,53 +134,62 @@ namespace Surveying.Views
                             break;
                     }
                 }
-                else if (button.BindingContext is ContainerDetailModel directContainer)
+                else if (button.BindingContext is Container directContainer)
                 {
                     container = directContainer;
+                    // Find the order that contains this container
+                    order = _viewModel.Orders.FirstOrDefault(o => o.Containers.Contains(container));
                 }
 
-                if (container == null)
+                if (container == null || order == null)
                 {
-                    await DisplayAlert("Error", "Cannot find the container for this action.", "OK");
+                    await DisplayAlert("Error", "Cannot find the container or order for this action.", "OK");
                     return;
                 }
 
-                // Find the survey that contains this container
-                var survey = _viewModel.OrderGroups.FirstOrDefault(s =>
-                    s.Containers.Contains(container));
+                // ===== NEW UNIFIED NAVIGATION =====
+                // Instead of separate pages, use one ContainerActivityPage with different ActivityTypes
 
-                if (survey == null)
+                try
                 {
-                    await DisplayAlert("Error", "Cannot find the survey for this container.", "OK");
-                    return;
+                    Page destinationPage = null;
+                    ActivityType activityType;
+
+                    switch (pageType)
+                    {
+                        case "Cleaning":
+                            activityType = ActivityType.Cleaning;
+                            destinationPage = new ContainerActivityPage(order, container, activityType);
+                            break;
+                        case "Repair":
+                            activityType = ActivityType.Repair;
+                            destinationPage = new ContainerActivityPage(order, container, activityType);
+                            break;
+                        case "Periodic":
+                            activityType = ActivityType.Periodic;
+                            destinationPage = new ContainerActivityPage(order, container, activityType);
+                            break;
+                        case "Survey":
+                            activityType = ActivityType.Survey;
+                            destinationPage = new ContainerActivityPage(order, container, activityType);
+                            break;
+                        default:
+                            await DisplayAlert("Error", $"Unknown activity type: {pageType}", "OK");
+                            return;
+                    }
+
+                    if (destinationPage != null)
+                    {
+                        await Navigation.PushAsync(destinationPage);
+                        System.Diagnostics.Debug.WriteLine($"Successfully navigated to {pageType} for container {container.ContNumber}");
+                    }
                 }
-
-                _viewModel.SelectedSurvey = survey;
-
-                // Navigate to the appropriate page - passing BOTH survey and container
-                Page destinationPage = null;
-
-                switch (pageType)
+                catch (Exception ex)
                 {
-                    case "Cleaning":
-                        destinationPage = new Cleaning(survey, container);
-                        break;
-                    case "Repair":
-                        destinationPage = new Repair(survey, container);
-                        break;
-                    case "Periodic":
-                        destinationPage = new Periodic(survey, container);
-                        break;
-                    case "Survey":
-                        destinationPage = new Survey(survey, container);
-                        break;
-                }
-
-                if (destinationPage != null)
-                {
-                    await Navigation.PushAsync(destinationPage);
+                    System.Diagnostics.Debug.WriteLine($"Navigation error: {ex.Message}");
+                    await DisplayAlert("Navigation Error", $"Failed to open {pageType} page: {ex.Message}", "OK");
                 }
             }
         }
-    }
-}
+
+        

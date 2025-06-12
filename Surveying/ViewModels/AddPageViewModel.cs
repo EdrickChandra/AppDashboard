@@ -5,30 +5,24 @@ using Surveying.Services;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 
-namespace Surveying.ViewModels
-{
-    // ===== MIGRATED: AddPageViewModel using simplified models =====
+namespace Surveying.ViewModels;
+
     public partial class AddPageViewModel : ObservableObject
     {
         private readonly IContainerApiService _containerApiService;
 
-        // ===== ORDER INFO - SIMPLIFIED (no more ID lookups!) =====
         [ObservableProperty]
         private string orderNumber = string.Empty;
 
         [ObservableProperty]
         private string surveyor = string.Empty;
 
-        // OLD: Had long principalId + complex lookup
-        // NEW: Direct string properties - much cleaner!
         [ObservableProperty]
         private string principalCode = string.Empty;
 
         [ObservableProperty]
         private string principalName = string.Empty;
 
-        // OLD: Had long shipperId + complex lookup  
-        // NEW: Direct string properties - much cleaner!
         [ObservableProperty]
         private string shipperCode = string.Empty;
 
@@ -61,9 +55,7 @@ namespace Surveying.ViewModels
         [ObservableProperty]
         private DateTime pickupDate = DateTime.Today;
 
-        // ===== COLLECTIONS - SIMPLIFIED =====
-        // OLD: ObservableCollection<SurveyModel> SurveyEntries
-        // NEW: Single Order with multiple Containers
+        /
         public Order CurrentOrder { get; set; } = new Order();
 
         // For display in the grid - show individual containers being added

@@ -14,11 +14,15 @@
         Title="Survey List">
 
     <ContentPage.BindingContext>
-        <local:SurveyListViewModel/>
+        <local:OrderListViewModel/>
     </ContentPage.BindingContext>
 
     <ContentPage.Resources>
         <ResourceDictionary>
+            <!-- ===== CONSOLIDATED CONVERTERS ===== -->
+            <helpers:UniversalStatusConverter x:Key="StatusText" ConversionType="Text"/>
+            <helpers:UniversalStatusConverter x:Key="StatusColor" ConversionType="Color"/>
+
             <!-- Styles for different screen sizes -->
             <Style x:Key="MobileHeaderStyle" TargetType="Label">
                 <Setter Property="FontSize" Value="14" />
@@ -90,10 +94,6 @@
                     </VisualStateGroupList>
                 </Setter>
             </Style>
-
-            <!-- Converters for status display -->
-            <helpers:StatusTypeToStringConverter x:Key="StatusConverter" />
-            <helpers:StatusTypeToColorConverter x:Key="StatusColorConverter" />
         </ResourceDictionary>
     </ContentPage.Resources>
 
@@ -123,7 +123,7 @@
             <!-- Standard View (Desktop/Tablet) - Centered -->
             <syncfusion:SfDataGrid Grid.Column="1"
                                    x:Name="dataGrid"
-                                   ItemsSource="{Binding OrderGroups}"
+                                   ItemsSource="{Binding Orders}"
                                    AutoGenerateColumnsMode="None"
                                    ColumnWidthMode="Auto"
                                    SelectionMode="Single"
@@ -172,22 +172,22 @@
                                                                   ColumnWidthMode="Auto"
                                                                   GridLinesVisibility="Both">
                                                 <syncfusion:SfDataGrid.Columns>
-                                                    <syncfusion:DataGridTextColumn HeaderText="Activity" MappingName="ActivityName" />
+                                                    <syncfusion:DataGridTextColumn HeaderText="Activity" MappingName="Name" />
                                                     <syncfusion:DataGridTemplateColumn HeaderText="Status" MappingName="Status">
                                                         <syncfusion:DataGridTemplateColumn.CellTemplate>
                                                             <DataTemplate>
-                                                                <Label Text="{Binding Status, Converter={StaticResource StatusConverter}}" 
+                                                                <Label Text="{Binding Status, Converter={StaticResource StatusText}}" 
                                                                        Style="{StaticResource StatusLabelStyle}"
-                                                                       BackgroundColor="{Binding Status, Converter={StaticResource StatusColorConverter}}"
+                                                                       BackgroundColor="{Binding Status, Converter={StaticResource StatusColor}}"
                                                                        TextColor="White" />
                                                             </DataTemplate>
                                                         </syncfusion:DataGridTemplateColumn.CellTemplate>
                                                     </syncfusion:DataGridTemplateColumn>
-                                                    <syncfusion:DataGridTemplateColumn HeaderText="Action" MappingName="ActivityType">
+                                                    <syncfusion:DataGridTemplateColumn HeaderText="Action" MappingName="Type">
                                                         <syncfusion:DataGridTemplateColumn.CellTemplate>
                                                             <DataTemplate>
-                                                                <Button Text="{Binding ActivityType, StringFormat='Go to {0}'}" 
-                                                                        CommandParameter="{Binding ActivityType}"
+                                                                <Button Text="{Binding Type, StringFormat='Go to {0}'}" 
+                                                                        CommandParameter="{Binding Type}"
                                                                         Clicked="NavigateToPage" />
                                                             </DataTemplate>
                                                         </syncfusion:DataGridTemplateColumn.CellTemplate>
@@ -208,8 +208,8 @@
                        x:Name="mobileScrollView"
                        IsVisible="{Binding IsMobileMode}">
                 <StackLayout Padding="5" Spacing="5">
-                    <!-- Order Expander items - generated from OrderGroups -->
-                    <StackLayout BindableLayout.ItemsSource="{Binding OrderGroups}">
+                    <!-- Order Expander items - generated from Orders -->
+                    <StackLayout BindableLayout.ItemsSource="{Binding Orders}">
                         <BindableLayout.ItemTemplate>
                             <DataTemplate>
                                 <!-- Each order is in a border with rounded corners -->
@@ -232,7 +232,7 @@
                                                 </StackLayout>
 
                                                 <Label Grid.Column="1" 
-                                                       Text="{Binding Containers.Count, StringFormat='{0} containers'}" 
+                                                       Text="{Binding ContainerSummary}" 
                                                        Style="{StaticResource MobileCellStyle}"
                                                        HorizontalOptions="End" />
                                             </Grid>
@@ -313,15 +313,15 @@
                                                                                 <BindableLayout.ItemTemplate>
                                                                                     <DataTemplate>
                                                                                         <Grid ColumnDefinitions="*,Auto,Auto" Padding="0,5" Margin="0,2" BackgroundColor="#FAFAFA">
-                                                                                            <Label Text="{Binding ActivityName}" 
+                                                                                            <Label Text="{Binding Name}" 
                                                                                                    Grid.Column="0"
                                                                                                    Style="{StaticResource MobileCellStyle}"
                                                                                                    VerticalOptions="Center" />
 
-                                                                                            <Label Text="{Binding Status, Converter={StaticResource StatusConverter}}" 
+                                                                                            <Label Text="{Binding Status, Converter={StaticResource StatusText}}" 
                                                                                                    Grid.Column="1"
                                                                                                    Style="{StaticResource StatusLabelStyle}"
-                                                                                                   BackgroundColor="{Binding Status, Converter={StaticResource StatusColorConverter}}"
+                                                                                                   BackgroundColor="{Binding Status, Converter={StaticResource StatusColor}}"
                                                                                                    TextColor="White"
                                                                                                    Margin="5,0"
                                                                                                    WidthRequest="80"
@@ -330,7 +330,7 @@
                                                                                             <Button Text="Go" 
                                                                                                     Grid.Column="2"
                                                                                                     Style="{StaticResource MobileButtonStyle}"
-                                                                                                    CommandParameter="{Binding ActivityType}"
+                                                                                                    CommandParameter="{Binding Type}"
                                                                                                     Clicked="NavigateToPage"
                                                                                                     WidthRequest="60" />
                                                                                         </Grid>
