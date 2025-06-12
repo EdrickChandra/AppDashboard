@@ -21,6 +21,16 @@ namespace Surveying.ViewModels
         [ObservableProperty]
         private string customerSearchText = "";
 
+        // NEW: Cleaning requirements filtering
+        [ObservableProperty]
+        private ObservableCollection<CleaningRequirementFilterItem> availableCleaningRequirements = new();
+
+        [ObservableProperty]
+        private ObservableCollection<CleaningRequirementFilterItem> filteredCleaningRequirements = new();
+
+        [ObservableProperty]
+        private string cleaningRequirementsSearchText = "";
+
         // Status filtering
         [ObservableProperty]
         private bool showPendingStatus = true;
@@ -28,9 +38,9 @@ namespace Surveying.ViewModels
         [ObservableProperty]
         private bool showApprovedStatus = true;
 
-        // Cleaning required filtering
+        // Display options
         [ObservableProperty]
-        private bool showCleaningRequired = true;
+        private bool showAllCleaningContainers = true;
 
         // UI properties
         [ObservableProperty]
@@ -40,7 +50,10 @@ namespace Surveying.ViewModels
         [ObservableProperty]
         private string cleaningCriteriaText = "YXT • 1101 • APNN"; // Default fallback
 
-        public FilterPopupViewModel(List<CustomerFilterItem> customers, FilterResult currentFilters = null, string cleaningCriteria = null)
+        public FilterPopupViewModel(List<CustomerFilterItem> customers,
+                                  List<CleaningRequirementFilterItem> cleaningRequirements = null,
+                                  FilterResult currentFilters = null,
+                                  string cleaningCriteria = null)
         {
             // Set dynamic cleaning criteria text
             if (!string.IsNullOrEmpty(cleaningCriteria))
@@ -54,20 +67,35 @@ namespace Surveying.ViewModels
                 AvailableCustomers.Add(customer);
             }
 
+            // Initialize available cleaning requirements
+            if (cleaningRequirements != null)
+            {
+                foreach (var requirement in cleaningRequirements)
+                {
+                    AvailableCleaningRequirements.Add(requirement);
+                }
+            }
+
             // Apply current filters if provided
             if (currentFilters != null)
             {
                 ApplyCurrentFilters(currentFilters);
             }
 
-            // Initialize filtered list
+            // Initialize filtered lists
             UpdateFilteredCustomers();
+            UpdateFilteredCleaningRequirements();
             UpdateActiveFiltersText();
         }
 
         partial void OnCustomerSearchTextChanged(string value)
         {
             UpdateFilteredCustomers();
+        }
+
+        partial void OnCleaningRequirementsSearchTextChanged(string value)
+        {
+            UpdateFilteredCleaningRequirements();
         }
 
         private void UpdateFilteredCustomers()
@@ -84,6 +112,22 @@ namespace Surveying.ViewModels
             }
         }
 
+        private void UpdateFilteredCleaningRequirements()
+        {
+            FilteredCleaningRequirements.Clear();
+
+            var filtered = string.IsNullOrWhiteSpace(CleaningRequirementsSearchText)
+                ? AvailableCleaningRequirements
+                : AvailableCleaningRequirements.Where(c =>
+                    c.CleaningCode.ToLower().Contains(CleaningRequirementsSearchText.ToLower()) ||
+                    c.Description.ToLower().Contains(CleaningRequirementsSearchText.ToLower()));
+
+            foreach (var requirement in filtered.OrderBy(c => c.CleaningCode))
+            {
+                FilteredCleaningRequirements.Add(requirement);
+            }
+        }
+
         private void ApplyCurrentFilters(FilterResult filters)
         {
             // Apply customer selections
@@ -92,12 +136,18 @@ namespace Surveying.ViewModels
                 customer.IsSelected = filters.SelectedCustomers.Contains(customer.CustomerCode);
             }
 
+            // Apply cleaning requirement selections
+            foreach (var requirement in AvailableCleaningRequirements)
+            {
+                requirement.IsSelected = filters.SelectedCleaningRequirements.Contains(requirement.CleaningCode);
+            }
+
             // Apply status selections
             ShowPendingStatus = filters.ShowPendingStatus;
             ShowApprovedStatus = filters.ShowApprovedStatus;
 
-            // Apply cleaning required selection
-            ShowCleaningRequired = filters.ShowCleaningRequired;
+            // Apply display options
+            ShowAllCleaningContainers = filters.ShowAllCleaningContainers;
         }
 
         [RelayCommand]
@@ -131,6 +181,36 @@ namespace Surveying.ViewModels
         }
 
         [RelayCommand]
+        void SelectAllCleaningRequirements()
+        {
+            foreach (var requirement in FilteredCleaningRequirements)
+            {
+                requirement.IsSelected = true;
+            }
+            UpdateActiveFiltersText();
+        }
+
+        [RelayCommand]
+        void ClearAllCleaningRequirements()
+        {
+            foreach (var requirement in AvailableCleaningRequirements)
+            {
+                requirement.IsSelected = false;
+            }
+            UpdateActiveFiltersText();
+        }
+
+        [RelayCommand]
+        void ToggleCleaningRequirement(CleaningRequirementFilterItem requirement)
+        {
+            if (requirement != null)
+            {
+                requirement.IsSelected = !requirement.IsSelected;
+                UpdateActiveFiltersText();
+            }
+        }
+
+        [RelayCommand]
         void ClearAllFilters()
         {
             // Clear customer selections
@@ -139,12 +219,18 @@ namespace Surveying.ViewModels
                 customer.IsSelected = false;
             }
 
+            // Clear cleaning requirement selections
+            foreach (var requirement in AvailableCleaningRequirements)
+            {
+                requirement.IsSelected = false;
+            }
+
             // Reset status filters
             ShowPendingStatus = true;
             ShowApprovedStatus = true;
 
-            // Reset cleaning required filter
-            ShowCleaningRequired = true;
+            // Reset display options
+            ShowAllCleaningContainers = true;
 
             UpdateActiveFiltersText();
         }
@@ -155,9 +241,10 @@ namespace Surveying.ViewModels
             var result = new FilterResult
             {
                 SelectedCustomers = AvailableCustomers.Where(c => c.IsSelected).Select(c => c.CustomerCode).ToList(),
+                SelectedCleaningRequirements = AvailableCleaningRequirements.Where(c => c.IsSelected).Select(c => c.CleaningCode).ToList(),
                 ShowPendingStatus = ShowPendingStatus,
                 ShowApprovedStatus = ShowApprovedStatus,
-                ShowCleaningRequired = ShowCleaningRequired
+                ShowAllCleaningContainers = ShowAllCleaningContainers
             };
 
             FiltersApplied?.Invoke(this, result);
@@ -178,6 +265,16 @@ namespace Surveying.ViewModels
                 filterParts.Add($"{selectedCustomers} customer(s)");
             }
 
+            // Count cleaning requirement filters
+            var selectedRequirements = AvailableCleaningRequirements.Count(c => c.IsSelected);
+            var totalRequirements = AvailableCleaningRequirements.Count;
+
+            if (selectedRequirements > 0 && selectedRequirements < totalRequirements)
+            {
+                activeCount++;
+                filterParts.Add($"{selectedRequirements} cleaning code(s)");
+            }
+
             // Count status filters
             var statusCount = 0;
             if (ShowPendingStatus) statusCount++;
@@ -189,11 +286,11 @@ namespace Surveying.ViewModels
                 filterParts.Add("status");
             }
 
-            // Count cleaning required filter
-            if (!ShowCleaningRequired)
+            // Count display options
+            if (!ShowAllCleaningContainers)
             {
                 activeCount++;
-                filterParts.Add("cleaning");
+                filterParts.Add("display");
             }
 
             if (activeCount == 0)
@@ -209,10 +306,10 @@ namespace Surveying.ViewModels
         // Update active filters text when properties change
         partial void OnShowPendingStatusChanged(bool value) => UpdateActiveFiltersText();
         partial void OnShowApprovedStatusChanged(bool value) => UpdateActiveFiltersText();
-        partial void OnShowCleaningRequiredChanged(bool value) => UpdateActiveFiltersText();
+        partial void OnShowAllCleaningContainersChanged(bool value) => UpdateActiveFiltersText();
     }
 
-    // Customer filter item model
+    // Customer filter item model (existing)
     public partial class CustomerFilterItem : ObservableObject
     {
         [ObservableProperty]
@@ -232,25 +329,55 @@ namespace Surveying.ViewModels
         }
     }
 
-    // Filter result model
+    // NEW: Cleaning requirement filter item model
+    public partial class CleaningRequirementFilterItem : ObservableObject
+    {
+        [ObservableProperty]
+        private string cleaningCode;
+
+        [ObservableProperty]
+        private string description;
+
+        [ObservableProperty]
+        private int containerCount;
+
+        [ObservableProperty]
+        private bool isSelected;
+
+        public CleaningRequirementFilterItem(string cleaningCode, string description, int containerCount)
+        {
+            CleaningCode = cleaningCode;
+            Description = description;
+            ContainerCount = containerCount;
+            IsSelected = false;
+        }
+    }
+
+    // Updated filter result model
     public class FilterResult
     {
         public List<string> SelectedCustomers { get; set; } = new();
+        public List<string> SelectedCleaningRequirements { get; set; } = new(); // NEW
         public bool ShowPendingStatus { get; set; } = true;
         public bool ShowApprovedStatus { get; set; } = true;
-        public bool ShowCleaningRequired { get; set; } = true;
+        public bool ShowAllCleaningContainers { get; set; } = true; // NEW
 
         public bool HasAnyFilters()
         {
-            return SelectedCustomers.Any() || !ShowPendingStatus || !ShowApprovedStatus || !ShowCleaningRequired;
+            return SelectedCustomers.Any() ||
+                   SelectedCleaningRequirements.Any() ||
+                   !ShowPendingStatus ||
+                   !ShowApprovedStatus ||
+                   !ShowAllCleaningContainers;
         }
 
         public int GetActiveFilterCount()
         {
             int count = 0;
             if (SelectedCustomers.Any()) count++;
+            if (SelectedCleaningRequirements.Any()) count++;
             if (!ShowPendingStatus || !ShowApprovedStatus) count++;
-            if (!ShowCleaningRequired) count++;
+            if (!ShowAllCleaningContainers) count++;
             return count;
         }
     }

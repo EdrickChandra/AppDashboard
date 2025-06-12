@@ -19,7 +19,7 @@ namespace Surveying.Views
             _viewModel = new CleaningListViewModel(containerApiService, cleaningCriteriaService);
             BindingContext = _viewModel;
 
-            System.Diagnostics.Debug.WriteLine("CleaningList constructor completed - using dynamic cleaning criteria from API");
+            System.Diagnostics.Debug.WriteLine("CleaningList constructor completed - using dynamic cleaning criteria from API with filtering support");
         }
 
         protected override async void OnAppearing()
@@ -30,7 +30,6 @@ namespace Surveying.Views
             {
                 System.Diagnostics.Debug.WriteLine("CleaningList OnAppearing started");
 
-                // Simple data loading - no complex pagination handling needed
                 if (_viewModel != null)
                 {
                     System.Diagnostics.Debug.WriteLine($"ViewModel state - IsLoading: {_viewModel.IsLoading}, HasError: {_viewModel.HasError}");
@@ -49,6 +48,19 @@ namespace Surveying.Views
                     {
                         System.Diagnostics.Debug.WriteLine($"After data load - PagedSource count: {dataPager.PagedSource?.Count ?? 0}");
                         System.Diagnostics.Debug.WriteLine("Row numbers are calculated in ViewModel - pagination works automatically");
+                    }
+
+                    // Log cleaning requirements information
+                    if (_viewModel.CleaningList?.Any() == true)
+                    {
+                        var samplesWithRequirements = _viewModel.CleaningList
+                            .Where(c => !string.IsNullOrEmpty(c.CleaningRequirementsText) && c.CleaningRequirementsText != "No requirements")
+                            .Take(3);
+
+                        foreach (var sample in samplesWithRequirements)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"Sample Container {sample.ContNumber}: '{sample.CleaningRequirementsText}'");
+                        }
                     }
                 }
                 else
@@ -73,6 +85,7 @@ namespace Surveying.Views
                 if (sender is Button button && button.CommandParameter is ContainerWithRepairCodesModelExtended container)
                 {
                     System.Diagnostics.Debug.WriteLine($"Navigating to cleaning for container: {container.ContNumber} (Row: {container.RowNumber})");
+                    System.Diagnostics.Debug.WriteLine($"Container cleaning requirements: '{container.CleaningRequirementsText}'");
 
                     // Show loading indicator while navigating
                     button.IsEnabled = false;
@@ -132,7 +145,8 @@ namespace Surveying.Views
                 }
                 else
                 {
- 
+                    System.Diagnostics.Debug.WriteLine("ERROR: Invalid button or CommandParameter");
+                    await DisplayAlert("Navigation Error", "Unable to determine container information.", "OK");
                 }
             }
             catch (Exception ex)

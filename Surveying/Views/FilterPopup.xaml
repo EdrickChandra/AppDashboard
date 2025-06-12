@@ -21,7 +21,7 @@
                 Padding="0"
                 StrokeShape="RoundRectangle 12">
 
-            <Grid WidthRequest="400" MaximumHeightRequest="500">
+            <Grid WidthRequest="450" MaximumHeightRequest="600">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
@@ -99,7 +99,7 @@
 
                             <!-- Customer list -->
                             <CollectionView ItemsSource="{Binding FilteredAvailableCustomers}"
-                                           MaximumHeightRequest="150">
+                                           MaximumHeightRequest="120">
                                 <CollectionView.ItemTemplate>
                                     <DataTemplate>
                                         <Grid Padding="5">
@@ -136,7 +136,7 @@
 
                         <!-- Status Filter -->
                         <StackLayout Spacing="10">
-                            <Label Text="Status"
+                            <Label Text="Approval Status"
                                    FontAttributes="Bold"
                                    FontSize="16" />
 
@@ -150,7 +150,7 @@
                                              IsChecked="{Binding ShowPendingStatus}"
                                              VerticalOptions="Center" />
                                     <Label Grid.Column="1"
-                                           Text="Pending"
+                                           Text="Pending Approval"
                                            VerticalOptions="Center"
                                            Margin="10,0,0,0" />
                                 </Grid>
@@ -171,9 +171,96 @@
                             </StackLayout>
                         </StackLayout>
 
-                        <!-- Cleaning Required Filter -->
+                        <!-- NEW: Cleaning Requirements Filter -->
                         <StackLayout Spacing="10">
-                            <Label Text="Cleaning Required"
+                            <Label Text="Cleaning Requirements"
+                                   FontAttributes="Bold"
+                                   FontSize="16" />
+
+                            <Label Text="Filter by specific cleaning codes:"
+                                   FontSize="12"
+                                   TextColor="#6C757D"
+                                   Margin="0,0,0,5" />
+
+                            <!-- Search within cleaning requirements -->
+                            <SearchBar x:Name="cleaningRequirementsSearchBar"
+                                       Placeholder="Search cleaning codes..."
+                                       Text="{Binding CleaningRequirementsSearchText, Mode=TwoWay}"
+                                       BackgroundColor="#F8F9FA"
+                                       Margin="0,0,0,5" />
+
+                            <!-- Cleaning requirements selection buttons -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Button Grid.Column="0"
+                                        Text="Select All"
+                                        BackgroundColor="#28A745"
+                                        TextColor="White"
+                                        FontSize="12"
+                                        HeightRequest="35"
+                                        Margin="0,0,5,0"
+                                        Command="{Binding SelectAllCleaningRequirementsCommand}" />
+                                <Button Grid.Column="1"
+                                        Text="Clear All"
+                                        BackgroundColor="#6C757D"
+                                        TextColor="White"
+                                        FontSize="12"
+                                        HeightRequest="35"
+                                        Margin="5,0,0,0"
+                                        Command="{Binding ClearAllCleaningRequirementsCommand}" />
+                            </Grid>
+
+                            <!-- Cleaning requirements list -->
+                            <CollectionView ItemsSource="{Binding FilteredCleaningRequirements}"
+                                           MaximumHeightRequest="150">
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Padding="5">
+                                            <Grid.GestureRecognizers>
+                                                <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.ToggleCleaningRequirementCommand}"
+                                                                    CommandParameter="{Binding .}" />
+                                            </Grid.GestureRecognizers>
+
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <CheckBox Grid.Column="0"
+                                                     IsChecked="{Binding IsSelected}"
+                                                     VerticalOptions="Center" />
+
+                                            <StackLayout Grid.Column="1"
+                                                        Orientation="Vertical"
+                                                        Margin="10,5,0,5">
+                                                <Label Text="{Binding CleaningCode}"
+                                                       FontAttributes="Bold"
+                                                       FontSize="13"
+                                                       TextColor="#007BFF" />
+                                                <Label Text="{Binding Description}"
+                                                       FontSize="11"
+                                                       TextColor="#6C757D"
+                                                       LineBreakMode="WordWrap" />
+                                            </StackLayout>
+
+                                            <Label Grid.Column="2"
+                                                   Text="{Binding ContainerCount, StringFormat='({0})'}"
+                                                   TextColor="#6C757D"
+                                                   FontSize="12"
+                                                   VerticalOptions="Center" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </StackLayout>
+
+                        <!-- Show All Cleaning Containers Toggle -->
+                        <StackLayout Spacing="10">
+                            <Label Text="Display Options"
                                    FontAttributes="Bold"
                                    FontSize="16" />
 
@@ -183,15 +270,21 @@
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
                                 <CheckBox Grid.Column="0"
-                                         IsChecked="{Binding ShowCleaningRequired}"
+                                         IsChecked="{Binding ShowAllCleaningContainers}"
                                          VerticalOptions="Center" />
                                 <Label Grid.Column="1"
-                                       Text="{Binding CleaningCriteriaText}"
+                                       Text="Show all containers requiring cleaning"
                                        VerticalOptions="Center"
                                        Margin="10,0,0,0"
                                        TextColor="#007BFF"
                                        FontAttributes="Bold" />
                             </Grid>
+
+                            <Label Text="Current criteria: YXT • 1101 • APNN, YNT • 1112 • APNN"
+                                   FontSize="10"
+                                   TextColor="#6C757D"
+                                   Margin="25,0,0,0"
+                                   LineBreakMode="WordWrap" />
                         </StackLayout>
 
                     </StackLayout>

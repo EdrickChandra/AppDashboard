@@ -1,12 +1,10 @@
-﻿
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Surveying.Models;
 using Surveying.Services;
 using Surveying.Views;
 using System.Collections.ObjectModel;
 using System.Linq;
-
 
 namespace Surveying.ViewModels
 {
@@ -131,8 +129,20 @@ namespace Surveying.ViewModels
                     .OrderBy(c => c.CustomerCode)
                     .ToList();
 
-                // Create and show filter popup
-                var filterViewModel = new FilterPopupViewModel(customerCounts, CurrentFilters, CleaningCriteriaText);
+                // NEW: Create list of available cleaning requirements with counts
+                var cleaningRequirementCounts = CleaningList
+                    .Where(c => !string.IsNullOrEmpty(c.CleaningRequirementsText) && c.CleaningRequirementsText != "No requirements")
+                    .SelectMany(c => c.CleaningRequirementsText.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+                    .GroupBy(req => req.Trim())
+                    .Select(g => new CleaningRequirementFilterItem(
+                        g.Key,
+                        GetCleaningRequirementDescription(g.Key),
+                        g.Count()))
+                    .OrderBy(c => c.CleaningCode)
+                    .ToList();
+
+                // Create and show filter popup with cleaning requirements
+                var filterViewModel = new FilterPopupViewModel(customerCounts, cleaningRequirementCounts, CurrentFilters, CleaningCriteriaText);
                 var filterPopup = new FilterPopup(filterViewModel);
 
                 // Show popup and wait for result
@@ -154,6 +164,20 @@ namespace Surveying.ViewModels
                 System.Diagnostics.Debug.WriteLine($"Error showing filter popup: {ex.Message}");
                 await Application.Current.MainPage.DisplayAlert("Error", "Failed to open filter options.", "OK");
             }
+        }
+
+        private string GetCleaningRequirementDescription(string cleaningCode)
+        {
+            // Map common cleaning codes to descriptions
+            var descriptions = new Dictionary<string, string>
+            {
+                { "YXT • 1101 • APNN", "Exterior Water Wash - Tank Shell" },
+                { "YNT • 1112 • APNN", "Interior Chemical Wash - Tank Interior" },
+                { "YXT • 1112 • APNN", "Exterior Chemical Wash - Tank Shell" },
+                { "YNT • 1101 • APNN", "Interior Water Wash - Tank Interior" }
+            };
+
+            return descriptions.ContainsKey(cleaningCode) ? descriptions[cleaningCode] : "Standard Cleaning Procedure";
         }
 
         private void UpdateFilterButtonText()
@@ -185,7 +209,8 @@ namespace Surveying.ViewModels
                 filtered = filtered.Where(container =>
                     container.ContNumber.ToLower().Contains(searchTerm) ||
                     container.CustomerCode.ToLower().Contains(searchTerm) ||
-                    container.Id.ToString().Contains(searchTerm));
+                    container.Id.ToString().Contains(searchTerm) ||
+                    (container.CleaningRequirementsText?.ToLower().Contains(searchTerm) ?? false));
             }
 
             // Apply customer filter
@@ -193,6 +218,23 @@ namespace Surveying.ViewModels
             {
                 filtered = filtered.Where(container =>
                     CurrentFilters.SelectedCustomers.Contains(container.CustomerCode));
+            }
+
+            // NEW: Apply cleaning requirements filter
+            if (CurrentFilters.SelectedCleaningRequirements.Any())
+            {
+                filtered = filtered.Where(container =>
+                {
+                    if (string.IsNullOrEmpty(container.CleaningRequirementsText))
+                        return false;
+
+                    var containerRequirements = container.CleaningRequirementsText
+                        .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(req => req.Trim());
+
+                    return CurrentFilters.SelectedCleaningRequirements
+                        .Any(selectedReq => containerRequirements.Contains(selectedReq));
+                });
             }
 
             // Apply status filter
@@ -208,13 +250,14 @@ namespace Surveying.ViewModels
                 });
             }
 
-            // Apply cleaning required filter
-            if (!CurrentFilters.ShowCleaningRequired)
+            // Apply display options filter
+            if (!CurrentFilters.ShowAllCleaningContainers)
             {
-                // Filter logic for cleaning required - you can customize this
-                // For now, we'll assume all containers in this list require cleaning
-                // So if ShowCleaningRequired is false, we show nothing
-                filtered = Enumerable.Empty<ContainerWithRepairCodesModelExtended>();
+                // If not showing all, filter to only specific cleaning requirements
+                filtered = filtered.Where(container =>
+                    !string.IsNullOrEmpty(container.CleaningRequirementsText) &&
+                    container.CleaningRequirementsText != "No requirements" &&
+                    container.CleaningRequirementsText != "No specific requirements");
             }
 
             var filteredList = filtered.ToList();
@@ -233,6 +276,12 @@ namespace Surveying.ViewModels
             OnPropertyChanged(nameof(FilteredCleaningList));
 
             System.Diagnostics.Debug.WriteLine($"Filtering applied: {filteredList.Count} containers shown (from {CleaningList.Count} total)");
+
+            // Log filter details
+            if (CurrentFilters.SelectedCleaningRequirements.Any())
+            {
+                System.Diagnostics.Debug.WriteLine($"Cleaning requirements filter: {string.Join(", ", CurrentFilters.SelectedCleaningRequirements)}");
+            }
         }
 
         /// <summary>
@@ -322,6 +371,16 @@ namespace Surveying.ViewModels
 
                     TotalContainers = CleaningList.Count;
                     System.Diagnostics.Debug.WriteLine($"Loaded {TotalContainers} containers with calculated row numbers");
+
+                    // Log cleaning requirements for debugging
+                    var uniqueRequirements = CleaningList
+                        .Where(c => !string.IsNullOrEmpty(c.CleaningRequirementsText) && c.CleaningRequirementsText != "No requirements")
+                        .SelectMany(c => c.CleaningRequirementsText.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+                        .Select(req => req.Trim())
+                        .Distinct()
+                        .ToList();
+
+                    System.Diagnostics.Debug.WriteLine($"Unique cleaning requirements found: {string.Join(", ", uniqueRequirements)}");
 
                     // Initialize filtered list (this will also set up row numbers)
                     PerformFiltering();
