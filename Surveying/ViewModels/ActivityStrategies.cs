@@ -67,7 +67,7 @@ namespace Surveying.ViewModels
                 {
                     var activityData = new ActivityData
                     {
-                        IsApproved = cleaningContainer.IsRepairApproved,
+                        IsApproved = true,
                         ApprovalDate = cleaningContainer.ApprovalDate,
                         ApprovedBy = cleaningContainer.ApprovedBy ?? "",
                         RepairCodes = cleaningContainer.RepairCodes ?? new List<RepairCode>(),
@@ -294,10 +294,10 @@ namespace Surveying.ViewModels
     {
         public async Task<ActivityData> LoadActivityDataAsync(Container container)
         {
-            // Periodic maintenance typically doesn't require API data loading
+      
             var activityData = new ActivityData
             {
-                IsApproved = true, // Periodic maintenance is typically always approved
+                IsApproved = true,
                 Description = "Periodic Test: 2.5 Year Inspection"
             };
 
