@@ -9,13 +9,19 @@ namespace Surveying.Views
 {
     public partial class MainPage : ContentPage
     {
-        private SurveyListViewModel _viewModel;
+        // CHANGE FROM:
+        // private SurveyListViewModel _viewModel;
+
+        // CHANGE TO:
+        private OrderListViewModel _viewModel;
         private bool isInitialized = false;
 
         public MainPage()
         {
             InitializeComponent();
-            _viewModel = new SurveyListViewModel();
+
+            // CHANGED: Use OrderListViewModel instead of SurveyListViewModel
+            _viewModel = new OrderListViewModel();
             BindingContext = _viewModel;
 
             SizeChanged += OnSizeChanged;
@@ -65,8 +71,10 @@ namespace Surveying.Views
                 }
             }
         }
+
         private async void OnAddSurveyClicked(object sender, EventArgs e)
         {
+            // CHANGED: Pass Order instead of ObservableCollection<SurveyModel>
             await Navigation.PushAsync(new AddPage((newOrder) =>
             {
                 // Add the new order to the ViewModel
@@ -80,26 +88,43 @@ namespace Surveying.Views
             }));
         }
 
+        // CHANGE FROM:
+        // private void DataGrid_CellTapped(object sender, DataGridCellTappedEventArgs e)
+        // {
+        //     if (e.RowData is SurveyModel selected)
+        //     {
+        //         _viewModel.SelectedSurvey = selected;
+        //     }
+        // }
 
-
+        // CHANGE TO:
         private void DataGrid_CellTapped(object sender, DataGridCellTappedEventArgs e)
         {
-            if (e.RowData is SurveyModel selected)
+            if (e.RowData is Order selected)
             {
-                _viewModel.SelectedSurvey = selected;
+                _viewModel.SelectedOrder = selected;
             }
         }
 
+        // CHANGE FROM:
+        // private void MobileView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        // {
+        //     if (e.CurrentSelection.Count > 0 && e.CurrentSelection[0] is SurveyModel selected)
+        //     {
+        //         _viewModel.SelectedSurvey = selected;
+        //     }
+        // }
+
+        // CHANGE TO:
         private void MobileView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (e.CurrentSelection.Count > 0 && e.CurrentSelection[0] is SurveyModel selected)
+            if (e.CurrentSelection.Count > 0 && e.CurrentSelection[0] is Order selected)
             {
-                _viewModel.SelectedSurvey = selected;
+                _viewModel.SelectedOrder = selected;
             }
         }
 
         // Updated NavigateToPage method in MainPage.xaml.cs
-
         private async void NavigateToPage(object sender, EventArgs e)
         {
             if (sender is Button button)
@@ -147,9 +172,7 @@ namespace Surveying.Views
                     return;
                 }
 
-                // ===== NEW UNIFIED NAVIGATION =====
-                // Instead of separate pages, use one ContainerActivityPage with different ActivityTypes
-
+                // ===== UNIFIED NAVIGATION =====
                 try
                 {
                     Page destinationPage = null;
@@ -191,5 +214,5 @@ namespace Surveying.Views
                 }
             }
         }
-
-        
+    }
+}

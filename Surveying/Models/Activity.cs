@@ -1,17 +1,23 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Surveying.Models
+
 {
-    /// <summary>
-    /// SIMPLIFIED ACTIVITY CLASS
-    /// Replaces: ActivityModel (from ActivityModel.cs)
-    /// Simplifies: Removes complex update logic - activities are now computed from Container status
-    /// </summary>
+
+    public enum ActivityType
+    {
+        Cleaning,
+        Repair,
+        Periodic,
+        Survey
+    }
+
+  
     public partial class Activity : ObservableObject
     {
         // ===== CORE PROPERTIES (from ActivityModel) =====
-        public string Name { get; set; } = string.Empty;        // Was: ActivityName
-        public string Type { get; set; } = string.Empty;        // Was: ActivityType
+        public string Name { get; set; } = string.Empty;       
+        public string Type { get; set; } = string.Empty;      
 
         [ObservableProperty]
         private StatusType status;
@@ -41,5 +47,8 @@ namespace Surveying.Models
             StatusType.Rejected => "Rejected",
             _ => "Unknown"
         };
+
+ 
     }
+   
 }

@@ -81,8 +81,8 @@ namespace Surveying.Views
             {
                 System.Diagnostics.Debug.WriteLine("OnGoToCleaningClicked started");
 
-                // Updated to handle the extended model
-                if (sender is Button button && button.CommandParameter is ContainerWithRepairCodesModelExtended container)
+                // FIXED: Use the unified Container model
+                if (sender is Button button && button.CommandParameter is Container container)
                 {
                     System.Diagnostics.Debug.WriteLine($"Navigating to cleaning for container: {container.ContNumber} (Row: {container.RowNumber})");
                     System.Diagnostics.Debug.WriteLine($"Container cleaning requirements: '{container.CleaningRequirementsText}'");
@@ -91,54 +91,25 @@ namespace Surveying.Views
                     button.IsEnabled = false;
                     button.Text = "Loading...";
 
-                    // Create a survey model for the cleaning page
-                    var survey = new SurveyModel
+                    // Create an Order for the cleaning page (simplified approach)
+                    var order = new Order
                     {
                         OrderNumber = $"CLN-{container.ContNumber}",
-                        ContNumber = container.ContNumber,
                         Surveyor = "Cleaning Crew",
-                        PrincipalId = 1, // Default principal
-                        ShipperId = 1,   // Default shipper
+                        PrincipalCode = "P001", // Default
+                        PrincipalName = "Default Principal",
+                        ShipperCode = "S001", // Default  
+                        ShipperName = "Default Shipper",
                         OrderDate = DateTime.Today,
                         SurveyDate = DateTime.Today,
-                        PickupDate = DateTime.Today.AddDays(1),
-                        Condition = "Dirty" // Since this is for cleaning
+                        PickupDate = DateTime.Today.AddDays(1)
                     };
 
-                    // Create a container detail model
-                    var containerDetail = new ContainerDetailModel
-                    {
-                        ContNumber = container.ContNumber,
-                        ContSize = "20", // Default, could be enhanced to get from API
-                        ContType = "Tank",
-                        Condition = "Dirty",
-                        CleaningStatus = StatusType.NotFilled,
-                        RepairStatus = StatusType.NotFilled,
-                        PeriodicStatus = StatusType.NotFilled,
-                        SurveyStatus = StatusType.NotFilled
-                    };
+                    // Add the container to the order
+                    order.Containers.Add(container);
 
-                    // Initialize activities
-                    containerDetail.UpdateActivities();
-
-                    // Convert extended model back to base model for navigation
-                    var baseContainer = new ContainerWithRepairCodesModel
-                    {
-                        Id = container.Id,
-                        ContNumber = container.ContNumber,
-                        DtmIn = container.DtmIn,
-                        CustomerCode = container.CustomerCode,
-                        RepairCodes = container.RepairCodes,
-                        IsRepairApproved = container.IsRepairApproved,
-                        ApprovalDate = container.ApprovalDate,
-                        ApprovedBy = container.ApprovedBy,
-                        Commodity = container.Commodity,
-                        CleaningRequirementsText = container.CleaningRequirementsText,
-                        CleaningRequirementsJson = container.CleaningRequirementsJson
-                    };
-
-                    // Navigate to enhanced cleaning page
-                    var cleaningPage = new EnhancedCleaning(survey, containerDetail, baseContainer);
+                    // Navigate to unified ContainerActivityPage for Cleaning
+                    var cleaningPage = new ContainerActivityPage(order, container, ActivityType.Cleaning);
                     await Navigation.PushAsync(cleaningPage);
 
                     System.Diagnostics.Debug.WriteLine("Navigation completed successfully");

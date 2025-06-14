@@ -8,15 +8,14 @@ using System.Linq;
 
 namespace Surveying.ViewModels
 {
-    // ===== MIGRATED: CleaningListViewModel using simplified models =====
+
     public partial class CleaningListViewModel : BaseViewModel
     {
         private readonly IContainerApiService _containerApiService;
         private readonly ICleaningCriteriaService _cleaningCriteriaService;
 
-        // ===== SIMPLIFIED COLLECTIONS (single Container type!) =====
-        // OLD: ObservableCollection<ContainerWithRepairCodesModelExtended> cleaningList
-        // NEW: Single Container class for everything
+        // ===== COLLECTIONS  =====
+
         [ObservableProperty]
         private ObservableCollection<Container> cleaningList;
 
@@ -38,9 +37,8 @@ namespace Surveying.ViewModels
         [ObservableProperty]
         private string searchText = "";
 
-        // ===== SIMPLIFIED FILTER PROPERTIES (no more complex FilterResult!) =====
-        // OLD: FilterResult currentFilters = new FilterResult();
-        // NEW: Direct properties - much simpler!
+        // =====  FILTER PROPERTIES  =====
+
         [ObservableProperty]
         private List<string> selectedCustomers = new();
 
@@ -62,7 +60,7 @@ namespace Surveying.ViewModels
         [ObservableProperty]
         private bool hasActiveFilters = false;
 
-        // ===== CLEANING CRITERIA - UNCHANGED =====
+        // ===== CLEANING CRITERIA =====
         [ObservableProperty]
         private string cleaningCriteriaText = "Loading...";
 
@@ -83,15 +81,14 @@ namespace Surveying.ViewModels
             _cleaningCriteriaService = cleaningCriteriaService;
             Title = "Cleaning List";
 
-            // SIMPLIFIED: Only need two collections instead of multiple types
+   
             CleaningList = new ObservableCollection<Container>();
             FilteredCleaningList = new ObservableCollection<Container>();
 
-            // Load cleaning criteria and data
             _ = InitializeAsync();
         }
 
-        // ===== INITIALIZATION - SIMPLIFIED =====
+
         private async Task InitializeAsync()
         {
             await LoadCleaningCriteriaAsync();
@@ -121,7 +118,7 @@ namespace Surveying.ViewModels
             }
         }
 
-        // ===== SEARCH/FILTER - SIMPLIFIED =====
+
         partial void OnSearchTextChanged(string value)
         {
             PerformFiltering();
@@ -132,6 +129,8 @@ namespace Surveying.ViewModels
         {
             PerformFiltering();
         }
+
+
 
         [RelayCommand]
         async Task ShowFilterPopup()
@@ -156,8 +155,8 @@ namespace Surveying.ViewModels
                     .OrderBy(c => c.CleaningCode)
                     .ToList();
 
-                // SIMPLIFIED: Create simple object instead of complex FilterResult
-                var currentFilters = new
+                // FIXED: Create proper FilterResult object instead of anonymous type
+                var currentFilters = new FilterResult
                 {
                     SelectedCustomers = SelectedCustomers,
                     SelectedCleaningRequirements = SelectedCleaningRequirements,
@@ -209,7 +208,7 @@ namespace Surveying.ViewModels
 
         private void UpdateFilterButtonText()
         {
-            // SIMPLIFIED: Direct counting instead of complex FilterResult.GetActiveFilterCount()
+   
             var activeCount = 0;
             if (SelectedCustomers.Any()) activeCount++;
             if (SelectedCleaningRequirements.Any()) activeCount++;
@@ -227,7 +226,6 @@ namespace Surveying.ViewModels
 
             var filtered = CleaningList.AsEnumerable();
 
-            // SIMPLIFIED: Direct property access instead of wrapper properties
             if (!string.IsNullOrWhiteSpace(SearchText))
             {
                 var searchTerm = SearchText.ToLower().Trim();
@@ -282,13 +280,12 @@ namespace Surveying.ViewModels
 
             var filteredList = filtered.ToList();
 
-            // SIMPLIFIED: Row numbers are now just a property on Container
+    
             for (int i = 0; i < filteredList.Count; i++)
             {
                 filteredList[i].RowNumber = i + 1;
             }
 
-            // Update the filtered collection
             FilteredCleaningList.Clear();
             foreach (var item in filteredList)
             {
@@ -298,7 +295,6 @@ namespace Surveying.ViewModels
             System.Diagnostics.Debug.WriteLine($"Filtering applied: {filteredList.Count} containers shown (from {CleaningList.Count} total)");
         }
 
-        // ===== API LOADING - SIMPLIFIED =====
         [RelayCommand]
         async Task LoadCleaningDataFromApiAsync()
         {
@@ -316,25 +312,48 @@ namespace Surveying.ViewModels
                 {
                     CleaningList.Clear();
 
-                    // SIMPLIFIED: No more complex type conversion - API returns Container objects
-                    if (response.Content is IEnumerable<Container> containerList)
+                    System.Diagnostics.Debug.WriteLine($"API Response Content Type: {response.Content.GetType().Name}");
+
+                    // The Content should now be a List<Container> after conversion
+                    if (response.Content is List<Container> containerList)
                     {
-                        var containerArray = containerList.ToArray();
-                        for (int i = 0; i < containerArray.Length; i++)
+                        System.Diagnostics.Debug.WriteLine($"Received {containerList.Count} containers from API");
+
+                        foreach (var container in containerList)
                         {
-                            var container = containerArray[i];
-                            container.RowNumber = i + 1; // Set row number directly
+                            CleaningList.Add(container);
+                            System.Diagnostics.Debug.WriteLine($"Added container: {container.ContNumber} (Row: {container.RowNumber})");
+                        }
+                    }
+                    else if (response.Content is IEnumerable<Container> containerEnumerable)
+                    {
+                        var containers = containerEnumerable.ToList();
+                        System.Diagnostics.Debug.WriteLine($"Received {containers.Count} containers from API (as IEnumerable)");
+
+                        for (int i = 0; i < containers.Count; i++)
+                        {
+                            var container = containers[i];
+                            container.RowNumber = i + 1; // Ensure row number is set
                             CleaningList.Add(container);
                         }
                     }
-                    else if (response.Content is Container singleContainer)
+                    else
                     {
-                        singleContainer.RowNumber = 1;
-                        CleaningList.Add(singleContainer);
+                        System.Diagnostics.Debug.WriteLine($"Unexpected content type: {response.Content.GetType()}");
+                        // Try to handle as generic object array
+                        if (response.Content is IEnumerable<object> objectList)
+                        {
+                            var containers = objectList.Cast<Container>().ToList();
+                            for (int i = 0; i < containers.Count; i++)
+                            {
+                                containers[i].RowNumber = i + 1;
+                                CleaningList.Add(containers[i]);
+                            }
+                        }
                     }
 
                     TotalContainers = CleaningList.Count;
-                    System.Diagnostics.Debug.WriteLine($"Loaded {TotalContainers} containers with calculated row numbers");
+                    System.Diagnostics.Debug.WriteLine($"Loaded {TotalContainers} containers total");
 
                     // Initialize filtered list
                     PerformFiltering();
@@ -351,6 +370,7 @@ namespace Surveying.ViewModels
                 HasError = true;
                 ErrorMessage = $"Error loading cleaning data: {ex.Message}";
                 System.Diagnostics.Debug.WriteLine($"Exception in LoadCleaningDataFromApiAsync: {ex}");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
             }
             finally
             {
@@ -358,6 +378,8 @@ namespace Surveying.ViewModels
                 IsRefreshing = false;
             }
         }
+
+
 
         [RelayCommand]
         async Task RefreshAsync()

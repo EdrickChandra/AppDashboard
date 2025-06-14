@@ -1,4 +1,6 @@
-﻿namespace Surveying.Helpers
+﻿using Surveying.Models;
+
+namespace Surveying.Helpers
 {
     /// <summary>
     /// STATIC CONVERTER INSTANCES
@@ -41,5 +43,17 @@
 
         public static UniversalFilterConverter FilterButton { get; } = new() { ConversionType = FilterConversionType.ButtonColor };
         public static UniversalFilterConverter FilterText { get; } = new() { ConversionType = FilterConversionType.ButtonText };
+
+        public static ActivityTypeVisibilityConverter ActivityTypeToCleaningVisibility { get; } =
+        new() { TargetActivityType = ActivityType.Cleaning };
+
+        public static ActivityTypeVisibilityConverter ActivityTypeToRepairVisibility { get; } =
+            new() { TargetActivityType = ActivityType.Repair };
+
+        public static ActivityTypeVisibilityConverter ActivityTypeToPeriodicVisibility { get; } =
+            new() { TargetActivityType = ActivityType.Periodic };
+
+        public static ActivityTypeVisibilityConverter ActivityTypeToSurveyVisibility { get; } =
+            new() { TargetActivityType = ActivityType.Survey };
     }
 }

@@ -4,14 +4,52 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Surveying.Models;
 using Surveying.Configuration;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Surveying.Services
 {
+    // ===== API RESPONSE MODELS (match exactly what API returns) =====
+    public class ApiResponse
+    {
+        public bool IsSuccess { get; set; }
+        public string Message { get; set; } = string.Empty;
+        public object? Content { get; set; }
+    }
+
+    public class ApiContainerModel
+    {
+        public long Id { get; set; }
+        public string ContNumber { get; set; } = string.Empty;
+        public DateTime? DtmIn { get; set; }
+        public string CustomerCode { get; set; } = string.Empty;
+        public bool IsRepairApproved { get; set; }
+        public DateTime? ApprovalDate { get; set; }
+        public string ApprovedBy { get; set; } = string.Empty;
+        public string Commodity { get; set; } = string.Empty;
+        public string CleaningRequirementsText { get; set; } = string.Empty;
+        public int RequirementCount { get; set; } = 0;
+        public DateTime? CleaningStartDate { get; set; }
+        public DateTime? CleaningCompleteDate { get; set; }
+        public List<ApiRepairCodeModel> RepairCodes { get; set; } = new List<ApiRepairCodeModel>();
+    }
+
+    public class ApiRepairCodeModel
+    {
+        public string RepairCode { get; set; } = string.Empty;
+        public string ComponentCode { get; set; } = string.Empty;
+        public string LocationCode { get; set; } = string.Empty;
+        public string RepairCodeDescription { get; set; } = string.Empty;
+        public string ComponentCodeDescription { get; set; } = string.Empty;
+        public string RepairDetailDescription { get; set; } = string.Empty;
+    }
+
+    // ===== INTERFACE =====
     public interface IContainerApiService
     {
         Task<ApiResponse> CheckContainerExists(string contNumber);
-        Task<ContainerWithRepairCodesModel> GetContainerWithRepairCodes(string contNumber);
-        Task<ContainerWithRepairCodesModel> GetContainerCleaningDetails(string contNumber);
+        Task<Container> GetContainerWithRepairCodes(string contNumber);
+        Task<Container> GetContainerCleaningDetails(string contNumber);
         Task<ApiResponse> GetContainersForCleaning();
     }
 
@@ -56,7 +94,7 @@ namespace Surveying.Services
                     var apiResponse = JsonSerializer.Deserialize<ApiResponse>(json, _jsonOptions);
                     System.Diagnostics.Debug.WriteLine($"Deserialized IsSuccess: {apiResponse?.IsSuccess}");
 
-                    return apiResponse;
+                    return apiResponse ?? new ApiResponse { IsSuccess = false, Message = "Failed to deserialize response" };
                 }
                 else
                 {
@@ -79,7 +117,7 @@ namespace Surveying.Services
             }
         }
 
-        public async Task<ContainerWithRepairCodesModel> GetContainerWithRepairCodes(string contNumber)
+        public async Task<Container> GetContainerWithRepairCodes(string contNumber)
         {
             try
             {
@@ -87,40 +125,25 @@ namespace Surveying.Services
                 string url = $"{_baseUrl}/api/container/GetContainerWithRepairCodes/{formattedContNumber}";
 
                 System.Diagnostics.Debug.WriteLine($"Getting repair codes for: {contNumber} -> {formattedContNumber}");
-                System.Diagnostics.Debug.WriteLine($"API URL: {url}");
 
                 var response = await _httpClient.GetAsync(url);
-                System.Diagnostics.Debug.WriteLine($"Response Status: {response.StatusCode}");
-
                 if (response.IsSuccessStatusCode)
                 {
                     var json = await response.Content.ReadAsStringAsync();
                     System.Diagnostics.Debug.WriteLine($"Raw API Response: {json}");
 
                     var apiResponse = JsonSerializer.Deserialize<ApiResponse>(json, _jsonOptions);
-                    System.Diagnostics.Debug.WriteLine($"API Response IsSuccess: {apiResponse?.IsSuccess}");
-                    System.Diagnostics.Debug.WriteLine($"API Response Message: {apiResponse?.Message}");
-
                     if (apiResponse?.IsSuccess == true && apiResponse.Content != null)
                     {
+                        // Convert JsonElement to ApiContainerModel
                         var contentJson = JsonSerializer.Serialize(apiResponse.Content, _jsonOptions);
-                        System.Diagnostics.Debug.WriteLine($"Content JSON: {contentJson}");
+                        var apiContainer = JsonSerializer.Deserialize<ApiContainerModel>(contentJson, _jsonOptions);
 
-                        var container = JsonSerializer.Deserialize<ContainerWithRepairCodesModel>(contentJson, _jsonOptions);
-
-                        System.Diagnostics.Debug.WriteLine($"Deserialized Container:");
-                        System.Diagnostics.Debug.WriteLine($"  - ContNumber: {container?.ContNumber}");
-                        System.Diagnostics.Debug.WriteLine($"  - IsRepairApproved: {container?.IsRepairApproved}");
-                        System.Diagnostics.Debug.WriteLine($"  - ApprovalDate: {container?.ApprovalDate}");
-                        System.Diagnostics.Debug.WriteLine($"  - Commodity: {container?.Commodity}");
-                        System.Diagnostics.Debug.WriteLine($"  - RepairCodes Count: {container?.RepairCodes?.Count ?? 0}");
-
-                        return container;
+                        if (apiContainer != null)
+                        {
+                            return ConvertApiContainerToAppContainer(apiContainer);
+                        }
                     }
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine($"API Error: {response.StatusCode} - {response.ReasonPhrase}");
                 }
 
                 return null;
@@ -132,8 +155,7 @@ namespace Surveying.Services
             }
         }
 
-        // Get container cleaning details - UPDATED to include commodity
-        public async Task<ContainerWithRepairCodesModel> GetContainerCleaningDetails(string contNumber)
+        public async Task<Container> GetContainerCleaningDetails(string contNumber)
         {
             try
             {
@@ -141,51 +163,25 @@ namespace Surveying.Services
                 string url = $"{_baseUrl}/api/container/GetContainerCleaningDetails/{formattedContNumber}";
 
                 System.Diagnostics.Debug.WriteLine($"Getting cleaning details for: {contNumber} -> {formattedContNumber}");
-                System.Diagnostics.Debug.WriteLine($"API URL: {url}");
 
                 var response = await _httpClient.GetAsync(url);
-                System.Diagnostics.Debug.WriteLine($"Response Status: {response.StatusCode}");
-
                 if (response.IsSuccessStatusCode)
                 {
                     var json = await response.Content.ReadAsStringAsync();
                     System.Diagnostics.Debug.WriteLine($"Raw API Response: {json}");
 
                     var apiResponse = JsonSerializer.Deserialize<ApiResponse>(json, _jsonOptions);
-                    System.Diagnostics.Debug.WriteLine($"API Response IsSuccess: {apiResponse?.IsSuccess}");
-                    System.Diagnostics.Debug.WriteLine($"API Response Message: {apiResponse?.Message}");
-
                     if (apiResponse?.IsSuccess == true && apiResponse.Content != null)
                     {
+                        // Convert JsonElement to ApiContainerModel
                         var contentJson = JsonSerializer.Serialize(apiResponse.Content, _jsonOptions);
-                        System.Diagnostics.Debug.WriteLine($"Content JSON: {contentJson}");
+                        var apiContainer = JsonSerializer.Deserialize<ApiContainerModel>(contentJson, _jsonOptions);
 
-                        var container = JsonSerializer.Deserialize<ContainerWithRepairCodesModel>(contentJson, _jsonOptions);
-
-                        System.Diagnostics.Debug.WriteLine($"Deserialized Cleaning Container:");
-                        System.Diagnostics.Debug.WriteLine($"  - ContNumber: {container?.ContNumber}");
-                        System.Diagnostics.Debug.WriteLine($"  - IsRepairApproved: {container?.IsRepairApproved}");
-                        System.Diagnostics.Debug.WriteLine($"  - Commodity: {container?.Commodity}");
-                        System.Diagnostics.Debug.WriteLine($"  - Cleaning Requirements Count: {container?.RepairCodes?.Count ?? 0}");
-
-                        // Log cleaning requirements details
-                        if (container?.RepairCodes != null)
+                        if (apiContainer != null)
                         {
-                            foreach (var req in container.RepairCodes)
-                            {
-                                System.Diagnostics.Debug.WriteLine($"  - Cleaning Code: {req.RepairCode} - {req.RepairCodeDescription}");
-                                System.Diagnostics.Debug.WriteLine($"    Component: {req.ComponentCode} - {req.ComponentCodeDescription}");
-                                System.Diagnostics.Debug.WriteLine($"    Location: {req.LocationCode}");
-                                System.Diagnostics.Debug.WriteLine($"    Details: {req.RepairDetailDescription}");
-                            }
+                            return ConvertApiContainerToAppContainer(apiContainer);
                         }
-
-                        return container;
                     }
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine($"API Error: {response.StatusCode} - {response.ReasonPhrase}");
                 }
 
                 return null;
@@ -215,37 +211,41 @@ namespace Surveying.Services
 
                     var apiResponse = JsonSerializer.Deserialize<ApiResponse>(json, _jsonOptions);
                     System.Diagnostics.Debug.WriteLine($"API Response IsSuccess: {apiResponse?.IsSuccess}");
-                    System.Diagnostics.Debug.WriteLine($"API Response Message: {apiResponse?.Message}");
 
                     if (apiResponse?.IsSuccess == true && apiResponse.Content != null)
                     {
-                        // Deserialize the Content property to list of containers
+                        // Convert JsonElement array to ApiContainerModel array
                         var contentJson = JsonSerializer.Serialize(apiResponse.Content, _jsonOptions);
                         System.Diagnostics.Debug.WriteLine($"Content JSON: {contentJson}");
 
-                        var containers = JsonSerializer.Deserialize<List<ContainerWithRepairCodesModel>>(contentJson, _jsonOptions);
+                        var apiContainers = JsonSerializer.Deserialize<List<ApiContainerModel>>(contentJson, _jsonOptions);
 
-                        System.Diagnostics.Debug.WriteLine($"Deserialized {containers?.Count ?? 0} containers for cleaning");
-
-                        // Log commodity information for first few containers
-                        if (containers != null && containers.Any())
+                        if (apiContainers != null)
                         {
-                            foreach (var container in containers.Take(5))
+                            // Convert to app Container models
+                            var appContainers = new List<Container>();
+                            for (int i = 0; i < apiContainers.Count; i++)
                             {
-                                System.Diagnostics.Debug.WriteLine($"Container {container.ContNumber}: Commodity = '{container.Commodity ?? "NULL"}'");
+                                var appContainer = ConvertApiContainerToAppContainer(apiContainers[i]);
+                                if (appContainer != null)
+                                {
+                                    appContainer.RowNumber = i + 1; // Set row number
+                                    appContainers.Add(appContainer);
+                                }
                             }
-                        }
 
-                        // Return the response with properly typed content
-                        return new ApiResponse
-                        {
-                            IsSuccess = true,
-                            Message = apiResponse.Message,
-                            Content = containers
-                        };
+                            System.Diagnostics.Debug.WriteLine($"Converted {appContainers.Count} API containers to app containers");
+
+                            return new ApiResponse
+                            {
+                                IsSuccess = true,
+                                Message = apiResponse.Message,
+                                Content = appContainers
+                            };
+                        }
                     }
 
-                    return apiResponse;
+                    return apiResponse ?? new ApiResponse { IsSuccess = false, Message = "No response data" };
                 }
                 else
                 {
@@ -265,6 +265,74 @@ namespace Surveying.Services
                     IsSuccess = false,
                     Message = $"Error connecting to API: {ex.Message}"
                 };
+            }
+        }
+
+        // ===== CONVERSION METHOD =====
+        private Container ConvertApiContainerToAppContainer(ApiContainerModel apiContainer)
+        {
+            try
+            {
+                var appContainer = new Container
+                {
+                    // Basic properties
+                    Id = apiContainer.Id,
+                    ContNumber = apiContainer.ContNumber,
+                    DtmIn = apiContainer.DtmIn,
+                    CustomerCode = apiContainer.CustomerCode,
+
+                    // Approval properties
+                    IsRepairApproved = apiContainer.IsRepairApproved,
+                    ApprovalDate = apiContainer.ApprovalDate,
+                    ApprovedBy = apiContainer.ApprovedBy,
+
+                    // Cleaning properties
+                    Commodity = apiContainer.Commodity,
+                    CleaningRequirementsText = apiContainer.CleaningRequirementsText,
+                    CleaningStartDate = apiContainer.CleaningStartDate,
+                    CleaningCompleteDate = apiContainer.CleaningCompleteDate,
+
+                    // Default container properties
+                    ContSize = "20",
+                    ContType = "Tank",
+
+                    // Initialize status
+                    CleaningStatus = StatusType.NotFilled,
+                    RepairStatus = StatusType.NotFilled,
+                    PeriodicStatus = StatusType.NotFilled,
+                    SurveyStatus = StatusType.NotFilled
+                };
+
+                // Convert repair codes
+                if (apiContainer.RepairCodes != null)
+                {
+                    foreach (var apiRepairCode in apiContainer.RepairCodes)
+                    {
+                        var appRepairCode = new RepairCode
+                        {
+                            Code = apiRepairCode.RepairCode,
+                            ComponentCode = apiRepairCode.ComponentCode,
+                            LocationCode = apiRepairCode.LocationCode,
+                            Description = apiRepairCode.RepairCodeDescription,
+                            ComponentDescription = apiRepairCode.ComponentCodeDescription,
+                            DetailDescription = apiRepairCode.RepairDetailDescription,
+                            IsCompleted = false
+                        };
+                        appContainer.RepairCodes.Add(appRepairCode);
+                    }
+                }
+
+                // Update activities
+                appContainer.UpdateActivities();
+
+                System.Diagnostics.Debug.WriteLine($"Converted container {appContainer.ContNumber}: {appContainer.RepairCodes.Count} repair codes");
+
+                return appContainer;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error converting API container: {ex.Message}");
+                return null;
             }
         }
 

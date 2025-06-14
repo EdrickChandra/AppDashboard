@@ -1,83 +1,246 @@
 ﻿using Surveying.Models;
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 
-namespace Surveying;
-
-public static class DummyData
+namespace Surveying
 {
-    public static ObservableCollection<PrincipalModel> Principals = new ObservableCollection<PrincipalModel>
+    /// <summary>
+    /// SIMPLIFIED DUMMY DATA
+    /// Removed: Complex lookups, separate collections for Principals/Shippers/Containers
+    /// Added: Direct Order objects with embedded Containers
+    /// </summary>
+    public static class DummyData
     {
-        new PrincipalModel(1, "P001", "Newport"),
-        new PrincipalModel(2, "P002", "Principal 2"),
-        new PrincipalModel(3, "P003", "Principal 3"),
-        new PrincipalModel(4, "P004", "Principal 4"),
-        new PrincipalModel(5, "P005", "Principal 5"),
-    };
+        /// <summary>
+        /// Sample orders with containers - ready to use directly
+        /// </summary>
+        public static ObservableCollection<Order> Orders { get; } = new ObservableCollection<Order>
+        {
+            // Order 1: Multiple containers
+            new Order
+            {
+                OrderNumber = "ORD-001",
+                Surveyor = "John Smith",
+                PrincipalCode = "P001",
+                PrincipalName = "Newport Shipping",
+                ShipperCode = "S001",
+                ShipperName = "Musim Mas",
+                OrderDate = DateTime.Today.AddDays(-5),
+                SurveyDate = DateTime.Today.AddDays(-3),
+                PickupDate = DateTime.Today.AddDays(2),
+                Containers = new ObservableCollection<Container>
+                {
+                    new Container
+                    {
+                        ContNumber = "ABCD0000001",
+                        ContSize = "20",
+                        ContType = "Tank",
+                        CustomerCode = "CUST001",
+                        Commodity = "Palm Oil",
+                        CleaningStatus = StatusType.Finished,
+                        RepairStatus = StatusType.OnReview,
+                        PeriodicStatus = StatusType.Finished,
+                        SurveyStatus = StatusType.NotFilled
+                    },
+                    new Container
+                    {
+                        ContNumber = "ABCD0000002",
+                        ContSize = "20",
+                        ContType = "Tank",
+                        CustomerCode = "CUST001",
+                        Commodity = "Cooking Oil",
+                        CleaningStatus = StatusType.Rejected,
+                        RepairStatus = StatusType.Finished,
+                        PeriodicStatus = StatusType.NotFilled,
+                        SurveyStatus = StatusType.NotFilled
+                    },
+                    new Container
+                    {
+                        ContNumber = "ABCD0000003",
+                        ContSize = "40",
+                        ContType = "Tank",
+                        CustomerCode = "CUST001",
+                        Commodity = "Vegetable Oil",
+                        CleaningStatus = StatusType.OnReview,
+                        RepairStatus = StatusType.NotFilled,
+                        PeriodicStatus = StatusType.OnReview,
+                        SurveyStatus = StatusType.NotFilled
+                    }
+                }
+            },
 
-    public static ObservableCollection<ShipperModel> Shippers = new ObservableCollection<ShipperModel>
-    {
-        new ShipperModel(1, "S001", "Musim Mas"),
-        new ShipperModel(2, "S002", "Shipper 2"),
-        new ShipperModel(3, "S003", "Shipper 3"),
-        new ShipperModel(4, "S004", "Shipper 4"),
-        new ShipperModel(5, "S005", "Shipper 5"),
-    };
+            // Order 2: Multiple containers
+            new Order
+            {
+                OrderNumber = "ORD-002",
+                Surveyor = "Jane Doe",
+                PrincipalCode = "P002",
+                PrincipalName = "Global Logistics",
+                ShipperCode = "S002",
+                ShipperName = "Asia Pacific Oils",
+                OrderDate = DateTime.Today.AddDays(-3),
+                SurveyDate = DateTime.Today.AddDays(-1),
+                PickupDate = DateTime.Today.AddDays(3),
+                Containers = new ObservableCollection<Container>
+                {
+                    new Container
+                    {
+                        ContNumber = "EFGH0000001",
+                        ContSize = "20",
+                        ContType = "Tank",
+                        CustomerCode = "CUST002",
+                        Commodity = "Soybean Oil",
+                        CleaningStatus = StatusType.Finished,
+                        RepairStatus = StatusType.Finished,
+                        PeriodicStatus = StatusType.Finished,
+                        SurveyStatus = StatusType.Finished
+                    },
+                    new Container
+                    {
+                        ContNumber = "EFGH0000002",
+                        ContSize = "40",
+                        ContType = "Tank",
+                        CustomerCode = "CUST002",
+                        Commodity = "Sunflower Oil",
+                        CleaningStatus = StatusType.OnReview,
+                        RepairStatus = StatusType.Rejected,
+                        PeriodicStatus = StatusType.NotFilled,
+                        SurveyStatus = StatusType.NotFilled
+                    }
+                }
+            },
 
-    public static ObservableCollection<ContModel> Containers = new ObservableCollection<ContModel>
-    {
-        new ContModel("ABCD0000001", "20", "Tank"),
-        new ContModel("ABCD0000002", "20", "Tank"),
-        new ContModel("ABCD0000003", "40", "Tank"),
-        new ContModel("EFGH0000001", "20", "Tank"),
-        new ContModel("EFGH0000002", "40", "Tank"),
-        new ContModel("IJKL0000001", "20", "Tank"),
-        new ContModel("IJKL0000002", "20", "Tank"),
-        new ContModel("MNOP0000001", "40", "Tank"),
-    };
+            // Order 3: Single container
+            new Order
+            {
+                OrderNumber = "ORD-003",
+                Surveyor = "Mike Johnson",
+                PrincipalCode = "P003",
+                PrincipalName = "Maritime Express",
+                ShipperCode = "S003",
+                ShipperName = "Pacific Traders",
+                OrderDate = DateTime.Today.AddDays(-2),
+                SurveyDate = DateTime.Today,
+                PickupDate = DateTime.Today.AddDays(4),
+                Containers = new ObservableCollection<Container>
+                {
+                    new Container
+                    {
+                        ContNumber = "IJKL0000001",
+                        ContSize = "20",
+                        ContType = "Tank",
+                        CustomerCode = "CUST003",
+                        Commodity = "Coconut Oil",
+                        CleaningStatus = StatusType.Finished,
+                        RepairStatus = StatusType.Finished,
+                        PeriodicStatus = StatusType.OnReview,
+                        SurveyStatus = StatusType.OnReview
+                    }
+                }
+            },
 
-    public static ObservableCollection<SurveyModel> Surveys = new ObservableCollection<SurveyModel>
-    {
-        // Order ABC001 with multiple containers
-        new SurveyModel("ABC001", 1, "John Doe", 1, "ABCD0000001", DateTime.Now, DateTime.Now.AddDays(2), DateTime.Now.AddDays(5), "Clean"),
-        new SurveyModel("ABC001", 1, "John Doe", 1, "ABCD0000002", DateTime.Now, DateTime.Now.AddDays(2), DateTime.Now.AddDays(5), "Dirty"),
-        new SurveyModel("ABC001", 1, "John Doe", 1, "ABCD0000003", DateTime.Now, DateTime.Now.AddDays(2), DateTime.Now.AddDays(5), "Mty Clean"),
-        
-        // Order ABC002 with multiple containers
-        new SurveyModel("ABC002", 2, "Jane Smith", 2, "EFGH0000001", DateTime.Now, DateTime.Now.AddDays(3), DateTime.Now.AddDays(6), "Clean"),
-        new SurveyModel("ABC002", 2, "Jane Smith", 2, "EFGH0000002", DateTime.Now, DateTime.Now.AddDays(3), DateTime.Now.AddDays(6), "Dirty"),
-        
-        // Order ABC003 with multiple containers
-        new SurveyModel("ABC003", 3, "Mike Johnson", 3, "IJKL0000001", DateTime.Now, DateTime.Now.AddDays(4), DateTime.Now.AddDays(7), "Clean"),
-        new SurveyModel("ABC003", 3, "Mike Johnson", 3, "IJKL0000002", DateTime.Now, DateTime.Now.AddDays(4), DateTime.Now.AddDays(7), "Mty Clean"),
-        
-        // Order ABC004 with one container
-        new SurveyModel("ABC004", 4, "Sarah Wilson", 4, "MNOP0000001", DateTime.Now, DateTime.Now.AddDays(5), DateTime.Now.AddDays(8), "Dirty")
-    };
+            // Order 4: Multiple containers with different statuses
+            new Order
+            {
+                OrderNumber = "ORD-004",
+                Surveyor = "Sarah Wilson",
+                PrincipalCode = "P004",
+                PrincipalName = "Ocean Freight",
+                ShipperCode = "S004",
+                ShipperName = "Eastern Oils",
+                OrderDate = DateTime.Today.AddDays(-1),
+                SurveyDate = DateTime.Today.AddDays(1),
+                PickupDate = DateTime.Today.AddDays(5),
+                Containers = new ObservableCollection<Container>
+                {
+                    new Container
+                    {
+                        ContNumber = "MNOP0000001",
+                        ContSize = "40",
+                        ContType = "Tank",
+                        CustomerCode = "CUST004",
+                        Commodity = "Canola Oil",
+                        CleaningStatus = StatusType.NotFilled,
+                        RepairStatus = StatusType.NotFilled,
+                        PeriodicStatus = StatusType.NotFilled,
+                        SurveyStatus = StatusType.NotFilled
+                    },
+                    new Container
+                    {
+                        ContNumber = "MNOP0000002",
+                        ContSize = "20",
+                        ContType = "Tank",
+                        CustomerCode = "CUST004",
+                        Commodity = "Olive Oil",
+                        CleaningStatus = StatusType.OnReview,
+                        RepairStatus = StatusType.Finished,
+                        PeriodicStatus = StatusType.NotFilled,
+                        SurveyStatus = StatusType.NotFilled
+                    }
+                }
+            }
+        };
 
-    // Initialize some status values to demonstrate status displays
-    static DummyData()
-    {
-        // Set some statuses for demonstration
-        Surveys[0].CleaningStatus = StatusType.Finished;
-        Surveys[0].RepairStatus = StatusType.OnReview;
-        Surveys[0].PeriodicStatus = StatusType.Finished;
+        /// <summary>
+        /// Initialize activities for all containers
+        /// Called automatically when data is accessed
+        /// </summary>
+        static DummyData()
+        {
+            // Initialize activities for all containers
+            foreach (var order in Orders)
+            {
+                foreach (var container in order.Containers)
+                {
+                    container.UpdateActivities();
+                }
+            }
+        }
 
-        Surveys[1].CleaningStatus = StatusType.Rejected;
-        Surveys[1].RepairStatus = StatusType.Finished;
+        /// <summary>
+        /// Get sample containers for cleaning list (mimics API response)
+        /// </summary>
+        public static ObservableCollection<Container> GetContainersForCleaning()
+        {
+            var cleaningContainers = new ObservableCollection<Container>();
 
-        Surveys[2].CleaningStatus = StatusType.OnReview;
-        Surveys[2].PeriodicStatus = StatusType.OnReview;
+            // Add containers that need cleaning
+            foreach (var order in Orders)
+            {
+                foreach (var container in order.Containers)
+                {
+                    // Add containers that are not finished cleaning
+                    if (container.CleaningStatus != StatusType.Finished)
+                    {
+                        // Add some cleaning requirements
+                        container.CleaningRequirementsText = "YXT • 1101 • APNN";
+                        container.DtmIn = DateTime.Today.AddDays(-Random.Shared.Next(1, 10));
 
-        Surveys[3].RepairStatus = StatusType.Finished;
-        Surveys[3].PeriodicStatus = StatusType.Finished;
+                        cleaningContainers.Add(container);
+                    }
+                }
+            }
 
-        Surveys[4].CleaningStatus = StatusType.OnReview;
-        Surveys[4].RepairStatus = StatusType.Rejected;
+            return cleaningContainers;
+        }
 
-        Surveys[5].CleaningStatus = StatusType.Finished;
-        Surveys[5].RepairStatus = StatusType.Finished;
-        Surveys[5].PeriodicStatus = StatusType.Finished;
-        Surveys[5].SurveyStatus = StatusType.Finished;
+        /// <summary>
+        /// Get a specific container by number
+        /// </summary>
+        public static Container GetContainerByNumber(string contNumber)
+        {
+            return Orders.SelectMany(o => o.Containers)
+                        .FirstOrDefault(c => c.ContNumber.Equals(contNumber, StringComparison.OrdinalIgnoreCase));
+        }
+
+        /// <summary>
+        /// Get order containing a specific container
+        /// </summary>
+        public static Order GetOrderByContainerNumber(string contNumber)
+        {
+            return Orders.FirstOrDefault(o => o.Containers.Any(c =>
+                c.ContNumber.Equals(contNumber, StringComparison.OrdinalIgnoreCase)));
+        }
     }
 }

@@ -86,13 +86,8 @@ namespace Surveying.Helpers
 
         private int GetNumericValue(object value, object parameter)
         {
-            // Handle PhotoUploadViewModel photo count
-            if (value is PhotoUploadViewModel photoUploader && parameter is string segmentName)
-            {
-                return photoUploader.GetPhotoCountForSegment(segmentName);
-            }
 
-            // Handle ContainerActivityViewModel photo count  
+            // CHANGE: Handle ContainerActivityViewModel photo count  
             if (value is ContainerActivityViewModel activityVM && parameter is string segment)
             {
                 return activityVM.GetPhotoCountForSegment(segment);
@@ -356,5 +351,27 @@ namespace Surveying.Helpers
         ButtonColor,
         ButtonText,
         IsActive
+    }
+
+    /// <summary>
+    /// Converter to show/hide content based on ActivityType
+    /// </summary>
+    public class ActivityTypeVisibilityConverter : IValueConverter
+    {
+        public ActivityType TargetActivityType { get; set; }
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is ActivityType currentType)
+            {
+                return currentType == TargetActivityType;
+            }
+            return false;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

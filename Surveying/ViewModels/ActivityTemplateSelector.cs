@@ -1,5 +1,4 @@
-﻿using Surveying.ViewModels;
-using Windows.Devices.Sensors;
+﻿using Surveying.Models;
 
 namespace Surveying.ViewModels
 {

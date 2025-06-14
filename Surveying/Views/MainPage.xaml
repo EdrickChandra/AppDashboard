@@ -160,7 +160,6 @@
                                     <syncfusion:DataGridTextColumn HeaderText="Container Number" MappingName="ContNumber" />
                                     <syncfusion:DataGridTextColumn HeaderText="Size" MappingName="ContSize" />
                                     <syncfusion:DataGridTextColumn HeaderText="Type" MappingName="ContType" />
-                                    <syncfusion:DataGridTextColumn HeaderText="Condition" MappingName="Condition" />
                                 </syncfusion:SfDataGrid.Columns>
 
                                 <syncfusion:SfDataGrid.DetailsViewDefinition>
@@ -289,7 +288,6 @@
 
                                                                             <StackLayout Grid.Column="0" Orientation="Vertical" Spacing="3">
                                                                                 <Label Text="{Binding ContNumber}" Style="{StaticResource MobileHeaderStyle}" />
-                                                                                <Label Text="{Binding Condition}" Style="{StaticResource MobileCellStyle}" />
                                                                             </StackLayout>
 
                                                                             <StackLayout Grid.Column="1" Orientation="Vertical" Spacing="3" HorizontalOptions="End">

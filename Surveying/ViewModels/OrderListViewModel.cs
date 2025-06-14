@@ -6,16 +6,16 @@ using System.Linq;
 
 namespace Surveying.ViewModels
 {
-     MIGRATED: SurveyListViewModel using simplified models =====
-    // RENAMED: SurveyListViewModel → OrderListViewModel (better naming)
+    /// <summary>
+    /// SIMPLIFIED: OrderListViewModel using direct Order objects
+    /// Removed: Complex data conversion and lookups
+    /// </summary>
     public partial class OrderListViewModel : BaseViewModel
     {
         [ObservableProperty]
         private Order selectedOrder;
 
         // ===== SIMPLIFIED COLLECTIONS =====
-        // OLD: ObservableCollection<SurveyModel> orderGroups (complex grouped surveys)
-        // NEW: ObservableCollection<Order> orders (clean Order objects with Containers)
         [ObservableProperty]
         private ObservableCollection<Order> orders;
 
@@ -40,94 +40,16 @@ namespace Surveying.ViewModels
         [ObservableProperty]
         private bool isDesktopMode;
 
-        // ===== CONSTRUCTOR - SIMPLIFIED =====
+        // ===== SIMPLIFIED CONSTRUCTOR =====
         public OrderListViewModel()
         {
-            // SIMPLIFIED: Convert DummyData to unified Order objects
-            Orders = ConvertDummyDataToOrders();
+            // MUCH SIMPLER: Just use the orders directly from DummyData
+            Orders = DummyData.Orders;
             FilteredOrderList = new ObservableCollection<Order>(Orders);
 
             // Default to desktop mode - will be updated by MainPage
             IsDesktopMode = true;
             IsMobileMode = false;
-        }
-
-        // ===== SIMPLIFIED DATA CONVERSION =====
-        // OLD: Complex GroupSurveysByOrder method with inheritance and lookups
-        // NEW: Simple conversion to unified Order objects
-        private ObservableCollection<Order> ConvertDummyDataToOrders()
-        {
-            // Group old surveys by order number
-            var groupedSurveys = DummyData.Surveys.GroupBy(s => s.OrderNumber)
-                                                 .ToDictionary(g => g.Key, g => g.ToList());
-
-            var orders = new ObservableCollection<Order>();
-
-            foreach (var grouping in groupedSurveys)
-            {
-                string orderNumber = grouping.Key;
-                var surveysInGroup = grouping.Value;
-
-                if (surveysInGroup.Count > 0)
-                {
-                    var firstSurvey = surveysInGroup[0];
-
-                    // SIMPLIFIED: Create Order with direct string properties (no more ID lookups!)
-                    var order = new Order
-                    {
-                        OrderNumber = orderNumber,
-                        Surveyor = firstSurvey.Surveyor,
-                        OrderDate = firstSurvey.OrderDate,
-                        SurveyDate = firstSurvey.SurveyDate,
-                        PickupDate = firstSurvey.PickupDate,
-
-                        // SIMPLIFIED: Get Principal/Shipper info directly (no more DummyData lookups!)
-                        PrincipalCode = DummyData.Principals.FirstOrDefault(p => p.Id == firstSurvey.PrincipalId)?.Code ?? $"P{firstSurvey.PrincipalId:000}",
-                        PrincipalName = DummyData.Principals.FirstOrDefault(p => p.Id == firstSurvey.PrincipalId)?.Name ?? "Unknown Principal",
-                        ShipperCode = DummyData.Shippers.FirstOrDefault(s => s.Id == firstSurvey.ShipperId)?.Code ?? $"S{firstSurvey.ShipperId:000}",
-                        ShipperName = DummyData.Shippers.FirstOrDefault(s => s.Id == firstSurvey.ShipperId)?.Name ?? "Unknown Shipper",
-
-                        Containers = new ObservableCollection<Container>()
-                    };
-
-                    // SIMPLIFIED: Add containers to order
-                    foreach (var survey in surveysInGroup)
-                    {
-                        var containerInfo = DummyData.Containers.FirstOrDefault(c => c.ContNumber == survey.ContNumber);
-                        if (containerInfo != null)
-                        {
-                            // SIMPLIFIED: Create unified Container object
-                            var container = new Container
-                            {
-                                ContNumber = survey.ContNumber,
-                                ContSize = containerInfo.ContSize,
-                                ContType = containerInfo.ContType,
-                                Condition = survey.Condition,
-
-                                // Status directly from survey
-                                CleaningStatus = survey.CleaningStatus,
-                                RepairStatus = survey.RepairStatus,
-                                PeriodicStatus = survey.PeriodicStatus,
-                                SurveyStatus = survey.SurveyStatus,
-
-                                // Initialize other properties
-                                CustomerCode = "TBD",
-                                DtmIn = DateTime.Now,
-                                Commodity = "Tank Container"
-                            };
-
-                            // Update activities automatically
-                            container.UpdateActivities();
-
-                            order.Containers.Add(container);
-                        }
-                    }
-
-                    orders.Add(order);
-                }
-            }
-
-            return orders;
         }
 
         // ===== RESPONSIVE DESIGN - UNCHANGED =====
@@ -177,8 +99,5 @@ namespace Surveying.ViewModels
             Orders.Add(newOrder);
             UpdateFilteredOrderList();
         }
-
-        // Condition list - unchanged
-        public ObservableCollection<string> ConditionList => ConditionData.ConditionList;
     }
 }

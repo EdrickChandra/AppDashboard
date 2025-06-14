@@ -3,7 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using Surveying.Models;
 using Surveying.Services;
 using System.Collections.ObjectModel;
-using Windows.Devices.Sensors;
+
 
 namespace Surveying.ViewModels
 {

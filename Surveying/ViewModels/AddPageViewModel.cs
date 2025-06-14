@@ -42,9 +42,6 @@ namespace Surveying.ViewModels;
         [ObservableProperty]
         private bool isContainerValid;
 
-        [ObservableProperty]
-        private string condition = string.Empty;
-
         // ===== DATE INFO - UNCHANGED =====
         [ObservableProperty]
         private DateTime orderDate = DateTime.Today;
@@ -55,7 +52,7 @@ namespace Surveying.ViewModels;
         [ObservableProperty]
         private DateTime pickupDate = DateTime.Today;
 
-        /
+        
         public Order CurrentOrder { get; set; } = new Order();
 
         // For display in the grid - show individual containers being added
@@ -64,8 +61,6 @@ namespace Surveying.ViewModels;
         // Callback when submission is complete
         public Action<Order> OnSubmitCompleted { get; set; }
 
-        // Condition list - unchanged
-        public ObservableCollection<string> ConditionList => ConditionData.ConditionList;
 
         // ===== CONSTRUCTORS =====
         public AddPageViewModel() : this(new ContainerApiService())
@@ -174,7 +169,6 @@ namespace Surveying.ViewModels;
             var container = new Container
             {
                 ContNumber = ContNumber,
-                Condition = Condition,
                 ContSize = "20", // Default - could be enhanced later
                 ContType = "Tank",
                 CustomerCode = "TBD", // Will be populated from API if needed
@@ -198,9 +192,8 @@ namespace Surveying.ViewModels;
 
             // Clear input fields
             ContNumber = string.Empty;
-            Condition = string.Empty;
             OnPropertyChanged(nameof(ContNumber));
-            OnPropertyChanged(nameof(Condition));
+
         }
 
         // ===== SUBMIT ORDER - SIMPLIFIED =====
@@ -227,15 +220,14 @@ namespace Surveying.ViewModels;
             OnSubmitCompleted?.Invoke(CurrentOrder);
         }
 
-        // ===== VALIDATION HELPERS =====
-        private bool IsValidContainer()
-        {
-            return !string.IsNullOrWhiteSpace(ContNumber) &&
-                   !string.IsNullOrWhiteSpace(Condition) &&
-                   IsContainerValid;
-        }
+    // ===== VALIDATION HELPERS =====
+    private bool IsValidContainer()
+    {
+        return !string.IsNullOrWhiteSpace(ContNumber) &&
+               IsContainerValid;
+    }
 
-        private bool IsValidOrder()
+    private bool IsValidOrder()
         {
             if (string.IsNullOrWhiteSpace(OrderNumber))
             {
@@ -258,4 +250,3 @@ namespace Surveying.ViewModels;
             return true;
         }
     }
-}

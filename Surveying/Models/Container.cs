@@ -21,9 +21,6 @@ namespace Surveying.Models
         public string ContSize { get; set; } = "20";
         public string ContType { get; set; } = "Tank";
 
-        // ===== FROM ContainerDetailModel (condition info) =====
-        public string Condition { get; set; } = string.Empty;
-
         // ===== FROM ContainerWithRepairCodesModel (repair/cleaning info) =====
         public bool IsRepairApproved { get; set; }
         public DateTime? ApprovalDate { get; set; }

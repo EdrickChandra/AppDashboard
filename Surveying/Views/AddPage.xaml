@@ -3,7 +3,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:syncfusion="clr-namespace:Syncfusion.Maui.DataGrid;assembly=Syncfusion.Maui.DataGrid"
              xmlns:inputLayout="clr-namespace:Syncfusion.Maui.Core;assembly=Syncfusion.Maui.Core"
-             xmlns:editors="clr-namespace:Syncfusion.Maui.Inputs;assembly=Syncfusion.Maui.Inputs"
              xmlns:local="clr-namespace:Surveying.ViewModels"
              xmlns:helpers="clr-namespace:Surveying.Helpers"
              x:Class="Surveying.Views.AddPage"
@@ -15,7 +14,8 @@
 
     <ContentPage.Resources>
         <ResourceDictionary>
-            <helpers:StringToBoolConverter x:Key="StringToBoolConverter"/>
+            <!-- FIXED: Use UniversalBoolConverter instead of StringToBoolConverter -->
+            <helpers:UniversalBoolConverter x:Key="StringToBoolConverter" ConversionType="StringNotEmpty"/>
 
             <Style TargetType="inputLayout:SfTextInputLayout">
                 <Setter Property="ContainerType" Value="Outlined" />
@@ -39,11 +39,6 @@
                 <Setter Property="BackgroundColor" Value="Transparent" />
                 <Setter Property="TextColor" Value="{AppThemeBinding Light=#212529, Dark=#F8F9FA}" />
                 <Setter Property="FontSize" Value="14" />
-            </Style>
-
-            <Style TargetType="editors:SfComboBox">
-                <Setter Property="TextColor" Value="{AppThemeBinding Light=#212529, Dark=#F8F9FA}" />
-                <Setter Property="Margin" Value="0,5,0,5" />
             </Style>
 
             <Style TargetType="Frame">
@@ -93,12 +88,12 @@
                         </inputLayout:SfTextInputLayout>
 
                         <!-- Row 2 -->
-                        <inputLayout:SfTextInputLayout Grid.Row="1" Grid.Column="0" Hint="Principal ID">
-                            <Entry Text="{Binding PrincipalId}" />
+                        <inputLayout:SfTextInputLayout Grid.Row="1" Grid.Column="0" Hint="Principal Code">
+                            <Entry Text="{Binding PrincipalCode}" />
                         </inputLayout:SfTextInputLayout>
 
-                        <inputLayout:SfTextInputLayout Grid.Row="1" Grid.Column="1" Hint="Shipper ID">
-                            <Entry Text="{Binding ShipperId}" />
+                        <inputLayout:SfTextInputLayout Grid.Row="1" Grid.Column="1" Hint="Shipper Code">
+                            <Entry Text="{Binding ShipperCode}" />
                         </inputLayout:SfTextInputLayout>
                     </Grid>
                 </StackLayout>
@@ -109,7 +104,8 @@
                 <StackLayout Spacing="15">
                     <Label Text="Container Information" Style="{StaticResource SectionHeaderStyle}" />
 
-                    <Grid ColumnDefinitions="*,*" 
+                    <!-- FIXED: Single column layout since we removed Condition -->
+                    <Grid ColumnDefinitions="*" 
                           ColumnSpacing="15" 
                           RowSpacing="10"
                           RowDefinitions="Auto">
@@ -120,16 +116,6 @@
                                                      Hint="Container Number">
                             <Entry Text="{Binding ContNumber, Mode=TwoWay}" />
                         </inputLayout:SfTextInputLayout>
-
-                        <editors:SfComboBox Grid.Row="0" Grid.Column="1"
-                                         x:Name="comboBox"
-                                         SelectedItem="{Binding Condition, Mode=TwoWay}"
-                                         Placeholder="Condition"
-                                         IsEditable="True"
-                                         IsFilteringEnabled="True"
-                                         NoResultsFoundText="Not Found"
-                                         ItemsSource="{Binding ConditionList}"
-                                         HeightRequest="50" />
                     </Grid>
                 </StackLayout>
             </Frame>
@@ -200,20 +186,20 @@
                 </StackLayout>
             </Frame>
 
-            <!-- Add Entry Button -->
-            <Button Text="Add Entry" 
-                    Command="{Binding AddSurveyEntryCommand}" />
+            <!-- Add Container Button -->
+            <Button Text="Add Container" 
+                    Command="{Binding AddContainerEntryCommand}" />
 
-            <!-- Survey Entries Section -->
+            <!-- Container Entries Section -->
             <Frame>
                 <StackLayout>
-                    <Label Text="Survey Entries" 
+                    <Label Text="Container Entries" 
                            FontSize="18" 
                            FontAttributes="Bold" 
                            TextColor="{AppThemeBinding Light=#212529, Dark=#F8F9FA}"
                            Margin="0,0,0,10" />
 
-                    <syncfusion:SfDataGrid ItemsSource="{Binding SurveyEntries}"
+                    <syncfusion:SfDataGrid ItemsSource="{Binding ContainerEntries}"
                                        AutoGenerateColumnsMode="None"
                                        HeightRequest="200"
                                        AllowDeleting="True"
@@ -226,19 +212,13 @@
                                        VerticalScrollBarVisibility="Default"
                                        HorizontalScrollBarVisibility="Default">
                         <syncfusion:SfDataGrid.Columns>
-                            <syncfusion:DataGridTextColumn MappingName="OrderNumber" HeaderText="Order Number" />
-                            <syncfusion:DataGridTextColumn MappingName="PrincipalId" HeaderText="Principal ID" />
-                            <syncfusion:DataGridTextColumn MappingName="Surveyor" HeaderText="Surveyor" />
-                            <syncfusion:DataGridTextColumn MappingName="ShipperId" HeaderText="Shipper ID" />
                             <syncfusion:DataGridTextColumn MappingName="ContNumber" HeaderText="Container Number" />
-                            <syncfusion:DataGridTextColumn MappingName="OrderDate" HeaderText="Order Date" Format="dd/MM/yyyy" />
-                            <syncfusion:DataGridTextColumn MappingName="SurveyDate" HeaderText="Survey Date" Format="dd/MM/yyyy" />
-                            <syncfusion:DataGridTextColumn MappingName="PickupDate" HeaderText="Pickup Date" Format="dd/MM/yyyy" />
-                            <syncfusion:DataGridTextColumn MappingName="Condition" HeaderText="Condition" />
+                            <syncfusion:DataGridTextColumn MappingName="ContSize" HeaderText="Size" />
+                            <syncfusion:DataGridTextColumn MappingName="ContType" HeaderText="Type" />
                         </syncfusion:SfDataGrid.Columns>
                     </syncfusion:SfDataGrid>
 
-                    <Button Text="Submit" 
+                    <Button Text="Submit Order" 
                             Command="{Binding SubmitCommand}" 
                             BackgroundColor="#28A745" />
                 </StackLayout>

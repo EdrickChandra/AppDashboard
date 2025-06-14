@@ -1,6 +1,6 @@
 using Surveying.Models;
 using Surveying.ViewModels;
-using Windows.Devices.Sensors;
+
 
 namespace Surveying.Views
 {

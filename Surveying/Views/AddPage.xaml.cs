@@ -6,14 +6,18 @@ namespace Surveying.Views
 {
     public partial class AddPage : ContentPage
     {
-        public AddPage(Action<ObservableCollection<SurveyModel>> onSubmitCallback)
+        // CHANGE FROM:
+        // public AddPage(Action<ObservableCollection<SurveyModel>> onSubmitCallback)
+        
+        // CHANGE TO:
+        public AddPage(Action<Order> onSubmitCallback)
         {
             InitializeComponent();
             var viewModel = new AddPageViewModel();
 
-            viewModel.OnSubmitCompleted = (surveyEntries) =>
+            viewModel.OnSubmitCompleted = (newOrder) =>  // CHANGED: was surveyEntries, now newOrder
             {
-                onSubmitCallback?.Invoke(surveyEntries);
+                onSubmitCallback?.Invoke(newOrder);  // CHANGED: Pass the Order object
                 Device.BeginInvokeOnMainThread(async () =>
                 {
                     await Navigation.PopAsync();
